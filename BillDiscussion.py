@@ -45,6 +45,8 @@ class BillDiscussion:
         | PublicComments
     ]
     
+    # closing remarks by committee chair or bill author
+    closing_remarks: Tuple[int, int]
     # voting section
     vote: Tuple[int, int]
     # final remarks at end of session
