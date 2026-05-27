@@ -19,7 +19,7 @@ class SectionSpeakerEnum(Enum):
     LEGISLATOR_DISCUSSION=  [SpeakerRoleEnum.AUTHOR, SpeakerRoleEnum.LEGISLATOR]
     EXPERT_TESTIMONY=       [SpeakerRoleEnum.AUTHOR, SpeakerRoleEnum.LEGISLATOR, SpeakerRoleEnum.EXPERT]
     PUBLIC_COMMENTS=        [SpeakerRoleEnum.PUBLIC]
-    
+
     # closing remarks by committee chair or bill author
     CLOSING_REMARKS=        [SpeakerRoleEnum.CHAIRMAN, SpeakerRoleEnum.AUTHOR]
 
