@@ -1,0 +1,43 @@
+from typing import List, Dict, Tuple, Union, Optional
+from dataclasses import dataclass
+
+from ..enums.SectionSpeakerEnum import SectionSpeakerEnum
+from .OralContribution import OralContribution
+
+"""
+only want to parse hearings labelled as CA_201720180<AB/SB>7
+    if it's got SR in the suffix, then it's a senate resolution,
+    which we don't need to parse
+tuples represent indices of starting line (inclusive), ending line (exclusive)
+"""
+@dataclass
+class Section:
+    # start and end uids (utterance indices) of form [start_uid, end_uid)
+    span: Tuple[int, int]
+    valid_speakers: SectionSpeakerEnum
+    utterances: List[OralContribution]
+    
+
+@dataclass
+class BillDiscussion:
+    """
+    Note: hearing transcript may contain a portion of the previous and/or following one
+    """
+
+    # introducing senators, pledge of allegiance, etc.
+    intro: Optional[Section]
+
+    # bill description/introduction
+    presentation: Section
+
+    # sequence of different discussion sections
+    discussion: List[Section]
+    
+    # closing remarks by committee chair or bill author
+    closing_remarks: Section
+
+    # voting section
+    vote: Section
+
+    # final remarks at end of session
+    outro: Optional[Section]
