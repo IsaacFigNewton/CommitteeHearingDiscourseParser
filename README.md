@@ -1,7 +1,66 @@
 # CommitteeHearingDiscourseParser
 
-## Ontology
+## Speaker and Section Enums
+```mermaid
+graph TD
+    %% SpeakerRoleEnum subgraph
+    subgraph SpeakerRoles[SpeakerRoleEnum]
+        CHAIRMAN[CHAIRMAN]
+        SECRETARY[SECRETARY]
+        AUTHOR[AUTHOR]
+        LEGISLATOR[LEGISLATOR]
+        EXPERT[EXPERT]
+        PUBLIC[PUBLIC]
+        OTHER[OTHER]
+    end
 
+    %% SectionSpeakerEnum subgraph
+    subgraph SectionSpeakers[SectionSpeakerEnum]
+        ANY_SECTION[ANY_SECTION]
+        INTRO[INTRO]
+        PRESENTATION[PRESENTATION]
+        LEGISLATOR_DISCUSSION[LEGISLATOR_DISCUSSION]
+        EXPERT_TESTIMONY[EXPERT_TESTIMONY]
+        PUBLIC_COMMENTS[PUBLIC_COMMENTS]
+        CLOSING_REMARKS[CLOSING_REMARKS]
+        VOTE[VOTE]
+        OUTRO[OUTRO]
+    end
+
+    %% SectionSpeakerEnum to SpeakerRoleEnum associations
+    ANY_SECTION -->|allows| CHAIRMAN
+    ANY_SECTION -->|allows| SECRETARY
+    ANY_SECTION -->|allows| OTHER
+
+    INTRO -->|allows| CHAIRMAN
+
+    PRESENTATION -->|allows| AUTHOR
+
+    LEGISLATOR_DISCUSSION -->|allows| AUTHOR
+    LEGISLATOR_DISCUSSION -->|allows| LEGISLATOR
+
+    EXPERT_TESTIMONY -->|allows| AUTHOR
+    EXPERT_TESTIMONY -->|allows| LEGISLATOR
+    EXPERT_TESTIMONY -->|allows| EXPERT
+
+    PUBLIC_COMMENTS -->|allows| PUBLIC
+
+    CLOSING_REMARKS -->|allows| CHAIRMAN
+    CLOSING_REMARKS -->|allows| AUTHOR
+
+    VOTE -->|allows| CHAIRMAN
+
+    OUTRO -->|allows| CHAIRMAN
+
+    classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
+    classDef enumValue fill:#f0f0f0,stroke:#666,stroke-width:1px,color:#000
+
+    class SpeakerRoleEnum,SectionSpeakerEnum enumClass
+    class CHAIRMAN,SECRETARY,AUTHOR,LEGISLATOR,EXPERT,PUBLIC,OTHER,ANY_SECTION,INTRO,PRESENTATION,LEGISLATOR_DISCUSSION,EXPERT_TESTIMONY,PUBLIC_COMMENTS,CLOSING_REMARKS,VOTE,OUTRO enumValue
+```
+
+
+## Bill Discussion Ontology
 ```mermaid
 graph TD
     %% Main dataclasses
@@ -9,6 +68,7 @@ graph TD
     Section[Section]
     OralContribution[OralContribution]
     Speaker[Speaker]
+    SpeakerRoleEnum[SpeakerRoleEnum]
 
     %% BillDiscussion sections
     IntroSection[intro]
@@ -17,30 +77,6 @@ graph TD
     ClosingRemarksSection[closing_remarks]
     VoteSection[vote]
     OutroSection[outro]
-
-    %% Enums
-    SpeakerRoleEnum{SpeakerRoleEnum}
-    SectionSpeakerEnum{SectionSpeakerEnum}
-
-    %% SpeakerRoleEnum values
-    CHAIRMAN[CHAIRMAN]
-    SECRETARY[SECRETARY]
-    AUTHOR[AUTHOR]
-    LEGISLATOR[LEGISLATOR]
-    EXPERT[EXPERT]
-    PUBLIC[PUBLIC]
-    OTHER[OTHER]
-
-    %% SectionSpeakerEnum values
-    ANY_SECTION[ANY_SECTION]
-    INTRO[INTRO]
-    PRESENTATION[PRESENTATION]
-    LEGISLATOR_DISCUSSION[LEGISLATOR_DISCUSSION]
-    EXPERT_TESTIMONY[EXPERT_TESTIMONY]
-    PUBLIC_COMMENTS[PUBLIC_COMMENTS]
-    CLOSING_REMARKS[CLOSING_REMARKS]
-    VOTE[VOTE]
-    OUTRO[OUTRO]
 
     %% BillDiscussion to sections
     BillDiscussion -->|has| IntroSection
@@ -58,16 +94,6 @@ graph TD
     VoteSection -->|is a| Section
     OutroSection -->|is a| Section
 
-    %% Sections to SectionSpeakerEnum values
-    IntroSection -.->|allows| INTRO
-    PresentationSection -.->|allows| PRESENTATION
-    DiscussionSection -.->|allows| LEGISLATOR_DISCUSSION
-    DiscussionSection -.->|allows| EXPERT_TESTIMONY
-    DiscussionSection -.->|allows| PUBLIC_COMMENTS
-    ClosingRemarksSection -.->|allows| CLOSING_REMARKS
-    VoteSection -.->|allows| VOTE
-    OutroSection -.->|allows| OUTRO
-
     %% Section relationships
     Section -->|contains| OralContribution
 
@@ -79,32 +105,11 @@ graph TD
     %% Speaker relationships
     Speaker -->|has role| SpeakerRoleEnum
 
-    %% Enum memberships
-    SpeakerRoleEnum -.->|type| CHAIRMAN
-    SpeakerRoleEnum -.->|type| SECRETARY
-    SpeakerRoleEnum -.->|type| AUTHOR
-    SpeakerRoleEnum -.->|type| LEGISLATOR
-    SpeakerRoleEnum -.->|type| EXPERT
-    SpeakerRoleEnum -.->|type| PUBLIC
-    SpeakerRoleEnum -.->|type| OTHER
-
-    SectionSpeakerEnum -.->|type| ANY_SECTION
-    SectionSpeakerEnum -.->|type| INTRO
-    SectionSpeakerEnum -.->|type| PRESENTATION
-    SectionSpeakerEnum -.->|type| LEGISLATOR_DISCUSSION
-    SectionSpeakerEnum -.->|type| EXPERT_TESTIMONY
-    SectionSpeakerEnum -.->|type| PUBLIC_COMMENTS
-    SectionSpeakerEnum -.->|type| CLOSING_REMARKS
-    SectionSpeakerEnum -.->|type| VOTE
-    SectionSpeakerEnum -.->|type| OUTRO
-
     classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
     classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
-    classDef enumValue fill:#f0f0f0,stroke:#666,stroke-width:1px,color:#000
     classDef sectionNode fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
 
     class BillDiscussion,Section,OralContribution,Speaker dataclass
-    class SpeakerRoleEnum,SectionSpeakerEnum enumClass
-    class CHAIRMAN,SECRETARY,AUTHOR,LEGISLATOR,EXPERT,PUBLIC,OTHER,ANY_SECTION,INTRO,PRESENTATION,LEGISLATOR_DISCUSSION,EXPERT_TESTIMONY,PUBLIC_COMMENTS,CLOSING_REMARKS,VOTE,OUTRO enumValue
+    class SpeakerRoleEnum enumClass
     class IntroSection,PresentationSection,DiscussionSection,ClosingRemarksSection,VoteSection,OutroSection sectionNode
 ```
