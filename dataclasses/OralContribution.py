@@ -21,10 +21,4 @@ class OralContribution:
     speaker: Speaker
 
     # utterance text
-    reported_speech: str
-
-    # most recent utterance id that is being continued
-    resumes_from: Optional[int]
-    
-    # most recent utterance id that this utterance is responding to
-    in_reply_to: Optional[int]
+    text: str
