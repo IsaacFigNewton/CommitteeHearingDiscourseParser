@@ -5,11 +5,11 @@ used to enumerate the different possible roles of speakers in a bill discussion
 """
 
 class SpeakerRoleEnum(Enum):
-    CHAIRMAN=   "committee chair"
-    STAFF=      "committee staff"       # includes committee chair, secretary, and staff
-    AUTHOR=     "bill author"
-    PRESENTER=  "bill presenter"        # usually bill author
-    LEGISLATOR= "legislator"
-    EXPERT=     "expert witness"
-    PUBLIC=     "member of the public"
-    OTHER=      "uncategorized speaker"
+    CHAIRMAN=   "CHAIRMAN"
+    STAFF=      "STAFF"             # includes committee chair, secretary, and staff
+    AUTHOR=     "AUTHOR"
+    PRESENTER=  "PRESENTER"         # usually bill author
+    LEGISLATOR= "ASSEMBLYMEMBER"
+    EXPERT=     "EXPERT"
+    PUBLIC=     "PUBLIC"
+    OTHER=      "UNKNOWN"
