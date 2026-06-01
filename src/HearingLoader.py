@@ -6,11 +6,11 @@ from typing import Optional, List, Dict, Any
 import pandas as pd
 
 from .config import *
-from .dataclasses.Hearing import Hearing
+from .dataclasses.Hearing import RawHearing
 from .dataclasses.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
-from .enums.SpeakerRoleEnum import SpeakerRoleEnum, COMMITTEE_POSITION_MAP
+from .enums.SpeakerTypeEnum import SpeakerTypeEnum, COMMITTEE_POSITION_MAP
 
 class HearingLoader:
     """
@@ -42,7 +42,7 @@ class HearingLoader:
         self.hearings: pd.DataFrame =           self.load_csv("hearings", method="pandas")
         self.speeches: Dict[str, Any] =         self.load_csv("speeches", method="custom")
         self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
-        self.people: pd.DataFrame =   self.load_csv("people", method="pandas")
+        self.people: pd.DataFrame =             self.load_csv("people", method="pandas")
         
         # get a set of all the cids
         self.cids = set(self.committeeRosters["cid"].unique().tolist())
@@ -132,23 +132,23 @@ class HearingLoader:
                 # if they're a member of the committee
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
                 if pos:
-                    speaker.speaker_role = pos
+                    speaker.speaker_type = pos
                     return speaker
 
                 # if they're a legislator that is not part of the committee
                 #   (check with Khosmood to see if nonmembers are only ever authors)
-                speaker.speaker_role = SpeakerRoleEnum.NONMEMBER
+                speaker.speaker_type = SpeakerTypeEnum.NONMEMBER
                 return speaker
 
             # if it's just the committee secretary or staff
             if speaker.first_name == "Committee" and speaker.last_name == "Secretary":
-                speaker.speaker_role = SpeakerRoleEnum.SECRETARY
+                speaker.speaker_type = SpeakerTypeEnum.SECRETARY
                 return speaker
 
             # if it's not a legislator,
             #   but they are being tracked
             #   not enough info for disambiguation yet, so mark as unknown
-            speaker.speaker_role = SpeakerRoleEnum.OTHER
+            speaker.speaker_type = SpeakerTypeEnum.UNKNOWN
             return speaker
         
         # if it's someone not tracked in the dataset
@@ -172,11 +172,11 @@ class HearingLoader:
                 return self._update_role(cid, speaker)
         
         # if no speaker match found, mark as unknown
-        speaker.speaker_role = SpeakerRoleEnum.OTHER
+        speaker.speaker_type = SpeakerTypeEnum.UNKNOWN
         return speaker
 
 
-    def load_all_committee_hearings(self) -> List[Hearing]:
+    def load_all_committee_hearings(self) -> List[RawHearing]:
         """
         Load all hearings for each committee and enrich speakers with their positions.
 
@@ -215,7 +215,7 @@ class HearingLoader:
             speeches_by_cid_hid_bid[cid][hid][bid].append(speech_row)
 
 
-        hearings: List[Hearing] = []
+        hearings: List[RawHearing] = []
         for cid in self.cids:
             hearings_by_hid = speeches_by_cid_hid_bid[cid]
             
@@ -246,7 +246,7 @@ class HearingLoader:
         bid: str,
         hearing_row: Any,
         speech_rows: List[List[Any]],
-    ) -> Hearing:
+    ) -> RawHearing:
         """
         Build a Hearing object from pre-indexed speech rows.
 
@@ -276,7 +276,8 @@ class HearingLoader:
                         if speech_row[SPEECH_LAST_NAME_IDX]
                         else None
                     ),
-                    speaker_role=None,
+                    speaker_type=None,
+                    speaker_role=None
                 )
 
             utterances.append(
@@ -287,7 +288,7 @@ class HearingLoader:
                 )
             )
 
-        return Hearing(
+        return RawHearing(
             hid=hid,
             bid=bid,
             cid=int(hearing_row.cid),
@@ -302,7 +303,7 @@ class HearingLoader:
     def bill_discussion_info(self,
             hid: int,
             bid: str,
-        ) -> Hearing:
+        ) -> RawHearing:
         """Get complete bill discussion info."""
         hid_str = str(hid)
 
@@ -317,6 +318,7 @@ class HearingLoader:
                     pid=speaker_pid,
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
+                    speaker_type=None,
                     speaker_role=None,
                 )
 
@@ -330,7 +332,7 @@ class HearingLoader:
                 uid += 1
 
         row = self.hearings.loc[self.hearings["hid"] == hid].iloc[0, :]
-        return Hearing(
+        return RawHearing(
             hid=hid,
             bid=bid,
             cid=int(row["cid"]),
@@ -343,7 +345,7 @@ class HearingLoader:
 
 
     @staticmethod
-    def pprint_hearing(hearing: Hearing):
+    def pprint_hearing(hearing: RawHearing):
         """Print formatted transcript."""
         print()
         print(f"State:\t\t{hearing.state}")

@@ -1,27 +1,29 @@
 from enum import Enum
-
-"""
-used to enumerate the different possible roles of speakers in a bill discussion
-"""
+from .SpeakerTypeEnum import SpeakerTypeEnum
 
 class SpeakerRoleEnum(Enum):
     # procedural roles
-    CHAIRMAN=           "CHAIRMAN"
-    VICE_CHAIRMAN=      "VICE_CHAIRMAN"
-    SECRETARY=          "SECRETARY"
+    CHAIRMAN=           frozenset({SpeakerTypeEnum.CHAIRMAN})
+    VICE_CHAIRMAN=      frozenset({SpeakerTypeEnum.VICE_CHAIRMAN})
+    SECRETARY=          frozenset({SpeakerTypeEnum.SECRETARY})
+    STAFF=              frozenset({
+        SpeakerTypeEnum.CHAIRMAN,
+        SpeakerTypeEnum.VICE_CHAIRMAN,
+        SpeakerTypeEnum.SECRETARY,
+    })
 
-    AUTHOR=             "AUTHOR"
-    PRESENTER=          "PRESENTER"         # usually bill author
-    MEMBER=             "MEMBER"            # committee member
-    NONMEMBER=          "NONMEMBER"         # legislator that is not a committee member
-    EXPERT=             "EXPERT"
-    PUBLIC=             "PUBLIC"
-    OTHER=              "UNKNOWN"
+    # legislator roles
+    PRESENTER=          frozenset({SpeakerTypeEnum.PRESENTER})
+    LEGISLATOR=         frozenset({
+        SpeakerTypeEnum.CHAIRMAN,
+        SpeakerTypeEnum.VICE_CHAIRMAN,
+        SpeakerTypeEnum.AUTHOR,
+        SpeakerTypeEnum.PRESENTER,
+        SpeakerTypeEnum.MEMBER,
+        SpeakerTypeEnum.NONMEMBER,
+    })
 
-
-COMMITTEE_POSITION_MAP = {
-    "Chair":        SpeakerRoleEnum.CHAIRMAN,
-    "Co-Chair":     SpeakerRoleEnum.CHAIRMAN,
-    "Vice-Chair":   SpeakerRoleEnum.VICE_CHAIRMAN,
-    "Member":       SpeakerRoleEnum.MEMBER
-}
+    # other roles
+    EXPERT=             frozenset({SpeakerTypeEnum.EXPERT})
+    PUBLIC=             frozenset({SpeakerTypeEnum.PUBLIC})
+    UNKNOWN=            frozenset({SpeakerTypeEnum.UNKNOWN})
