@@ -5,7 +5,6 @@ class SpeakerRoleEnum(Enum):
     # procedural roles
     CHAIRMAN=           frozenset({SpeakerTypeEnum.CHAIRMAN})
     VICE_CHAIRMAN=      frozenset({SpeakerTypeEnum.VICE_CHAIRMAN})
-    SECRETARY=          frozenset({SpeakerTypeEnum.SECRETARY})
     STAFF=              frozenset({
         SpeakerTypeEnum.CHAIRMAN,
         SpeakerTypeEnum.VICE_CHAIRMAN,
