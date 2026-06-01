@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 
 from .config import *
 from .dataclasses.Hearing import Hearing
+from .dataclasses.Speaker import Speaker
+from .dataclasses.OralContribution import OralContribution
 
 
 class TranscriptLoader:
@@ -118,18 +120,29 @@ class TranscriptLoader:
                     state=row[HEARING_STATE_IDX]
                 )
                 break
-                
+
         # get transcript data
         lines = []
+        uid = 0
         for row in self.speeches['rows']:
             if hid_str == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
-                lines.append({
-                    'first name': row[SPEECH_FIRST_NAME_IDX],
-                    'last name': row[SPEECH_LAST_NAME_IDX],
-                    'pid': row[SPEECH_PID_IDX],
-                    'text': row[SPEECH_TEXT_IDX]
-                })
-        
+                speaker = Speaker(
+                    pid=int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else None,
+                    first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
+                    last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
+                    speaker_role=None,
+                    in_group=None
+                )
+
+                oral_contribution = OralContribution(
+                    uid=uid,
+                    speaker=speaker,
+                    text=row[SPEECH_TEXT_IDX]
+                )
+
+                lines.append(oral_contribution)
+                uid += 1
+
         return {
             "metadata": hearing_metadata,
             "transcript": lines
@@ -139,14 +152,19 @@ class TranscriptLoader:
     @staticmethod
     def pprint_discussion(
             metadata: Hearing,
-            transcript_info: List[Dict[str, Any]]
+            transcript_info: List[OralContribution]
         ):
         """Print formatted transcript."""
         print()
-        print(f"] Discussion of {metadata.state} {metadata.cname} held on {metadata.hearing_date.strftime('%Y-%m-%d')}")
-        print("] printing transcript: ")
-        prev_video = -1
-        for line in transcript_info:
-            print(f"{line['first name']} {line['last name']}: ")
-            print(f"\t{line['text']}")
+        print(f"State:\t\t{metadata.state}")
+        print(f"Committee:\t{metadata.cname}")
+        print(f"Bill:\t\t{metadata.bid}")
+        print(f"Date:\t\t{metadata.hearing_date.strftime('%Y-%m-%d')}")
+        print()
+        print("Transcript:")
+        for contribution in transcript_info:
+            first_name = contribution.speaker.first_name or "UNKNOWN"
+            last_name = contribution.speaker.last_name or "UNKNOWN"
+            name = f"{first_name} {last_name}:"
+            print(f"{name:<20} {contribution.text}")
         print()
