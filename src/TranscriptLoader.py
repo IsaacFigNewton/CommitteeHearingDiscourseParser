@@ -4,9 +4,9 @@ TranscriptLoader - A class for loading and querying Digital Democracy Corpus dat
 
 import sys
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List, Dict, Any
-from bs4 import BeautifulSoup
+import pandas as pd
 
 from .config import *
 from .dataclasses.Hearing import Hearing
@@ -35,8 +35,8 @@ class TranscriptLoader:
         self.corpus_path = corpus_path
         self._setup_csv_field_limit()
 
-        self.hearings = self.load_content("hearings")
-        self.speeches = self.load_content("speeches")
+        self.hearings: pd.DataFrame = self.load_csv("hearings", method="pandas")
+        self.speeches: Dict[str, Any] = self.load_csv("speeches", method="custom")
 
 
     def _setup_csv_field_limit(self):
@@ -49,8 +49,12 @@ class TranscriptLoader:
             csv.field_size_limit(maxInt)
 
 
-    def load_content(self, file_name: str, states: Optional[List[str]] = None,
-                     years: Optional[List[int]] = None) -> Dict[str, Any]:
+    def load_csv(self,
+            file_name: str,
+            states: Optional[List[str]] = None,
+            years: Optional[List[int]] = None,
+            method: str = "custom"
+        ) -> Dict[str, Any] | pd.DataFrame:
         """Load data from CSVs into a Python object."""
         # Validate inputs
         if states is not None and not all(item in VALID_STATES for item in states):
@@ -65,7 +69,14 @@ class TranscriptLoader:
             if not all(item <= 2018 for item in years):
                 raise Exception("Valid session_years are 2017 and 2018 for all states. 2015 and 2016 are valid for CA.")
 
-        payload = {}
+        match method:
+            case "custom":
+                payload = {}
+            case "pandas":
+                payload = pd.DataFrame()
+            case _:
+                raise ValueError("Invalid csv loading method")
+            
         header_row = True
 
         if states is None:
@@ -87,15 +98,27 @@ class TranscriptLoader:
                 file_paths.append(f"{self.corpus_path}{state}/2015-2016/CSV/{file_name}.csv")
 
             for file_path in file_paths:
-                with open(file_path, newline='', encoding='utf-8', errors='replace') as csvfile:
-                    rows = csv.reader(csvfile, delimiter=',')
-                    for row in rows:
-                        if header_row:
-                            payload['column_headers'] = row
-                            payload['rows'] = []
-                            header_row = False
-                            continue
-                        payload['rows'].append(row)
+                match method:
+                    case "custom":
+                        with open(file_path, newline='', encoding='utf-8', errors='replace') as csvfile:
+                            rows = csv.reader(csvfile, delimiter=',')
+                            for row in rows:
+                                if header_row:
+                                    payload['column_headers'] = row
+                                    payload['rows'] = []
+                                    header_row = False
+                                    continue
+                                payload['rows'].append(row)
+                    case "pandas":
+                        if isinstance(payload, pd.DataFrame):
+                            if payload.shape[0] == 0:
+                                payload = pd.read_csv(file_path)
+                            else:
+                                payload = pd.concat([payload, pd.read_csv(file_path)], axis=0)
+                        else:
+                            raise ValueError("not sure how we got here")
+                    case _:
+                        raise ValueError("Invalid csv loading method")       
 
         return payload
 
@@ -109,17 +132,15 @@ class TranscriptLoader:
 
         # get hearing metadata
         hearing_metadata = None
-        for row in self.hearings['rows']:
-            if hid_str == row[HEARING_HID_IDX]:
-                hearing_metadata = Hearing(
-                    hid=hid,
-                    bid=bid,
-                    cid=int(row[HEARING_CID_IDX]),
-                    cname=row[HEARING_CNAME_IDX],
-                    hearing_date=datetime.strptime(row[HEARING_HDATE_IDX], '%Y-%m-%d'),
-                    state=row[HEARING_STATE_IDX]
-                )
-                break
+        row = self.hearings.loc[self.hearings["hid"] == hid].iloc[0, :]
+        hearing_metadata = Hearing(
+            hid=hid,
+            bid=bid,
+            cid=int(row["cid"]),
+            cname=row["Committee"],
+            hearing_date=datetime.strptime(row["hDate"], '%Y-%m-%d'),
+            state=row["state"]
+        )
 
         # get transcript data
         lines = []
