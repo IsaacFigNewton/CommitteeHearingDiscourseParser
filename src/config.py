@@ -22,8 +22,8 @@ CSV_FILENAMES = [
 DEFAULT_CORPUS_PATH = 'DH2024_Corpus_Release/'
 
 # Year ranges for different states
-CA_VALID_YEARS = [2015, 2016, 2017, 2018]
-OTHER_STATES_VALID_YEARS = [2017, 2018]
+CA_VALID_YEARS = ["2015-2016", "2017-2018"]
+OTHER_STATES_VALID_YEARS = ["2017-2018"]
 
 # CSV column indices for speeches
 SPEECH_HID_IDX = 3

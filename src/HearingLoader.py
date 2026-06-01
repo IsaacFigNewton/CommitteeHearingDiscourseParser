@@ -9,6 +9,7 @@ from .dataclasses.Hearing import Hearing
 from .dataclasses.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
+from .enums.SpeakerRoleEnum import SpeakerRoleEnum, COMMITTEE_POSITION_MAP
 
 class HearingLoader:
     """
@@ -41,7 +42,7 @@ class HearingLoader:
         #   if a pid is not in this set, then the person is not a legislator
         self.pids = set(self.committeeRosters["pid"].unique().tolist())
 
-        self.cid_roster_cache = None
+        self.cid_pid_pos = self.get_cid_pid_pos()
 
     def _setup_csv_field_limit(self):
         """Set up CSV field size limit (Windows compatible)."""
@@ -55,8 +56,8 @@ class HearingLoader:
 
     def load_csv(self,
             file_name: str,
-            states: Optional[List[str]] = None,
-            years: Optional[List[int]] = None,
+            states: List[str] = VALID_STATES,
+            years: List[str] = OTHER_STATES_VALID_YEARS,
             method: str = "custom"
         ) -> Dict[str, Any] | pd.DataFrame:
         """Load data from CSVs into a Python object."""
@@ -66,12 +67,6 @@ class HearingLoader:
 
         if file_name not in CSV_FILENAMES:
             raise Exception("Invalid filename, must be one of the 9 files provided")
-
-        if years is not None:
-            if not all(item > 2015 for item in years) and (states is None or "CA" not in states):
-                raise Exception("Data for requested year not included in corpus.")
-            if not all(item <= 2018 for item in years):
-                raise Exception("Valid session_years are 2017 and 2018 for all states. 2015 and 2016 are valid for CA.")
 
         match method:
             case "custom":
@@ -83,23 +78,11 @@ class HearingLoader:
             
         header_row = True
 
-        if states is None:
-            states = VALID_STATES
-
-        if years is None:
-            if "CA" in states:
-                years = CA_VALID_YEARS
-            else:
-                years = OTHER_STATES_VALID_YEARS
-
         for state in states:
             file_paths = []
 
-            if 2017 in years or 2018 in years:
-                file_paths.append(f"{self.corpus_path}{state}/2017-2018/CSV/{file_name}.csv")
-
-            if state == "CA" and (2015 in years or 2016 in years):
-                file_paths.append(f"{self.corpus_path}{state}/2015-2016/CSV/{file_name}.csv")
+            for year in years:
+                file_paths.append(f"{self.corpus_path}{state}/{year}/CSV/{file_name}.csv")
 
             for file_path in file_paths:
                 match method:
@@ -125,6 +108,46 @@ class HearingLoader:
                         raise ValueError("Invalid csv loading method")       
 
         return payload
+
+
+    def get_cid_pid_pos(self) -> Dict[int, Dict[int, SpeakerRoleEnum]]:
+        """
+        Create a dictionary mapping committee IDs to participant positions.
+
+        Returns:
+            Dictionary of the form {cid: {pid: position}} where position is the
+            role (e.g., "Chair", "Member") for each participant in each committee.
+        """
+        result = {}
+        for _, row in self.committeeRosters.iterrows():
+            cid = row["cid"]
+            pid = row["pid"]
+            position = row["position"]
+
+            if cid not in result:
+                result[cid] = {}
+            
+            result[cid][pid] = COMMITTEE_POSITION_MAP[position]
+        
+        return result
+
+
+    def get_position(self, cid: int, pid: int):
+        # if it's a legislator
+        if pid in self.pids:
+            # if they're a member of the committee
+            pos = self.cid_pid_pos[cid].get(pid)
+            if pos:
+                return pos
+
+            # if they're a legislator that is not part of the committee
+            #   (check with Khosmood to see if nonmembers are only ever authors)
+            else:
+                return SpeakerRoleEnum.NONMEMBER
+
+        # if it's not a legislator,
+        #   not enough info for disambiguation yet, so mark as unknown
+        return SpeakerRoleEnum.OTHER
 
 
     def bill_discussion_info(self,
