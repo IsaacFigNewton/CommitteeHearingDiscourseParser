@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from bs4 import BeautifulSoup
 
+from .config import *
+
 
 class TranscriptLoader:
     """
@@ -20,14 +22,7 @@ class TranscriptLoader:
     - Retrieve and format hearing transcripts
     """
 
-    # Class constants
-    VALID_STATES = ["CA", "FL", "NY", "TX"]
-    CSV_FILENAMES = ['bills', 'committeeHearings', 'committeeRosters',
-                     'committees', 'hearings', 'legislature',
-                     'people', 'speeches', 'videos']
-
-
-    def __init__(self, corpus_path: str = 'DH2024_Corpus_Release/'):
+    def __init__(self, corpus_path: str = DEFAULT_CORPUS_PATH):
         """
         Initialize the TranscriptLoader with the path to the corpus.
 
@@ -52,10 +47,10 @@ class TranscriptLoader:
                      years: Optional[List[int]] = None) -> Dict[str, Any]:
         """Load data from CSVs into a Python object."""
         # Validate inputs
-        if states is not None and not all(item in self.VALID_STATES for item in states):
+        if states is not None and not all(item in VALID_STATES for item in states):
             raise Exception("Invalid State Abbv(s), corpus only contains data on CA, FL, NY, and TX")
 
-        if file_name not in self.CSV_FILENAMES:
+        if file_name not in CSV_FILENAMES:
             raise Exception("Invalid filename, must be one of the 9 files provided")
 
         if years is not None:
@@ -68,13 +63,13 @@ class TranscriptLoader:
         header_row = True
 
         if states is None:
-            states = self.VALID_STATES
+            states = VALID_STATES
 
         if years is None:
             if "CA" in states:
-                years = [2015, 2016, 2017, 2018]
+                years = CA_VALID_YEARS
             else:
-                years = [2017, 2018]
+                years = OTHER_STATES_VALID_YEARS
 
         for state in states:
             file_paths = []
@@ -102,62 +97,56 @@ class TranscriptLoader:
     def find_bill_from_bid(self, bid: str, partial_match: bool = False,
                           speeches: Optional[Dict] = None) -> List[List[str]]:
         """Find hearings where a bill is discussed."""
-        HID_IDX, BID_IDX, SESSION_IDX, DATE_IDX = 3, 4, 7, 6
         if speeches is None:
             speeches = self.load_content("speeches")
         hids, matches = [], []
         for row in speeches['rows']:
-            if not partial_match and row[BID_IDX] == bid and row[HID_IDX] not in hids:
-                matches.append([bid, row[HID_IDX], row[SESSION_IDX], row[DATE_IDX]])
-                hids.append(row[HID_IDX])
-            if partial_match and bid in row[BID_IDX] and row[HID_IDX] not in hids:
-                matches.append([row[BID_IDX], row[HID_IDX], row[SESSION_IDX], row[DATE_IDX]])
-                hids.append(row[HID_IDX])
+            if not partial_match and row[SPEECH_BID_IDX] == bid and row[SPEECH_HID_IDX] not in hids:
+                matches.append([bid, row[SPEECH_HID_IDX], row[SPEECH_SESSION_IDX], row[SPEECH_DATE_IDX]])
+                hids.append(row[SPEECH_HID_IDX])
+            if partial_match and bid in row[SPEECH_BID_IDX] and row[SPEECH_HID_IDX] not in hids:
+                matches.append([row[SPEECH_BID_IDX], row[SPEECH_HID_IDX], row[SPEECH_SESSION_IDX], row[SPEECH_DATE_IDX]])
+                hids.append(row[SPEECH_HID_IDX])
         return matches
 
 
     @staticmethod
     def add_seconds(start_time: str, seconds_to_add: int) -> str:
         """Add seconds to a time string."""
-        time_obj = datetime.strptime(start_time, '%H:%M:%S')
+        time_obj = datetime.strptime(start_time, TIME_FORMAT)
         new_time = time_obj + timedelta(seconds=seconds_to_add)
-        return new_time.strftime('%H:%M:%S')
+        return new_time.strftime(TIME_FORMAT)
 
 
     def get_metadata_hearing(self, hid: int, hearings: Optional[Dict] = None,
                             videos: Optional[Dict] = None) -> Dict[str, Any]:
         """Get hearing metadata."""
-        HID_IDX, CID_IDX, CNAME_IDX, HDATE_IDX, STATE_IDX = 0, 4, 8, 1, 3
         if hearings is None:
             hearings = self.load_content("hearings")
         hid = str(hid)
         for row in hearings['rows']:
-            if hid == row[HID_IDX]:
+            if hid == row[HEARING_HID_IDX]:
                 return {
-                    'hid': row[HID_IDX], 'cid': row[CID_IDX], 'cname': row[CNAME_IDX],
-                    'hearing_date': row[HDATE_IDX], 'state': row[STATE_IDX]
+                    'hid': row[HEARING_HID_IDX], 'cid': row[HEARING_CID_IDX], 'cname': row[HEARING_CNAME_IDX],
+                    'hearing_date': row[HEARING_HDATE_IDX], 'state': row[HEARING_STATE_IDX]
                 }
         return {}
 
 
     def get_hearing_transcript(self, hid: int, bid: str, speeches: Optional[Dict] = None) -> List[Dict[str, Any]]:
         """Get transcript for a bill discussion."""
-        PID_IDX, BID_IDX, HID_IDX = 1, 4, 3
-        VID_START_IDX, VID_END_IDX = 9, 10
-        LAST_NAME_IDX, FIRST_NAME_IDX, TEXT_IDX = 14, 15, 16
-        STARTING_TIME_IDX = 11
         if speeches is None:
             speeches = self.load_content("speeches")
         hid = str(hid)
         lines = []
         for row in speeches['rows']:
-            if hid == row[HID_IDX] and bid == row[BID_IDX]:
-                offset_time = self.add_seconds("00:00:00", int(row[STARTING_TIME_IDX]))
+            if hid == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
+                offset_time = self.add_seconds("00:00:00", int(row[SPEECH_STARTING_TIME_IDX]))
                 lines.append({
-                    'video start': row[VID_START_IDX], 'video end': row[VID_END_IDX],
-                    'offset': offset_time, 'bid': row[BID_IDX],
-                    'first name': row[FIRST_NAME_IDX], 'last name': row[LAST_NAME_IDX],
-                    'pid': row[PID_IDX], 'text': row[TEXT_IDX]
+                    'video start': row[SPEECH_VID_START_IDX], 'video end': row[SPEECH_VID_END_IDX],
+                    'offset': offset_time, 'bid': row[SPEECH_BID_IDX],
+                    'first name': row[SPEECH_FIRST_NAME_IDX], 'last name': row[SPEECH_LAST_NAME_IDX],
+                    'pid': row[SPEECH_PID_IDX], 'text': row[SPEECH_TEXT_IDX]
                 })
         return lines
 
