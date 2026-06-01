@@ -159,11 +159,13 @@ class HearingLoader:
 
         # get transcript data
         lines = []
+        speakers = dict()
         uid = 0
         for row in self.speeches['rows']:
             if hid_str == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
-                speaker = Speaker(
-                    pid=int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else None,
+                speaker_pid = int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else -1
+                speakers[speaker_pid] = Speaker(
+                    pid=speaker_pid,
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
                     speaker_role=None,
@@ -171,7 +173,7 @@ class HearingLoader:
 
                 oral_contribution = OralContribution(
                     uid=uid,
-                    speaker=speaker,
+                    pid=speaker_pid,
                     text=row[SPEECH_TEXT_IDX]
                 )
 
@@ -186,6 +188,7 @@ class HearingLoader:
             cname=row["Committee"],
             hearing_date=datetime.strptime(row["hDate"], '%Y-%m-%d'),
             state=row["state"],
+            speakers=speakers,
             utterances=lines
         )
 
@@ -201,8 +204,9 @@ class HearingLoader:
         print()
         print("Transcript:")
         for contribution in hearing.utterances:
-            first_name = contribution.speaker.first_name or "UNKNOWN"
-            last_name = contribution.speaker.last_name or "UNKNOWN"
+            speaker = hearing.speakers[contribution.pid]
+            first_name = speaker.first_name or "UNKNOWN"
+            last_name = speaker.last_name or "UNKNOWN"
             name = f"{first_name} {last_name}:"
             print(f"{name:<20} {contribution.text}")
         print()

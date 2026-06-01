@@ -3,6 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 from .OralContribution import OralContribution
+from .Speaker import Speaker
 
 @dataclass
 class Hearing:
@@ -13,4 +14,6 @@ class Hearing:
     hearing_date: datetime
     state: str
 
+    # index speakers by their pids
+    speakers: Dict[int, Speaker]
     utterances: List[OralContribution]
