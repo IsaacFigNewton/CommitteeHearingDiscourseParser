@@ -1,7 +1,3 @@
-"""
-TranscriptLoader - A class for loading and querying Digital Democracy Corpus data
-"""
-
 import sys
 import csv
 from datetime import datetime
@@ -14,7 +10,7 @@ from .dataclasses.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
 
-class TranscriptLoader:
+class HearingLoader:
     """
     A class to load and query committee hearing transcripts from the Digital Democracy Corpus.
 

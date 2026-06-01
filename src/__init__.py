@@ -5,6 +5,6 @@ This module provides functionality to load and query committee hearing transcrip
 from the Digital Democracy Corpus (2015-2018).
 """
 
-from .TranscriptLoader import TranscriptLoader
+from .HearingLoader import HearingLoader
 
-__all__ = ['TranscriptLoader']
+__all__ = ['HearingLoader']
