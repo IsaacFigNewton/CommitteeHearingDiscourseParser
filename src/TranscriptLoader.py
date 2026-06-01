@@ -9,6 +9,7 @@ from typing import Optional, List, Dict, Any
 from bs4 import BeautifulSoup
 
 from .config import *
+from .dataclasses.Hearing import Hearing
 
 
 class TranscriptLoader:
@@ -118,22 +119,33 @@ class TranscriptLoader:
         return new_time.strftime(TIME_FORMAT)
 
 
-    def get_metadata_hearing(self, hid: int, hearings: Optional[Dict] = None,
-                            videos: Optional[Dict] = None) -> Dict[str, Any]:
+    def get_metadata_hearing(self,
+            hid: int,
+            bid: int,
+            hearings: Optional[Dict] = None
+        ) -> Optional[Hearing]:
         """Get hearing metadata."""
         if hearings is None:
             hearings = self.load_content("hearings")
         hid = str(hid)
         for row in hearings['rows']:
             if hid == row[HEARING_HID_IDX]:
-                return {
-                    'hid': row[HEARING_HID_IDX], 'cid': row[HEARING_CID_IDX], 'cname': row[HEARING_CNAME_IDX],
-                    'hearing_date': row[HEARING_HDATE_IDX], 'state': row[HEARING_STATE_IDX]
-                }
-        return {}
+                return Hearing(
+                    hid=int(hid),
+                    bid=bid,
+                    cid=int(row[HEARING_CID_IDX]),
+                    cname=row[HEARING_CNAME_IDX],
+                    hearing_date=datetime.strptime(row[HEARING_HDATE_IDX], '%Y-%m-%d'),
+                    state=row[HEARING_STATE_IDX]
+                )
+        return None
 
 
-    def get_hearing_transcript(self, hid: int, bid: str, speeches: Optional[Dict] = None) -> List[Dict[str, Any]]:
+    def get_hearing_transcript(self,
+            hid: int,
+            bid: str,
+            speeches: Optional[Dict] = None
+        ) -> List[Dict[str, Any]]:
         """Get transcript for a bill discussion."""
         if speeches is None:
             speeches = self.load_content("speeches")
@@ -143,37 +155,39 @@ class TranscriptLoader:
             if hid == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
                 offset_time = self.add_seconds("00:00:00", int(row[SPEECH_STARTING_TIME_IDX]))
                 lines.append({
-                    'video start': row[SPEECH_VID_START_IDX], 'video end': row[SPEECH_VID_END_IDX],
-                    'offset': offset_time, 'bid': row[SPEECH_BID_IDX],
-                    'first name': row[SPEECH_FIRST_NAME_IDX], 'last name': row[SPEECH_LAST_NAME_IDX],
-                    'pid': row[SPEECH_PID_IDX], 'text': row[SPEECH_TEXT_IDX]
+                    'bid': row[SPEECH_BID_IDX],
+                    'first name': row[SPEECH_FIRST_NAME_IDX],
+                    'last name': row[SPEECH_LAST_NAME_IDX],
+                    'pid': row[SPEECH_PID_IDX],
+                    'text': row[SPEECH_TEXT_IDX]
                 })
         return lines
 
 
-    def bill_discussion_info(self, hid: int, bid: str, hearings: Optional[Dict] = None,
-                            speeches: Optional[Dict] = None, videos: Optional[Dict] = None) -> Dict[str, Any]:
+    def bill_discussion_info(self,
+            hid: int,
+            bid: str,
+            hearings: Optional[Dict] = None,
+            speeches: Optional[Dict] = None
+        ) -> Dict[str, Any]:
         """Get complete bill discussion info."""
         return {
-            "metadata": self.get_metadata_hearing(hid, hearings, videos),
+            "metadata": self.get_metadata_hearing(hid, bid, hearings),
             "transcript": self.get_hearing_transcript(hid, bid, speeches)
         }
 
 
     @staticmethod
-    def pprint_discussion(metadata: Dict[str, Any], transcript_info: List[Dict[str, Any]]):
+    def pprint_discussion(
+            metadata: Hearing,
+            transcript_info: List[Dict[str, Any]]
+        ):
         """Print formatted transcript."""
         print()
-        print(f"] Discussion of {metadata['state']} {metadata['cname']} held on {metadata['hearing_date']}")
+        print(f"] Discussion of {metadata.state} {metadata.cname} held on {metadata.hearing_date.strftime('%Y-%m-%d')}")
         print("] printing transcript: ")
         prev_video = -1
         for line in transcript_info:
-            video = line['video start']
-            if video != prev_video:
-                print()
-                print(f"] Discussing {line['bid']}")
-                print()
-                prev_video = video
-            print(f"[{line['offset']}] {line['first name']} {line['last name']}: ")
+            print(f"{line['first name']} {line['last name']}: ")
             print(f"\t{line['text']}")
         print()
