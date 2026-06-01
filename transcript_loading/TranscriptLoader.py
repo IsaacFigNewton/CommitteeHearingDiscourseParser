@@ -26,6 +26,7 @@ class TranscriptLoader:
                      'committees', 'hearings', 'legislature',
                      'people', 'speeches', 'videos']
 
+
     def __init__(self, corpus_path: str = 'DH2024_Corpus_Release/'):
         """
         Initialize the TranscriptLoader with the path to the corpus.
@@ -36,6 +37,7 @@ class TranscriptLoader:
         self.corpus_path = corpus_path
         self._setup_csv_field_limit()
 
+
     def _setup_csv_field_limit(self):
         """Set up CSV field size limit (Windows compatible)."""
         try:
@@ -44,6 +46,7 @@ class TranscriptLoader:
             # Windows workaround
             maxInt = int(2**31 - 1)
             csv.field_size_limit(maxInt)
+
 
     def load_content(self, file_name: str, states: Optional[List[str]] = None,
                      years: Optional[List[int]] = None) -> Dict[str, Any]:
@@ -95,48 +98,6 @@ class TranscriptLoader:
 
         return payload
 
-    def search_person_by_pid(self, pid: int, people: Optional[Dict] = None) -> Optional[tuple]:
-        """Retrieve first and last name for a person ID."""
-        PID_IDX, LAST_NAME_IDX, FIRST_NAME_IDX = 0, 1, 2
-        if people is None:
-            people = self.load_content("people")
-        for person in people['rows']:
-            if person[PID_IDX] == str(pid):
-                return person[FIRST_NAME_IDX], person[LAST_NAME_IDX]
-        return None
-
-    def search_person_by_keyword(self, last_name: str, first_name: Optional[str] = None,
-                                  case_sensitive: bool = True, exact: bool = True,
-                                  people: Optional[Dict] = None) -> List[str]:
-        """Search for people by name keywords."""
-        PID_IDX, LAST_NAME_IDX, FIRST_NAME_IDX = 0, 1, 2
-        if people is None:
-            people = self.load_content("people", years=[2017])
-        hits = []
-        for person in people['rows']:
-            person_last_name = person[LAST_NAME_IDX]
-            person_first_name = person[FIRST_NAME_IDX]
-            if not case_sensitive:
-                person_last_name = person_last_name.upper()
-                person_first_name = person_first_name.upper()
-                last_name_search = last_name.upper()
-                first_name_search = first_name.upper() if first_name else None
-            else:
-                last_name_search = last_name
-                first_name_search = first_name
-
-            if exact and last_name_search == person_last_name:
-                if first_name_search is None:
-                    hits.append(",".join((person[FIRST_NAME_IDX], person[LAST_NAME_IDX], person[PID_IDX])))
-                elif first_name_search == person_first_name:
-                    hits.append(", ".join((person[FIRST_NAME_IDX], person[LAST_NAME_IDX], person[PID_IDX])))
-
-            if not exact and last_name_search in person_last_name:
-                if first_name_search is None:
-                    hits.append(",".join((person[FIRST_NAME_IDX], person[LAST_NAME_IDX], person[PID_IDX])))
-                elif first_name_search in person_first_name:
-                    hits.append(", ".join((person[FIRST_NAME_IDX], person[LAST_NAME_IDX], person[PID_IDX])))
-        return hits
 
     def find_bill_from_bid(self, bid: str, partial_match: bool = False,
                           speeches: Optional[Dict] = None) -> List[List[str]]:
@@ -154,86 +115,6 @@ class TranscriptLoader:
                 hids.append(row[HID_IDX])
         return matches
 
-    @staticmethod
-    def clean_text(text: str) -> str:
-        """Clean XML text from bills."""
-        soup = BeautifulSoup(text, 'html.parser')
-        for span in soup.find_all('span', class_='deletion'):
-            span.decompose()
-        return soup.get_text(separator=' ', strip=True)
-
-    @staticmethod
-    def contains_keywords(text: str, keywords: List[str], all_keys: bool) -> bool:
-        """Check if text contains keywords."""
-        return all(keyword in text for keyword in keywords) if all_keys else any(keyword in text for keyword in keywords)
-
-    def bid_hid_from_keywords(self, keywords: List[str], all_keys: bool = True,
-                             target: str = 'Title', case_sensitive: bool = True,
-                             bills: Optional[Dict] = None, speeches: Optional[Dict] = None) -> Dict[str, List[str]]:
-        """Find bills by keywords in title or text."""
-        TARGET_IDX = 9 if target == 'Title' else 11
-        BID_IDX = 0
-        if bills is None:
-            bills = self.load_content("bills")
-        if speeches is None:
-            speeches = self.load_content("speeches")
-        if not case_sensitive:
-            keywords = [keyword.upper() for keyword in keywords]
-        bids, payload = [], {}
-        for row in bills['rows']:
-            text = self.clean_text(row[TARGET_IDX]) if '<' in row[TARGET_IDX] else row[TARGET_IDX]
-            if case_sensitive and self.contains_keywords(text, keywords, all_keys):
-                bids.append(row[BID_IDX])
-            if not case_sensitive and self.contains_keywords(text.upper(), keywords, all_keys):
-                bids.append(row[BID_IDX])
-        for bid in bids:
-            matches = self.find_bill_from_bid(bid, speeches=speeches)
-            payload[bid] = [row[1] for row in matches]
-        return payload
-
-    def bid_hid_from_title(self, keywords: List[str], all_keys: bool = True,
-                          case_sensitive: bool = True, bills: Optional[Dict] = None,
-                          speeches: Optional[Dict] = None) -> Dict[str, List[str]]:
-        """Search bill titles for keywords."""
-        return self.bid_hid_from_keywords(keywords, all_keys=all_keys, target="Title",
-                                         case_sensitive=case_sensitive, bills=bills, speeches=speeches)
-
-    def bid_hid_from_bill_text(self, keywords: List[str], all_keys: bool = True,
-                               case_sensitive: bool = True, bills: Optional[Dict] = None,
-                               speeches: Optional[Dict] = None) -> Dict[str, List[str]]:
-        """Search bill text for keywords."""
-        return self.bid_hid_from_keywords(keywords, all_keys=all_keys, target="Text",
-                                         case_sensitive=case_sensitive, bills=bills, speeches=speeches)
-
-    def bid_hid_from_speech(self, keywords: List[str], all_keys: bool = True,
-                           case_sensitive: bool = True, speeches: Optional[Dict] = None) -> List[List[str]]:
-        """Find bills/hearings where keywords appear in speeches."""
-        BID_IDX, HID_IDX, TEXT_IDX = 4, 3, 16
-        if speeches is None:
-            speeches = self.load_content("speeches")
-        if not case_sensitive:
-            keywords = [keyword.upper() for keyword in keywords]
-        matches = []
-        for row in speeches['rows']:
-            text = row[TEXT_IDX]
-            pair = [row[BID_IDX], row[HID_IDX]]
-            if case_sensitive and self.contains_keywords(text, keywords, all_keys) and pair not in matches:
-                matches.append(pair)
-            if not case_sensitive and self.contains_keywords(text.upper(), keywords, all_keys) and pair not in matches:
-                matches.append(pair)
-        return matches
-
-    def bid_hid_from_date(self, date: str, speeches: Optional[Dict] = None) -> List[List[str]]:
-        """Find all bills/hearings from a specific date."""
-        HEARING_DATE_IDX, BID_IDX, HID_IDX = 6, 4, 3
-        if speeches is None:
-            speeches = self.load_content("speeches")
-        matches, bids = [], []
-        for row in speeches['rows']:
-            if date == row[HEARING_DATE_IDX] and row[BID_IDX] not in bids:
-                matches.append([row[BID_IDX], row[HID_IDX]])
-                bids.append(row[BID_IDX])
-        return matches
 
     @staticmethod
     def add_seconds(start_time: str, seconds_to_add: int) -> str:
@@ -241,6 +122,7 @@ class TranscriptLoader:
         time_obj = datetime.strptime(start_time, '%H:%M:%S')
         new_time = time_obj + timedelta(seconds=seconds_to_add)
         return new_time.strftime('%H:%M:%S')
+
 
     def get_metadata_hearing(self, hid: int, hearings: Optional[Dict] = None,
                             videos: Optional[Dict] = None) -> Dict[str, Any]:
@@ -256,6 +138,7 @@ class TranscriptLoader:
                     'hearing_date': row[HDATE_IDX], 'state': row[STATE_IDX]
                 }
         return {}
+
 
     def get_hearing_transcript(self, hid: int, bid: str, speeches: Optional[Dict] = None) -> List[Dict[str, Any]]:
         """Get transcript for a bill discussion."""
@@ -278,6 +161,7 @@ class TranscriptLoader:
                 })
         return lines
 
+
     def bill_discussion_info(self, hid: int, bid: str, hearings: Optional[Dict] = None,
                             speeches: Optional[Dict] = None, videos: Optional[Dict] = None) -> Dict[str, Any]:
         """Get complete bill discussion info."""
@@ -285,6 +169,7 @@ class TranscriptLoader:
             "metadata": self.get_metadata_hearing(hid, hearings, videos),
             "transcript": self.get_hearing_transcript(hid, bid, speeches)
         }
+
 
     @staticmethod
     def pprint_discussion(metadata: Dict[str, Any], transcript_info: List[Dict[str, Any]]):
