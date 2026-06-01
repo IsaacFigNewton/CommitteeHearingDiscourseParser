@@ -140,6 +140,11 @@ class HearingLoader:
                 speaker.speaker_role = SpeakerRoleEnum.NONMEMBER
                 return speaker
 
+            # if it's just the committee secretary or staff
+            if speaker.first_name == "Committee" and speaker.last_name == "Secretary":
+                speaker.speaker_role = SpeakerRoleEnum.SECRETARY
+                return speaker
+
             # if it's not a legislator,
             #   but they are being tracked
             #   not enough info for disambiguation yet, so mark as unknown
@@ -156,7 +161,8 @@ class HearingLoader:
                 (self.people["first"] == clean_first)
                 & (self.people["last"] == clean_last)
             )
-            # if there's a match
+
+            # if there's a match in the list of all people
             masked_people = self.people.loc[mask]
             if len(masked_people) > 0:
                 pid = masked_people.iloc[0]["pid"]
