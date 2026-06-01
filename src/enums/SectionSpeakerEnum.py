@@ -8,7 +8,7 @@ SpeakerRoleEnum.CHAIRMAN and SpeakerRoleEnum.SECRETARY are always allowed as spe
 """
 class SectionSpeakerEnum(Enum):
     # introducing senators, pledge of allegiance, etc.
-    INTRO=                  SpeakerRoleEnum.CHAIRMAN.value
+    INTRO=                  SpeakerRoleEnum.PRESIDING_CHAIR.value
 
     # bill description/introduction
     PRESENTATION=           SpeakerRoleEnum.PRESENTER.value
@@ -29,7 +29,7 @@ class SectionSpeakerEnum(Enum):
     # closing remarks by committee chair or bill presenter
     CLOSING_REMARKS=        frozenset(set.union(
         set(),
-        SpeakerRoleEnum.CHAIRMAN.value,
+        SpeakerRoleEnum.PRESIDING_CHAIR.value,
         SpeakerRoleEnum.PRESENTER.value
     ))
 

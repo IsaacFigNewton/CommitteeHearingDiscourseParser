@@ -17,7 +17,7 @@ class SpeakerTypeEnum(Enum):
     # other roles
     EXPERT=             "EXPERT"
     PUBLIC=             "PUBLIC"
-    UNKNOWN=              "UNKNOWN"
+    UNKNOWN=            "UNKNOWN"
 
 
 COMMITTEE_POSITION_MAP = {
