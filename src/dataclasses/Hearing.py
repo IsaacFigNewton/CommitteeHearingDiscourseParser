@@ -5,7 +5,7 @@ from dataclasses import dataclass
 @dataclass
 class Hearing:
     hid: int
-    bid: int
+    bid: str
     cid: int
     cname: str
     hearing_date: datetime
