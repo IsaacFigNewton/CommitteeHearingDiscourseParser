@@ -3,8 +3,10 @@ from .SpeakerTypeEnum import SpeakerTypeEnum
 
 class SpeakerRoleEnum(Enum):
     # procedural roles
-    CHAIRMAN=           frozenset({SpeakerTypeEnum.CHAIRMAN})
-    VICE_CHAIRMAN=      frozenset({SpeakerTypeEnum.VICE_CHAIRMAN})
+    PRESIDING_CHAIR=           frozenset({
+        SpeakerTypeEnum.CHAIRMAN
+        SpeakerTypeEnum.VICE_CHAIRMAN,
+    })
     STAFF=              frozenset({
         SpeakerTypeEnum.CHAIRMAN,
         SpeakerTypeEnum.VICE_CHAIRMAN,
