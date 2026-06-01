@@ -18,6 +18,3 @@ class Speaker:
 
     # role within committee
     speaker_role: Optional[SpeakerRoleEnum]
-    
-    # any stated group affiliation
-    in_group: Optional[str]

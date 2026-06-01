@@ -1,7 +1,6 @@
 from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
-from .Speaker import Speaker
 
 """
 Based on the UK Parliament's oral contribution ontology
@@ -16,9 +15,7 @@ class OralContribution:
     # utterance id within the hearing
     #   indicates utterance index within hearing transcript
     uid: int
-
-    # keep speaker role information separate for modularity
-    speaker: Speaker
-
+    # pid of speaker
+    pid: int
     # utterance text
     text: str
