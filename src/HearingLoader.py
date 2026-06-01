@@ -1,5 +1,6 @@
 import sys
 import csv
+from collections import defaultdict
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 import pandas as pd
@@ -30,28 +31,41 @@ class HearingLoader:
             corpus_path: Path to the extracted corpus directory
         """
         self.corpus_path = corpus_path
-        self._setup_csv_field_limit()
-
-        self.hearings: pd.DataFrame =           self.load_csv("hearings", method="pandas")
-        self.speeches: Dict[str, Any] =         self.load_csv("speeches", method="custom")
-        self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
-        
-        # get a set of all the cids
-        self.cids = set(self.committeeRosters["cid"].unique().tolist())
-        # get a set of all the legislators' pids
-        #   if a pid is not in this set, then the person is not a legislator
-        self.pids = set(self.committeeRosters["pid"].unique().tolist())
-
-        self.cid_pid_pos = self.get_cid_pid_pos()
-
-    def _setup_csv_field_limit(self):
-        """Set up CSV field size limit (Windows compatible)."""
+        # set up csv field limit
         try:
             csv.field_size_limit(sys.maxsize)
         except OverflowError:
             # Windows workaround
             maxInt = int(2**31 - 1)
             csv.field_size_limit(maxInt)
+
+        self.hearings: pd.DataFrame =           self.load_csv("hearings", method="pandas")
+        self.speeches: Dict[str, Any] =         self.load_csv("speeches", method="custom")
+        self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
+        self.people: pd.DataFrame =   self.load_csv("people", method="pandas")
+        
+        # get a set of all the cids
+        self.cids = set(self.committeeRosters["cid"].unique().tolist())
+        # ignore the assembly and senate floors
+        self.cids = self.cids.difference({536, 577})
+        
+        # get a set of all tracked pids
+        #   if a pid is missing from here, it's probably a data cleanliness issue
+        self.all_pids = set(self.people["pid"].unique().tolist())
+        # get a set of all the legislators' pids
+        #   if a pid is not in this set, then the person is not a legislator
+        self.pids = set(self.committeeRosters["pid"].unique().tolist())
+
+        self.cid_pid_pos = dict()
+        for _, row in self.committeeRosters.iterrows():
+            cid = row["cid"]
+            pid = row["pid"]
+            position = row["position"]
+
+            if cid not in self.cid_pid_pos:
+                self.cid_pid_pos[cid] = {}
+            
+            self.cid_pid_pos[cid][pid] = COMMITTEE_POSITION_MAP[position]
 
 
     def load_csv(self,
@@ -110,44 +124,173 @@ class HearingLoader:
         return payload
 
 
-    def get_cid_pid_pos(self) -> Dict[int, Dict[int, SpeakerRoleEnum]]:
-        """
-        Create a dictionary mapping committee IDs to participant positions.
+    def _update_role(self, cid: int, speaker: Speaker):
+        # if its someone tracked in the dataset
+        if speaker.pid in self.all_pids:
+            # if it's a legislator
+            if speaker.pid in self.pids:
+                # if they're a member of the committee
+                pos = self.cid_pid_pos[cid].get(speaker.pid)
+                if pos:
+                    speaker.speaker_role = pos
+                    return speaker
 
-        Returns:
-            Dictionary of the form {cid: {pid: position}} where position is the
-            role (e.g., "Chair", "Member") for each participant in each committee.
-        """
-        result = {}
-        for _, row in self.committeeRosters.iterrows():
-            cid = row["cid"]
-            pid = row["pid"]
-            position = row["position"]
+                # if they're a legislator that is not part of the committee
+                #   (check with Khosmood to see if nonmembers are only ever authors)
+                speaker.speaker_role = SpeakerRoleEnum.NONMEMBER
+                return speaker
 
-            if cid not in result:
-                result[cid] = {}
-            
-            result[cid][pid] = COMMITTEE_POSITION_MAP[position]
+            # if it's not a legislator,
+            #   but they are being tracked
+            #   not enough info for disambiguation yet, so mark as unknown
+            speaker.speaker_role = SpeakerRoleEnum.OTHER
+            return speaker
         
-        return result
+        # if it's someone not tracked in the dataset
+        #   i.e. probably a data annotation error
+        # check if person's first+last name are in all_pids
+        if speaker.first_name and speaker.last_name:
+            clean_first = speaker.first_name.split(" ")[0]
+            clean_last = speaker.last_name.split(" ")[0]
+            mask = (
+                (self.people["first"] == clean_first)
+                & (self.people["last"] == clean_last)
+            )
+            # if there's a match
+            masked_people = self.people.loc[mask]
+            if len(masked_people) > 0:
+                pid = masked_people.iloc[0]["pid"]
+                speaker.pid = pid
+                speaker.first_name = clean_first
+                speaker.last_name = clean_last
+                return self._update_role(cid, speaker)
+        
+        # if no speaker match found, mark as unknown
+        speaker.speaker_role = SpeakerRoleEnum.OTHER
+        return speaker
 
 
-    def get_position(self, cid: int, pid: int):
-        # if it's a legislator
-        if pid in self.pids:
-            # if they're a member of the committee
-            pos = self.cid_pid_pos[cid].get(pid)
-            if pos:
-                return pos
+    def load_all_committee_hearings(self) -> List[Hearing]:
+        """
+        Load all hearings for each committee and enrich speakers with their positions.
 
-            # if they're a legislator that is not part of the committee
-            #   (check with Khosmood to see if nonmembers are only ever authors)
-            else:
-                return SpeakerRoleEnum.NONMEMBER
+        Builds a nested speech index:
 
-        # if it's not a legislator,
-        #   not enough info for disambiguation yet, so mark as unknown
-        return SpeakerRoleEnum.OTHER
+            cid -> hid -> bid -> List[speech_row]
+
+        Then reuses that index to construct Hearing objects directly.
+        """
+        # Index hearing metadata once by hid
+        hearing_rows_by_hid = {
+            int(row["hid"]): row
+            for i, row in self.hearings.iterrows()
+        }
+
+        # Build nested speech index: cid -> hid -> bid -> rows
+        speeches_by_cid_hid_bid = defaultdict(
+            lambda: defaultdict(lambda: defaultdict(list))
+        )
+
+        for speech_row in self.speeches["rows"]:
+            hid_raw = speech_row[SPEECH_HID_IDX]
+            bid = speech_row[SPEECH_BID_IDX]
+
+            try:
+                hid = int(hid_raw)
+            except Exception as e:
+                print(f"{e}")
+                continue
+            hearing_row = hearing_rows_by_hid.get(hid)
+
+            if hearing_row is None:
+                continue
+
+            cid = int(hearing_row.cid)
+            speeches_by_cid_hid_bid[cid][hid][bid].append(speech_row)
+
+
+        hearings: List[Hearing] = []
+        for cid in self.cids:
+            hearings_by_hid = speeches_by_cid_hid_bid[cid]
+            
+            for hid, bills_by_bid in hearings_by_hid.items():
+                hearing_row = hearing_rows_by_hid[hid]
+
+                for bid, speech_rows in bills_by_bid.items():
+                    hearing = self._build_hearing_from_speech_rows(
+                        hid=hid,
+                        bid=bid,
+                        hearing_row=hearing_row,
+                        speech_rows=speech_rows,
+                    )
+
+                    # enrich speakers with speaker role info
+                    if cid in self.cid_pid_pos:
+                        for pid in hearing.speakers.keys():
+                            hearing.speakers[pid] = self._update_role(cid, hearing.speakers[pid])
+
+                    hearings.append(hearing)
+
+        return hearings
+
+
+    def _build_hearing_from_speech_rows(
+        self,
+        hid: int,
+        bid: str,
+        hearing_row: Any,
+        speech_rows: List[List[Any]],
+    ) -> Hearing:
+        """
+        Build a Hearing object from pre-indexed speech rows.
+
+        This avoids scanning self.speeches["rows"] again for every hid/bid pair.
+        """
+        speakers: Dict[int, Speaker] = {}
+        utterances: List[OralContribution] = []
+
+        for uid, speech_row in enumerate(speech_rows):
+            pid_raw = speech_row[SPEECH_PID_IDX]
+            try:
+                pid = int(pid_raw)
+            except Exception as e:
+                print(f"{e}")
+                continue
+
+            if pid not in speakers:
+                speakers[pid] = Speaker(
+                    pid=pid,
+                    first_name=(
+                        speech_row[SPEECH_FIRST_NAME_IDX]
+                        if speech_row[SPEECH_FIRST_NAME_IDX]
+                        else None
+                    ),
+                    last_name=(
+                        speech_row[SPEECH_LAST_NAME_IDX]
+                        if speech_row[SPEECH_LAST_NAME_IDX]
+                        else None
+                    ),
+                    speaker_role=None,
+                )
+
+            utterances.append(
+                OralContribution(
+                    uid=uid,
+                    pid=pid,
+                    text=speech_row[SPEECH_TEXT_IDX],
+                )
+            )
+
+        return Hearing(
+            hid=hid,
+            bid=bid,
+            cid=int(hearing_row.cid),
+            cname=getattr(hearing_row, "Committee"),
+            hearing_date=datetime.strptime(hearing_row.hDate, "%Y-%m-%d"),
+            state=hearing_row.state,
+            speakers=speakers,
+            utterances=utterances,
+        )
 
 
     def bill_discussion_info(self,
