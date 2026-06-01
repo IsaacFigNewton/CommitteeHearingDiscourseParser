@@ -35,9 +35,17 @@ class TranscriptLoader:
         self.corpus_path = corpus_path
         self._setup_csv_field_limit()
 
-        self.hearings: pd.DataFrame = self.load_csv("hearings", method="pandas")
-        self.speeches: Dict[str, Any] = self.load_csv("speeches", method="custom")
+        self.hearings: pd.DataFrame =           self.load_csv("hearings", method="pandas")
+        self.speeches: Dict[str, Any] =         self.load_csv("speeches", method="custom")
+        self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
+        
+        # get a set of all the cids
+        self.cids = set(self.committeeRosters["cid"].unique().tolist())
+        # get a set of all the legislators' pids
+        #   if a pid is not in this set, then the person is not a legislator
+        self.pids = set(self.committeeRosters["pid"].unique().tolist())
 
+        self.cid_roster_cache = None
 
     def _setup_csv_field_limit(self):
         """Set up CSV field size limit (Windows compatible)."""
@@ -126,21 +134,9 @@ class TranscriptLoader:
     def bill_discussion_info(self,
             hid: int,
             bid: str,
-        ) -> Dict[str, Any]:
+        ) -> Hearing:
         """Get complete bill discussion info."""
         hid_str = str(hid)
-
-        # get hearing metadata
-        hearing_metadata = None
-        row = self.hearings.loc[self.hearings["hid"] == hid].iloc[0, :]
-        hearing_metadata = Hearing(
-            hid=hid,
-            bid=bid,
-            cid=int(row["cid"]),
-            cname=row["Committee"],
-            hearing_date=datetime.strptime(row["hDate"], '%Y-%m-%d'),
-            state=row["state"]
-        )
 
         # get transcript data
         lines = []
@@ -152,7 +148,6 @@ class TranscriptLoader:
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
                     speaker_role=None,
-                    in_group=None
                 )
 
                 oral_contribution = OralContribution(
@@ -164,26 +159,29 @@ class TranscriptLoader:
                 lines.append(oral_contribution)
                 uid += 1
 
-        return {
-            "metadata": hearing_metadata,
-            "transcript": lines
-        }
+        row = self.hearings.loc[self.hearings["hid"] == hid].iloc[0, :]
+        return Hearing(
+            hid=hid,
+            bid=bid,
+            cid=int(row["cid"]),
+            cname=row["Committee"],
+            hearing_date=datetime.strptime(row["hDate"], '%Y-%m-%d'),
+            state=row["state"],
+            utterances=lines
+        )
 
 
     @staticmethod
-    def pprint_discussion(
-            metadata: Hearing,
-            transcript_info: List[OralContribution]
-        ):
+    def pprint_hearing(hearing: Hearing):
         """Print formatted transcript."""
         print()
-        print(f"State:\t\t{metadata.state}")
-        print(f"Committee:\t{metadata.cname}")
-        print(f"Bill:\t\t{metadata.bid}")
-        print(f"Date:\t\t{metadata.hearing_date.strftime('%Y-%m-%d')}")
+        print(f"State:\t\t{hearing.state}")
+        print(f"Committee:\t{hearing.cname}")
+        print(f"Bill:\t\t{hearing.bid}")
+        print(f"Date:\t\t{hearing.hearing_date.strftime('%Y-%m-%d')}")
         print()
         print("Transcript:")
-        for contribution in transcript_info:
+        for contribution in hearing.utterances:
             first_name = contribution.speaker.first_name or "UNKNOWN"
             last_name = contribution.speaker.last_name or "UNKNOWN"
             name = f"{first_name} {last_name}:"
