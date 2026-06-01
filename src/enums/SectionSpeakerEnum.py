@@ -7,21 +7,31 @@ describes the valid speaker roles associated with each section
 SpeakerRoleEnum.CHAIRMAN and SpeakerRoleEnum.SECRETARY are always allowed as speakers
 """
 class SectionSpeakerEnum(Enum):
-    ANY_SECTION=            [SpeakerRoleEnum.CHAIRMAN, SpeakerRoleEnum.STAFF, SpeakerRoleEnum.OTHER]
-
     # introducing senators, pledge of allegiance, etc.
-    INTRO=                  [SpeakerRoleEnum.CHAIRMAN]
+    INTRO=                  SpeakerRoleEnum.CHAIRMAN.value
 
     # bill description/introduction
-    PRESENTATION=           [SpeakerRoleEnum.PRESENTER]
+    PRESENTATION=           SpeakerRoleEnum.PRESENTER.value
 
     # sequence of different discussion sections
-    LEGISLATOR_DISCUSSION=  [SpeakerRoleEnum.LEGISLATOR]
-    EXPERT_TESTIMONY=       [SpeakerRoleEnum.LEGISLATOR, SpeakerRoleEnum.EXPERT]
-    PUBLIC_COMMENTS=        [SpeakerRoleEnum.PUBLIC]
+    LEGISLATOR_DISCUSSION=  SpeakerRoleEnum.LEGISLATOR.value
+    EXPERT_TESTIMONY=       frozenset(set.union(
+        set(),
+        SpeakerRoleEnum.STAFF.value,
+        SpeakerRoleEnum.EXPERT.value
+    ))
+    PUBLIC_COMMENTS=        frozenset(set.union(
+        set(),
+        SpeakerRoleEnum.STAFF.value,
+        SpeakerRoleEnum.PUBLIC.value
+    ))
 
     # closing remarks by committee chair or bill presenter
-    CLOSING_REMARKS=        [SpeakerRoleEnum.CHAIRMAN, SpeakerRoleEnum.PRESENTER]
+    CLOSING_REMARKS=        frozenset(set.union(
+        set(),
+        SpeakerRoleEnum.CHAIRMAN.value,
+        SpeakerRoleEnum.PRESENTER.value
+    ))
 
     # voting section
-    VOTE=                   [SpeakerRoleEnum.STAFF]
+    VOTE=                   SpeakerRoleEnum.STAFF.value
