@@ -10,7 +10,7 @@ from .dataclasses.Hearing import RawHearing
 from .speakers.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
-from .speakers.types.SpeakerTypeEnum import SpeakerTypeEnum, COMMITTEE_POSITION_MAP
+from .speakers.types.SpeakerPositionEnum import SpeakerPositionEnum, COMMITTEE_POSITION_MAP
 
 class HearingLoader:
     """
@@ -125,7 +125,8 @@ class HearingLoader:
 
 
     def _update_role(self, cid: int, speaker: Speaker):
-        # default to non-committee membership and non-authorship
+        # default to non-legislator with non-committee membership and non-authorship
+        speaker.is_legislator = False
         speaker.is_committee_member = False
         speaker.is_bill_author = False
 
@@ -133,28 +134,29 @@ class HearingLoader:
         if speaker.pid in self.all_pids:
             # if it's a legislator
             if speaker.pid in self.pids:
+                speaker.is_legislator = True
                 # TODO: check if they're a primary author on the bill
 
                 # if they're a member of the committee
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
                 if pos:
                     speaker.is_committee_member = True
-                    speaker.speaker_type = pos
+                    speaker.speaker_position = pos
                     return speaker
 
                 # if they're a legislator that is not part of the committee
-                speaker.speaker_type = SpeakerTypeEnum.LEGISLATOR
+                speaker.speaker_position = SpeakerPositionEnum.LEGISLATOR
                 return speaker
 
             # if it's just the committee secretary or staff
             if speaker.first_name == "Committee" and speaker.last_name == "Secretary":
-                speaker.speaker_type = SpeakerTypeEnum.SECRETARY
+                speaker.speaker_position = SpeakerPositionEnum.SECRETARY
                 return speaker
 
             # if it's not a legislator,
             #   but they are being tracked
-            #   not enough info for disambiguation yet, so mark as unknown
-            speaker.speaker_type = SpeakerTypeEnum.NONLEGISLATOR
+            #   then they must be a member of the public
+            speaker.speaker_position = SpeakerPositionEnum.NONLEGISLATOR
             return speaker
         
         # if it's someone not tracked in the dataset
@@ -178,7 +180,7 @@ class HearingLoader:
                 return self._update_role(cid, speaker)
         
         # if no speaker match found, mark as unknown
-        speaker.speaker_type = SpeakerTypeEnum.UNKNOWN
+        speaker.speaker_position = SpeakerPositionEnum.UNKNOWN
         return speaker
 
 
@@ -271,6 +273,7 @@ class HearingLoader:
 
             if pid not in speakers:
                 speakers[pid] = Speaker(
+                    is_legislator=None,
                     is_committee_member=None,
                     is_bill_author=None,
                     pid=pid,
@@ -284,7 +287,7 @@ class HearingLoader:
                         if speech_row[SPEECH_LAST_NAME_IDX]
                         else None
                     ),
-                    speaker_type=None,
+                    speaker_position=None,
                     speaker_role=None
                 )
 
@@ -323,12 +326,13 @@ class HearingLoader:
             if hid_str == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
                 speaker_pid = int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else -1
                 speakers[speaker_pid] = Speaker(
+                    is_legislator=None,
                     is_committee_member=None,
                     is_bill_author=None,
                     pid=speaker_pid,
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
-                    speaker_type=None,
+                    speaker_position=None,
                     speaker_role=None,
                 )
 

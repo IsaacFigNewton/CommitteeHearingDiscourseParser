@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
 from .roles.RoleProperties import RoleProperties
-from .types.SpeakerTypeEnum import SpeakerTypeEnum
+from .types.SpeakerPositionEnum import SpeakerPositionEnum
 from .validation.SpeakerRoleRequirementsEnum import SpeakerRoleRequirementsEnum
 
 """
@@ -18,8 +18,8 @@ class Speaker(RoleProperties):
     first_name: Optional[str]
     last_name: Optional[str]
 
-    # speaker type
-    speaker_type: Optional[SpeakerTypeEnum]
+    # speaker position (if available)
+    speaker_position: Optional[SpeakerPositionEnum]
     
     # speaker role
     speaker_role: Optional[SpeakerRoleRequirementsEnum]

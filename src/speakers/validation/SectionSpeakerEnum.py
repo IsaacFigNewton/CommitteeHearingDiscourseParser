@@ -22,4 +22,4 @@ class SectionSpeakerEnum(Enum):
     CLOSING_REMARKS=        {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.PRESENTER}
 
     # voting section
-    VOTE=                   {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY}
+    VOTE=                   {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY, SpeakerRoleEnum.COMMITTEE_MEMBER}

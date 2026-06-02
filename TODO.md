@@ -1,5 +1,6 @@
 # TODO
 ## Data cleaning and tokenization
+0. associate authorship info (in bills.csv) with initial speaker parsing
 1. enumerate the different kinds of speech acts in [[SpeechActEnum.py]]
 2. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables (use a dictionary?)
 3. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances

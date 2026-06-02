@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Union, Optional, FrozenSet
 from dataclasses import dataclass
 
 from ..roles.RoleProperties import RoleProperties
-from ..types.SpeakerTypeEnum import SpeakerTypeEnum
+from ..types.SpeakerPositionEnum import SpeakerPositionEnum
 
 """
 Used to configure SpeakerRoleEnum items
@@ -10,4 +10,4 @@ Used to configure SpeakerRoleEnum items
 
 @dataclass
 class RoleRequirements(RoleProperties):
-    valid_speaker_types:    FrozenSet[SpeakerTypeEnum]
+    valid_speaker_positions:    Optional[FrozenSet[SpeakerPositionEnum]]
