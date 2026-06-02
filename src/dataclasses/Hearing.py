@@ -3,7 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 from .OralContribution import OralContribution
-from .Speaker import Speaker
+from ..speakers.Speaker import Speaker
 from .Section import Section, VoteSection
 
 

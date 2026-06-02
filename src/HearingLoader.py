@@ -7,10 +7,10 @@ import pandas as pd
 
 from .config import *
 from .dataclasses.Hearing import RawHearing
-from .dataclasses.Speaker import Speaker
+from .speakers.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
-from .enums.SpeakerTypeEnum import SpeakerTypeEnum, COMMITTEE_POSITION_MAP
+from .speakers.types.SpeakerTypeEnum import SpeakerTypeEnum, COMMITTEE_POSITION_MAP
 
 class HearingLoader:
     """
@@ -125,19 +125,25 @@ class HearingLoader:
 
 
     def _update_role(self, cid: int, speaker: Speaker):
+        # default to non-committee membership and non-authorship
+        speaker.is_committee_member = False
+        speaker.is_bill_author = False
+
         # if its someone tracked in the dataset
         if speaker.pid in self.all_pids:
             # if it's a legislator
             if speaker.pid in self.pids:
+                # TODO: check if they're a primary author on the bill
+
                 # if they're a member of the committee
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
                 if pos:
+                    speaker.is_committee_member = True
                     speaker.speaker_type = pos
                     return speaker
 
                 # if they're a legislator that is not part of the committee
-                #   (check with Khosmood to see if nonmembers are only ever authors)
-                speaker.speaker_type = SpeakerTypeEnum.NONMEMBER
+                speaker.speaker_type = SpeakerTypeEnum.LEGISLATOR
                 return speaker
 
             # if it's just the committee secretary or staff
@@ -148,7 +154,7 @@ class HearingLoader:
             # if it's not a legislator,
             #   but they are being tracked
             #   not enough info for disambiguation yet, so mark as unknown
-            speaker.speaker_type = SpeakerTypeEnum.UNKNOWN
+            speaker.speaker_type = SpeakerTypeEnum.NONLEGISLATOR
             return speaker
         
         # if it's someone not tracked in the dataset
@@ -265,6 +271,8 @@ class HearingLoader:
 
             if pid not in speakers:
                 speakers[pid] = Speaker(
+                    is_committee_member=None,
+                    is_bill_author=None,
                     pid=pid,
                     first_name=(
                         speech_row[SPEECH_FIRST_NAME_IDX]
@@ -315,6 +323,8 @@ class HearingLoader:
             if hid_str == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
                 speaker_pid = int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else -1
                 speakers[speaker_pid] = Speaker(
+                    is_committee_member=None,
+                    is_bill_author=None,
                     pid=speaker_pid,
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,

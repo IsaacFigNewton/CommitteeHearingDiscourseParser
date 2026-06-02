@@ -1,8 +1,9 @@
 from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
-from ..enums.SpeakerTypeEnum import SpeakerTypeEnum
-from ..enums.SpeakerRoleEnum import SpeakerRoleEnum
+from .roles.RoleProperties import RoleProperties
+from .types.SpeakerTypeEnum import SpeakerTypeEnum
+from .validation.SpeakerRoleRequirementsEnum import SpeakerRoleRequirementsEnum
 
 """
 Inspired by the UK Parliament's agent ontology
@@ -10,7 +11,7 @@ Inspired by the UK Parliament's agent ontology
 """
 
 @dataclass
-class Speaker:
+class Speaker(RoleProperties):
     pid: int
 
     # first and last name not always available
@@ -19,5 +20,6 @@ class Speaker:
 
     # speaker type
     speaker_type: Optional[SpeakerTypeEnum]
+    
     # speaker role
-    speaker_role: Optional[SpeakerRoleEnum]
+    speaker_role: Optional[SpeakerRoleRequirementsEnum]
