@@ -1,12 +1,12 @@
 from enum import Enum
-from ..roles.SpeakerRoleEnum import SpeakerRoleEnum
+from ..enums.SpeakerRoleEnum import SpeakerRoleEnum
 
 """
 describes the valid speaker roles associated with each section
 
 SpeakerRoleEnum.CHAIRMAN and SpeakerRoleEnum.SECRETARY are always allowed as speakers
 """
-class SectionSpeakerEnum(Enum):
+class SectionSpeakerRequirementsEnum(Enum):
     # introducing senators, pledge of allegiance, etc.
     INTRO=                  {SpeakerRoleEnum.PRESIDING_CHAIR}
 

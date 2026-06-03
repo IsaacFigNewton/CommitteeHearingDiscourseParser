@@ -10,7 +10,7 @@ from .dataclasses.Hearing import RawHearing
 from .speakers.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
-from .speakers.types.SpeakerPositionEnum import SpeakerPositionEnum, COMMITTEE_POSITION_MAP
+from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum, COMMITTEE_POSITION_MAP
 
 class HearingLoader:
     """
@@ -296,6 +296,9 @@ class HearingLoader:
                     uid=uid,
                     pid=pid,
                     text=speech_row[SPEECH_TEXT_IDX],
+                    is_motion=None,
+                    is_transition=None,
+                    mentions=None
                 )
             )
 
@@ -339,7 +342,10 @@ class HearingLoader:
                 oral_contribution = OralContribution(
                     uid=uid,
                     pid=speaker_pid,
-                    text=row[SPEECH_TEXT_IDX]
+                    text=row[SPEECH_TEXT_IDX],
+                    is_motion=None,
+                    is_transition=None,
+                    mentions=None
                 )
 
                 lines.append(oral_contribution)

@@ -1,8 +1,8 @@
 from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
-from .roles.RoleProperties import RoleProperties
-from .types.SpeakerPositionEnum import SpeakerPositionEnum
+from .interfaces.RoleProperties import RoleProperties
+from .enums.SpeakerPositionEnum import SpeakerPositionEnum
 from .validation.SpeakerRoleRequirementsEnum import SpeakerRoleRequirementsEnum
 
 """

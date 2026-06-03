@@ -19,3 +19,12 @@ class OralContribution:
     pid: int
     # utterance text
     text: str
+
+    # if it's a motion
+    is_motion: Optional[bool]
+    # if it's just a transitional utterance
+    is_transition: Optional[bool]
+    
+    # pids of any speakers (including the speaker themself) that were mentioned
+    mentions: Optional[List[int]]
+    

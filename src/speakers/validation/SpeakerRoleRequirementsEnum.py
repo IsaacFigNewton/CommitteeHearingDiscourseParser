@@ -1,5 +1,5 @@
 from enum import Enum
-from ..types.SpeakerPositionEnum import SpeakerPositionEnum
+from ..enums.SpeakerPositionEnum import SpeakerPositionEnum
 from .RoleRequirements import RoleRequirements
 
 class SpeakerRoleRequirementsEnum(Enum):

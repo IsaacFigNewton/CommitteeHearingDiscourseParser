@@ -1,5 +1,4 @@
 from enum import Enum
-from ..roles.SpeakerRoleEnum import SpeakerRoleEnum
 
 class SectionEnum(Enum):
     # introducing senators, pledge of allegiance, etc.

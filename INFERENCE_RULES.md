@@ -14,7 +14,7 @@ non-presiding chairs should be treated the same as SpeakerRoleEnum.MEMBER
 ```
 ∀s:Speaker. (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN)) ∧ ¬presiding_at(s, h)
 →
-should_be_classified_as(s, COMMITTEE_MEMBER)
+has_role(s, COMMITTEE_MEMBER)
 ```
 
 if the primary author (as indicated by bills.csv) is present and they're the only non-committee-member legislator, then they will be a presenter
@@ -38,32 +38,55 @@ first expert utterance to the last expert utterance is the whole expert testimon
 in_section(u2, EXPERT_TESTIMONY)
 ```
 
-any committee member may file motions
-```
-∀s:Speaker, m:Motion. is_committee_member(s)
-→
-can_file(s, m)
-```
-
 experts' names will always be mentioned before their first utterance.
 ```
-∀s:Speaker. has_role(s, PUBLIC) ∨ has_role(s, EXPERT) ∧ 
-  ∃mention:NameMention, u:Utterance. is_first_utterance(u, s) ∧
-  mentions(mention, s) ∧ precedes(mention, u) → has_role(s, EXPERT)
-```
-
-members of the public (and maybe experts? ask prof) will always introduce themselves with their full name or part of their name
-```
-∀s:Speaker. has_role(s, PUBLIC) ∨ has_role(s, EXPERT) ∧ ∃mention:NameMention, u:Utterance. is_first_utterance(u, s) ∧ mentions(mention, s) ∧ precedes(mention, u)
+∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
 →
 has_role(s, EXPERT)
 ```
 
-members of the public will never be mentioned before their first utterance and they will mention their name within their first utterance (according to sofija and pallavi)
+members of the public will never be mentioned before their first utterance.
 ```
-∀s:Speaker. has_role(s, PUBLIC) ∨ has_role(s, EXPERT) ∧ ¬∃mention:NameMention, u:Utterance. is_first_utterance(u, s) ∧ mentions(mention, s) ∧ precedes(mention, u)
+∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ¬∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
 →
 has_role(s, PUBLIC)
+```
+
+members of the public (and maybe experts? ask prof) will always introduce themselves with their full name or part of their name(according to sofija and pallavi)
+```
+∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ∃u:Utterance. is_first_utterance(u, s) ∧ mentions(u, s)
+→
+has_role(s, EXPERT)
+```
+
+if a statement by a committee member is purely for demarcating a transition, you can leave it untagged/unsectioned
+```
+∀s:Speaker, u:Utterance. is_transition(u)
+→
+in_section(u, None)
+```
+
+any committee member may file motions. so if there's an annotation error and the pid is not in people.csv but they've filed a motion, then they must be in the committeeRosters.csv
+so you can try fuzzy matching on the members of the committee in committeeRosters.csv
+```
+∀s:Speaker, u:Utterance. speaker(u) = s ∧ has_position(s, UNKNOWN) ∧ is_motion(u) ∃s':Speaker. (has_role(PRESIDING_CHAIR) ∧ ¬(s = s'))
+→
+has_role(s, COMMITTEE_MEMBER)
+```
+
+if every speaker has a role and there is only 1 CHAIRMAN or VICE_CHAIR, then that will be the PRESIDING_CHAIR
+```
+∀s:Speaker. ¬has_position(s, UNKNOWN) ∧ ∃!s':Speaker. (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN))
+→
+has_role(s, PRESIDING_CHAIR)
+```
+
+utterances by members of the public will never preceed utterances by experts
+(DL rule is contrapositive of this statement)
+```
+∃u₁,u₂:Utterance. precedes(u₁, u₂)
+→
+¬has_role(speaker(u₁), PUBLIC) ∨ ¬has_role(speaker(u₂), EXPERT)
 ```
 
 # Other Rules (parse and integrate later)
@@ -80,24 +103,11 @@ speaker name mentions may be misspelled
 ∀mention:NameMention. [speaker name mentions may be misspelled]
 ```
 
-if a statement by the presiding chair or staff is purely for demarcating a transition, you can leave it untagged/sectioned
-```
-∀u:Utterance, s:Speaker. (has_role(s, PRESIDING_CHAIR) ∨ [is staff](s)) ∧ [purely demarcates transition](u)
-→
-[can leave untagged/unsectioned](u)
-```
-
 there will always be exactly 1 presiding chair per hearing (chair, co-chair, vice-chair are only ones allowed to preside)
 ```
-∀h:Hearing. ∃!c:Speaker. (presiding_at(c, h) ∧ (has_position(c, CHAIRMAN) ∨ has_position(c, VICE_CHAIRMAN)))
+∀h:Hearing. ∃!s:Speaker. (presiding_at(s, h) ∧ (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN)))
 ```
 
-utterances by members of the public will never preceed utterances by experts
-```
-∀u₁,u₂:Utterance. has_role(speaker(u₁), PUBLIC) ∧ has_role(speaker(u₂), EXPERT)
-→
-¬precedes(u₁, u₂)
-```
 
 # To clarify with Khosmood
 - will experts ever introduce themselves, or will they always be introduced by committee staff/members?
