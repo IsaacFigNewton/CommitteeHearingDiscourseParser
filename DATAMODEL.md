@@ -44,10 +44,11 @@ Represents a person speaking at the hearing (based on UK Parliament's agent onto
 | `pid` | `int` | Person ID |
 | `first_name` | `Optional[str]` | First name (not always available) |
 | `last_name` | `Optional[str]` | Last name (not always available) |
-| `speaker_type` | `Optional[SpeakerTypeEnum]` | Type of speaker (e.g., CHAIRMAN, LEGISLATOR) |
-| `speaker_role` | `Optional[SpeakerRoleRequirementsEnum]` | Role within committee with requirements |
-| `is_committee_member` | `Optional[bool]` | Whether the speaker is a committee member |
-| `is_bill_author` | `Optional[bool]` | Whether the speaker is an author of the bill |
+| `speaker_position` | `Optional[SpeakerPositionEnum]` | Position of speaker (e.g., CHAIRMAN, LEGISLATOR) |
+| `speaker_role` | `Optional[SpeakerRoleEnum]` | Role within committee |
+| `is_legislator` | `Optional[bool]` | Whether the speaker is a legislator (inherited from RoleProperties) |
+| `is_committee_member` | `Optional[bool]` | Whether the speaker is a committee member (inherited from RoleProperties) |
+| `is_bill_author` | `Optional[bool]` | Whether the speaker is an author of the bill (inherited from RoleProperties) |
 
 ### OralContribution ([OralContribution.py](src/dataclasses/OralContribution.py))
 Represents a single utterance (based on UK Parliament's oral contribution ontology).
@@ -57,6 +58,9 @@ Represents a single utterance (based on UK Parliament's oral contribution ontolo
 | `uid` | `int` | Utterance ID within the hearing |
 | `pid` | `int` | Speaker's person ID |
 | `text` | `str` | The utterance text |
+| `is_motion` | `Optional[bool]` | Whether this utterance is a motion |
+| `is_transition` | `Optional[bool]` | Whether this is a transitional utterance |
+| `mentions` | `Optional[List[int]]` | PIDs of any speakers mentioned in this utterance |
 
 ### Section ([Section.py](src/dataclasses/Section.py))
 Represents a segment of the hearing.
@@ -64,7 +68,7 @@ Represents a segment of the hearing.
 | Field | Type | Description |
 |-------|------|-------------|
 | `span` | `Tuple[int, int]` | Utterance indices [start_uid, end_uid) |
-| `valid_speakers` | `SectionSpeakerEnum` | Expected speaker roles for this section |
+| `valid_speakers` | `SectionSpeakerRequirementsEnum` | Expected speaker roles for this section |
 | `utterances` | `List[OralContribution]` | Utterances in this section |
 
 ### VoteSection ([Section.py](src/dataclasses/Section.py))
@@ -81,11 +85,12 @@ Specialized Section for votes (extends Section).
 
 ## Supporting Classes
 
-### RoleProperties ([RoleProperties.py](src/speakers/roles/RoleProperties.py))
+### RoleProperties ([RoleProperties.py](src/speakers/interfaces/RoleProperties.py))
 Base dataclass for role-based properties.
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `is_legislator` | `Optional[bool]` | Whether the speaker is a legislator |
 | `is_committee_member` | `Optional[bool]` | Whether the speaker is a committee member |
 | `is_bill_author` | `Optional[bool]` | Whether the speaker is a primary bill author |
 
@@ -94,12 +99,20 @@ Extends RoleProperties to configure SpeakerRoleRequirementsEnum items.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `valid_speaker_types` | `FrozenSet[SpeakerTypeEnum]` | Set of valid speaker types for this role |
+| `valid_speaker_positions` | `Optional[FrozenSet[SpeakerPositionEnum]]` | Set of valid speaker positions for this role |
+| (inherited fields) | | All fields from RoleProperties |
+
+### SectionRequirements ([SectionRequirements.py](src/speakers/validation/SectionRequirements.py))
+Defines requirements for section types.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `valid_speaker_roles` | `Optional[FrozenSet[SpeakerRoleEnum]]` | Set of valid speaker roles for this section type |
 
 ## Enums
 
-### SpeakerTypeEnum ([SpeakerTypeEnum.py](src/speakers/types/SpeakerTypeEnum.py))
-Types of speakers in committee hearings.
+### SpeakerPositionEnum ([SpeakerPositionEnum.py](src/speakers/enums/SpeakerPositionEnum.py))
+Positions of speakers in committee hearings.
 
 | Enum Value | String Value | Description |
 |------------|--------------|-------------|
@@ -108,18 +121,18 @@ Types of speakers in committee hearings.
 | `SECRETARY` | `"SECRETARY"` | Committee secretary |
 | `LEGISLATOR` | `"LEGISLATOR"` | Legislator (may or may not be a committee member) |
 | `NONLEGISLATOR` | `"NONLEGISLATOR"` | Non-legislator (expert or public) |
-| `UNKNOWN` | `"UNKNOWN"` | Unknown/other role |
+| `UNKNOWN` | `"UNKNOWN"` | Unknown/other position |
 
-**COMMITTEE_POSITION_MAP**: Dictionary for mapping committee position titles to SpeakerTypeEnum values.
+**COMMITTEE_POSITION_MAP**: Dictionary for mapping committee position titles to SpeakerPositionEnum values.
 
 | Position Title | Maps To |
 |----------------|---------|
-| `"Chair"` | `SpeakerTypeEnum.CHAIRMAN` |
-| `"Co-Chair"` | `SpeakerTypeEnum.CHAIRMAN` |
-| `"Vice-Chair"` | `SpeakerTypeEnum.VICE_CHAIRMAN` |
-| `"Member"` | `SpeakerTypeEnum.LEGISLATOR` |
+| `"Chair"` | `SpeakerPositionEnum.CHAIRMAN` |
+| `"Co-Chair"` | `SpeakerPositionEnum.CHAIRMAN` |
+| `"Vice-Chair"` | `SpeakerPositionEnum.VICE_CHAIRMAN` |
+| `"Member"` | `SpeakerPositionEnum.LEGISLATOR` |
 
-### SpeakerRoleEnum ([SpeakerRoleEnum.py](src/speakers/roles/SpeakerRoleEnum.py))
+### SpeakerRoleEnum ([SpeakerRoleEnum.py](src/speakers/enums/SpeakerRoleEnum.py))
 Basic roles that speakers can have in committee hearings.
 
 | Enum Value | String Value | Description |
@@ -133,22 +146,20 @@ Basic roles that speakers can have in committee hearings.
 | `UNKNOWN` | `"UNKNOWN"` | Unknown/other role |
 
 ### SpeakerRoleRequirementsEnum ([SpeakerRoleRequirementsEnum.py](src/speakers/validation/SpeakerRoleRequirementsEnum.py))
-Role definitions with requirements and valid speaker types.
+Role definitions with requirements and valid speaker positions.
 
-| Role | Valid Speaker Types | Committee Member | Bill Author |
-|------|-------------------|------------------|-------------|
-| `PRESIDING_CHAIR` | `CHAIRMAN`, `VICE_CHAIRMAN` | `True` | `None` |
-| `SECRETARY` | `SECRETARY` | `False` | `False` |
-| `PRESENTER` | `LEGISLATOR` | `None` | `None` |
-| `COMMITTEE_MEMBER` | `CHAIRMAN`, `VICE_CHAIRMAN`, `LEGISLATOR` | `True` | `None` |
-| `EXPERT` | `LEGISLATOR`, `NONLEGISLATOR` | `False` | `False` |
-| `PUBLIC` | `NONLEGISLATOR` | `False` | `False` |
-| `UNKNOWN` | `UNKNOWN` | `False` | `False` |
+| Role | Valid Speaker Positions | Is Legislator | Is Committee Member | Is Bill Author |
+|------|------------------------|---------------|---------------------|----------------|
+| `PRESIDING_CHAIR` | `CHAIRMAN`, `VICE_CHAIRMAN` | `True` | `True` | `None` |
+| `SECRETARY` | `SECRETARY` | `False` | `False` | `False` |
+| `PRESENTER` | `LEGISLATOR` | `True` | `None` | `None` |
+| `COMMITTEE_MEMBER` | `None` (any committee member) | `True` | `True` | `None` |
+| `EXPERT` | `None` (any position) | `None` | `False` | `False` |
+| `PUBLIC` | `NONLEGISLATOR` | `False` | `False` | `False` |
+| `UNKNOWN` | `UNKNOWN` | `False` | `False` | `False` |
 
-### SectionSpeakerEnum ([SectionSpeakerEnum.py](src/speakers/validation/SectionSpeakerEnum.py))
+### SectionSpeakerRequirementsEnum ([SectionSpeakerRequirementsEnum.py](src/speakers/validation/SectionSpeakerRequirementsEnum.py))
 Defines valid speaker roles for each section type.
-
-**Note**: `PRESIDING_CHAIR` and `SECRETARY` are always implicitly allowed in all sections.
 
 | Section Type | Allowed Speaker Roles | Description |
 |--------------|----------------------|-------------|
@@ -158,7 +169,7 @@ Defines valid speaker roles for each section type.
 | `EXPERT_TESTIMONY` | `[PRESIDING_CHAIR, SECRETARY, COMMITTEE_MEMBER, EXPERT]` | Expert testimony with legislator questions |
 | `PUBLIC_COMMENTS` | `[PRESIDING_CHAIR, SECRETARY, PUBLIC]` | Public comment period |
 | `CLOSING_REMARKS` | `[PRESIDING_CHAIR, PRESENTER]` | Closing remarks by chair or presenter |
-| `VOTE` | `[PRESIDING_CHAIR, SECRETARY]` | Voting section |
+| `VOTE` | `[PRESIDING_CHAIR, SECRETARY, COMMITTEE_MEMBER]` | Voting section |
 
 ### MotionEnum ([MotionEnum.py](src/enums/MotionEnum.py))
 Types of motions that can be made.
@@ -179,18 +190,21 @@ src/
 │   └── Section.py              # Section, VoteSection
 ├── speakers/
 │   ├── Speaker.py              # Speaker
-│   ├── roles/
-│   │   ├── RoleProperties.py   # RoleProperties
-│   │   └── SpeakerRoleEnum.py  # SpeakerRoleEnum
-│   ├── types/
-│   │   └── SpeakerTypeEnum.py  # SpeakerTypeEnum
+│   ├── enums/
+│   │   ├── SectionEnum.py              # Section type enum
+│   │   ├── SpeakerPositionEnum.py      # SpeakerPositionEnum
+│   │   └── SpeakerRoleEnum.py          # SpeakerRoleEnum
+│   ├── interfaces/
+│   │   └── RoleProperties.py           # RoleProperties
 │   └── validation/
-│       ├── RoleRequirements.py              # RoleRequirements
-│       ├── SectionSpeakerEnum.py            # SectionSpeakerEnum
-│       └── SpeakerRoleRequirementsEnum.py   # SpeakerRoleRequirementsEnum
+│       ├── RoleRequirements.py                 # RoleRequirements
+│       ├── SectionRequirements.py              # SectionRequirements
+│       ├── SectionSpeakerRequirementsEnum.py   # SectionSpeakerRequirementsEnum
+│       ├── SpeakerRoleRequirementsEnum.py      # SpeakerRoleRequirementsEnum
+│       └── types.py                            # Type aliases
 ├── enums/
 │   ├── MotionEnum.py           # MotionEnum
-│   └── SpeechActEnum.py        # (Currently empty placeholder)
+│   └── SpeechActEnum.py        # SpeechActEnum
 ├── HearingParser.py
 ├── HearingLoader.py
 └── config.py

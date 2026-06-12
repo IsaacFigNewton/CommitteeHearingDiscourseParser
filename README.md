@@ -170,6 +170,7 @@ graph TD
     %% Speaker relationships
     Speaker -->|extends| RoleProperties
     Speaker -->|has position| SpeakerPositionEnum
+    Speaker -->|has role| SpeakerRoleEnum
     Speaker -->|validates with| SpeakerRoleRequirementsEnum
 
     %% Role relationships

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from .interfaces.RoleProperties import RoleProperties
 from .enums.SpeakerPositionEnum import SpeakerPositionEnum
-from .validation.SpeakerRoleRequirementsEnum import SpeakerRoleRequirementsEnum
+from .enums.SpeakerRoleEnum import SpeakerRoleEnum
 
 """
 Inspired by the UK Parliament's agent ontology
@@ -22,4 +22,4 @@ class Speaker(RoleProperties):
     speaker_position: Optional[SpeakerPositionEnum]
     
     # speaker role
-    speaker_role: Optional[SpeakerRoleRequirementsEnum]
+    speaker_role: Optional[SpeakerRoleEnum]
