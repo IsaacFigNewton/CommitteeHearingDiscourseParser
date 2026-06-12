@@ -2,9 +2,9 @@
 If the context is satisfied, then the implicature follows.
 Mark
 
-|   `valid_speaker_positions`   |   Speaker `is_legislator` |   Speaker `is_committee_member`   |   Speaker `is_bill_author`    |   Other Context                   |   Implied `SpeakerRoleEnum` |   Implied `SectionEnum`                     |
-|   --------------------        |    ---------------------  |   --------------------            |    ---------------------      |   --------------------      |    ---------------------    |   --------------------    |
-|   N/A                         |    N/A                    |   False                           |    N/A                        |   N/A                         |    `PRESENTER` or `EXPERT`  |   `PRESENTATION` or `EXPERT_TESTIMONY`      |
+|   `ValidPositions`   |   `Speaker.is_legislator` |   `Speaker.is_committee_member`   |   `Speaker.is_bill_author`    |   Other Context                   |   Implied `SpeakerRoleEnum` |   Implied `SectionEnum`                     |   Description                     |
+|   --------------------        |    ---------------------  |   --------------------            |    ---------------------      |   --------------------      |    ---------------------    |   --------------------       |   --------------------    |
+|   N/A                         |    N/A                    |   False                           |    N/A                        |   N/A                         |    `PRESENTER` or `EXPERT`  |   `PRESENTATION` or `EXPERT_TESTIMONY`      |   if a non-member of a committee is speaking at a hearing, they are either an expert or a presenter   |
 
 
 # TODO: Parse the following items as table entries above

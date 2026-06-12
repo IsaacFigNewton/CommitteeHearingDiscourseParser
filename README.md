@@ -15,10 +15,12 @@ The project models committee hearings using several core dataclasses:
 - **[VoteSection](src/dataclasses/Section.py)**: Specialized section for votes with motion details and roll call
 
 The discourse structure is validated using enums and requirements:
-- **[SpeakerTypeEnum](src/speakers/types/SpeakerTypeEnum.py)**: Basic speaker types (Chairman, Vice Chairman, Secretary, Legislator, etc.)
-- **[SpeakerRoleEnum](src/speakers/roles/SpeakerRoleEnum.py)**: Basic speaker roles (Presiding Chair, Secretary, Presenter, Committee Member, etc.)
-- **[SpeakerRoleRequirementsEnum](src/speakers/validation/SpeakerRoleRequirementsEnum.py)**: Role definitions with requirements and valid speaker types
-- **[SectionSpeakerEnum](src/speakers/validation/SectionSpeakerEnum.py)**: Defines which speaker roles are valid in each section type
+- **[SpeakerPositionEnum](src/speakers/enums/SpeakerPositionEnum.py)**: Speaker positions (Chairman, Vice Chairman, Secretary, Legislator, etc.)
+- **[SpeakerRoleEnum](src/speakers/enums/SpeakerRoleEnum.py)**: Speaker roles (Presiding Chair, Secretary, Presenter, Committee Member, etc.)
+- **[SpeakerRoleRequirementsEnum](src/speakers/validation/SpeakerRoleRequirementsEnum.py)**: Role definitions with requirements and valid speaker positions
+- **[RoleRequirements](src/speakers/validation/RoleRequirements.py)**: Dataclass defining role validation requirements
+- **[SectionSpeakerRequirementsEnum](src/speakers/validation/SectionSpeakerRequirementsEnum.py)**: Defines which speaker roles are valid in each section type
+- **[SectionRequirements](src/speakers/validation/SectionRequirements.py)**: Dataclass defining section validation requirements
 - **[MotionEnum](src/enums/MotionEnum.py)**: Types of motions (Due Pass, Reconsideration, Amendment)
 
 For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
@@ -27,26 +29,26 @@ For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
 
 ```mermaid
 graph TB
-    subgraph "SpeakerTypeEnum"
-        ST_CHAIRMAN[CHAIRMAN]
-        ST_VICE_CHAIRMAN[VICE_CHAIRMAN]
-        ST_SECRETARY[SECRETARY]
-        ST_LEGISLATOR[LEGISLATOR]
-        ST_NONLEGISLATOR[NONLEGISLATOR]
-        ST_UNKNOWN[UNKNOWN]
+    subgraph "SpeakerPositionEnum"
+        SP_CHAIRMAN[CHAIRMAN]
+        SP_VICE_CHAIRMAN[VICE_CHAIRMAN]
+        SP_LEGISLATOR[LEGISLATOR]
+        SP_SECRETARY[SECRETARY]
+        SP_NONLEGISLATOR[NONLEGISLATOR]
+        SP_UNKNOWN[UNKNOWN]
     end
 
     subgraph "SpeakerRoleEnum"
         SR_PRESIDING_CHAIR[PRESIDING_CHAIR]
+        SR_COMMITTEE_MEMBER[COMMITTEE_MEMBER]
         SR_SECRETARY[SECRETARY]
         SR_PRESENTER[PRESENTER]
-        SR_COMMITTEE_MEMBER[COMMITTEE_MEMBER]
         SR_EXPERT[EXPERT]
         SR_PUBLIC[PUBLIC]
         SR_UNKNOWN[UNKNOWN]
     end
 
-    subgraph "SectionSpeakerEnum"
+    subgraph "SectionSpeakerRequirementsEnum"
         INTRO[INTRO]
         PRESENTATION[PRESENTATION]
         LEGISLATOR_DISCUSSION[LEGISLATOR_DISCUSSION]
@@ -62,20 +64,17 @@ graph TB
         AMENDMENT[AMENDMENT]
     end
 
-    %% SpeakerRoleRequirementsEnum -> SpeakerTypeEnum mappings
-    SR_PRESIDING_CHAIR -.->|valid types| ST_CHAIRMAN
-    SR_PRESIDING_CHAIR -.->|valid types| ST_VICE_CHAIRMAN
-    SR_SECRETARY -.->|valid types| ST_SECRETARY
-    SR_PRESENTER -.->|valid types| ST_LEGISLATOR
-    SR_COMMITTEE_MEMBER -.->|valid types| ST_CHAIRMAN
-    SR_COMMITTEE_MEMBER -.->|valid types| ST_VICE_CHAIRMAN
-    SR_COMMITTEE_MEMBER -.->|valid types| ST_LEGISLATOR
-    SR_EXPERT -.->|valid types| ST_LEGISLATOR
-    SR_EXPERT -.->|valid types| ST_NONLEGISLATOR
-    SR_PUBLIC -.->|valid types| ST_NONLEGISLATOR
-    SR_UNKNOWN -.->|valid types| ST_UNKNOWN
+    %% SpeakerRoleRequirementsEnum -> SpeakerPositionEnum mappings
+    SR_PRESIDING_CHAIR -.->|valid positions| SP_CHAIRMAN
+    SR_PRESIDING_CHAIR -.->|valid positions| SP_VICE_CHAIRMAN
+    SR_SECRETARY -.->|valid positions| SP_SECRETARY
+    SR_PRESENTER -.->|valid positions| SP_LEGISLATOR
+    SR_EXPERT -.->|valid positions| SP_LEGISLATOR
+    SR_EXPERT -.->|valid positions| SP_NONLEGISLATOR
+    SR_PUBLIC -.->|valid positions| SP_NONLEGISLATOR
+    SR_UNKNOWN -.->|valid positions| SP_UNKNOWN
 
-    %% SectionSpeakerEnum -> SpeakerRoleEnum validations
+    %% SectionSpeakerRequirementsEnum -> SpeakerRoleEnum validations
     INTRO -.->|allows| SR_PRESIDING_CHAIR
     PRESENTATION -.->|allows| SR_PRESENTER
     LEGISLATOR_DISCUSSION -.->|allows| SR_PRESIDING_CHAIR
@@ -92,6 +91,7 @@ graph TB
     CLOSING_REMARKS -.->|allows| SR_PRESENTER
     VOTE -.->|allows| SR_PRESIDING_CHAIR
     VOTE -.->|allows| SR_SECRETARY
+    VOTE -.->|allows| SR_COMMITTEE_MEMBER
 
     %% VoteSection -> MotionEnum
     VOTE -.->|has motion type| MotionEnum
@@ -99,8 +99,8 @@ graph TB
     classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef valueClass fill:#e8f4f8,stroke:#333,stroke-width:1px,color:#000
 
-    class SpeakerTypeEnum,SpeakerRoleEnum,SectionSpeakerEnum,MotionEnum enumClass
-    class ST_CHAIRMAN,ST_VICE_CHAIRMAN,ST_SECRETARY,ST_LEGISLATOR,ST_NONLEGISLATOR,ST_UNKNOWN valueClass
+    class SpeakerPositionEnum,SpeakerRoleEnum,SectionSpeakerRequirementsEnum,MotionEnum enumClass
+    class SP_CHAIRMAN,SP_VICE_CHAIRMAN,SP_SECRETARY,SP_LEGISLATOR,SP_NONLEGISLATOR,SP_UNKNOWN valueClass
     class SR_PRESIDING_CHAIR,SR_SECRETARY,SR_PRESENTER,SR_COMMITTEE_MEMBER,SR_EXPERT,SR_PUBLIC,SR_UNKNOWN valueClass
     class INTRO,PRESENTATION,LEGISLATOR_DISCUSSION,EXPERT_TESTIMONY,PUBLIC_COMMENTS,CLOSING_REMARKS,VOTE valueClass
     class DUE_PASS,RECONSIDERATION,AMENDMENT valueClass
@@ -122,14 +122,16 @@ graph TD
     VoteSection[VoteSection]
 
     %% Enums
-    SpeakerTypeEnum[SpeakerTypeEnum]
+    SpeakerPositionEnum[SpeakerPositionEnum]
     SpeakerRoleEnum[SpeakerRoleEnum]
     SpeakerRoleRequirementsEnum[SpeakerRoleRequirementsEnum]
-    SectionSpeakerEnum[SectionSpeakerEnum]
+    SectionSpeakerRequirementsEnum[SectionSpeakerRequirementsEnum]
     MotionEnum[MotionEnum]
 
     %% Supporting classes
     RoleProperties[RoleProperties]
+    RoleRequirements[RoleRequirements]
+    SectionRequirements[SectionRequirements]
 
     %% Hearing hierarchy
     RawHearing -->|extends| Hearing
@@ -158,7 +160,7 @@ graph TD
 
     %% Section relationships
     Section -->|contains| OralContribution
-    Section -->|validates with| SectionSpeakerEnum
+    Section -->|validates with| SectionSpeakerRequirementsEnum
     VoteSection -->|extends| Section
     VoteSection -->|has| MotionEnum
 
@@ -167,19 +169,25 @@ graph TD
 
     %% Speaker relationships
     Speaker -->|extends| RoleProperties
-    Speaker -->|has type| SpeakerTypeEnum
-    Speaker -->|has role| SpeakerRoleRequirementsEnum
+    Speaker -->|has position| SpeakerPositionEnum
+    Speaker -->|validates with| SpeakerRoleRequirementsEnum
 
     %% Role relationships
-    SpeakerRoleRequirementsEnum -->|uses| SpeakerRoleEnum
-    SpeakerRoleRequirementsEnum -->|validates with| SpeakerTypeEnum
+    SpeakerRoleRequirementsEnum -->|has value type| RoleRequirements
+    RoleRequirements -->|extends| RoleProperties
+    RoleRequirements -->|uses| SpeakerPositionEnum
+    RoleRequirements -->|uses| SpeakerRoleEnum
+
+    %% Section validation relationships
+    SectionSpeakerRequirementsEnum -->|has value type| SectionRequirements
+    SectionRequirements -->|uses| SpeakerRoleEnum
 
     %% Styling
     classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
     classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef sectionNode fill:#d4edda,stroke:#333,stroke-width:1px,color:#000
 
-    class Hearing,RawHearing,ParsedHearing,Section,VoteSection,OralContribution,Speaker,RoleProperties dataclass
-    class SpeakerTypeEnum,SpeakerRoleEnum,SpeakerRoleRequirementsEnum,SectionSpeakerEnum,MotionEnum enumClass
+    class Hearing,RawHearing,ParsedHearing,Section,VoteSection,OralContribution,Speaker,RoleProperties,RoleRequirements,SectionRequirements dataclass
+    class SpeakerPositionEnum,SpeakerRoleEnum,SpeakerRoleRequirementsEnum,SectionSpeakerRequirementsEnum,MotionEnum enumClass
     class intro,presentation,legislator_discussion,expert_testimony,discussion,closing,vote sectionNode
 ```
