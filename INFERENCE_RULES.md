@@ -38,6 +38,13 @@ first expert utterance to the last expert utterance is the whole expert testimon
 in_section(u2, EXPERT_TESTIMONY)
 ```
 
+members of the public and sometimes experts will introduce themselves (see Dimitrijevik 2026 and Das 2026)
+```
+∀s:Speaker. ∃u:Utterance. is_first_utterance(u, s) ∧ mentions(u, s)
+→
+has_role(s, PUBLIC) ∨ has_role(s, EXPERT)
+```
+
 experts' names will always be mentioned before their first utterance.
 ```
 ∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
@@ -50,13 +57,6 @@ members of the public will never be mentioned before their first utterance.
 ∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ¬∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
 →
 has_role(s, PUBLIC)
-```
-
-members of the public (and maybe experts? ask prof) will always introduce themselves with their full name or part of their name(according to sofija and pallavi)
-```
-∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ∃u:Utterance. is_first_utterance(u, s) ∧ mentions(u, s)
-→
-has_role(s, EXPERT)
 ```
 
 if a statement by a committee member is purely for demarcating a transition, you can leave it untagged/unsectioned
@@ -107,7 +107,3 @@ there will always be exactly 1 presiding chair per hearing (chair, co-chair, vic
 ```
 ∀h:Hearing. ∃!s:Speaker. (presiding_at(s, h) ∧ (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN)))
 ```
-
-
-# To clarify with Khosmood
-- will experts ever introduce themselves, or will they always be introduced by committee staff/members?

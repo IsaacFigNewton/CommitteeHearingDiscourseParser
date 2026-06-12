@@ -171,6 +171,19 @@ Defines valid speaker roles for each section type.
 | `CLOSING_REMARKS` | `[PRESIDING_CHAIR, PRESENTER]` | Closing remarks by chair or presenter |
 | `VOTE` | `[PRESIDING_CHAIR, SECRETARY, COMMITTEE_MEMBER]` | Voting section |
 
+### SectionEnum ([SectionEnum.py](src/speakers/enums/SectionEnum.py))
+Section types in committee hearings.
+
+| Enum Value | String Value | Description |
+|------------|--------------|-------------|
+| `INTRO` | `"INTRO"` | Opening remarks, pledge of allegiance, etc. |
+| `PRESENTATION` | `"PRESENTATION"` | Bill description/introduction |
+| `LEGISLATOR_DISCUSSION` | `"LEGISLATOR_DISCUSSION"` | Discussion among legislators |
+| `EXPERT_TESTIMONY` | `"EXPERT_TESTIMONY"` | Expert testimony |
+| `PUBLIC_COMMENTS` | `"PUBLIC_COMMENTS"` | Public comment period |
+| `CLOSING_REMARKS` | `"CLOSING_REMARKS"` | Closing remarks |
+| `VOTE` | `"VOTE"` | Voting section |
+
 ### MotionEnum ([MotionEnum.py](src/enums/MotionEnum.py))
 Types of motions that can be made.
 
@@ -179,6 +192,24 @@ Types of motions that can be made.
 | `DUE_PASS` | `"due pass"` | Motion for due pass |
 | `RECONSIDERATION` | `"reconsideration"` | Motion for reconsideration |
 | `AMENDMENT` | `"amendment"` | Motion for amendment |
+
+### SpeechActEnum ([SpeechActEnum.py](src/enums/SpeechActEnum.py))
+Types of speech acts/utterances.
+
+| Enum Value | String Value | Description |
+|------------|--------------|-------------|
+| `INTRODUCTION` | `"INTRODUCTION"` | Introduction speech act |
+| `ROLL_CALL` | `"ROLL_CALL"` | Roll call speech act |
+
+## Type Aliases
+
+### types.py ([types.py](src/speakers/validation/types.py))
+Type aliases for validation.
+
+| Type Alias | Definition | Description |
+|------------|------------|-------------|
+| `ValidPositions` | `FrozenSet[SpeakerPositionEnum]` | Set of valid speaker positions |
+| `ValidRoles` | `FrozenSet[SpeakerRoleEnum]` | Set of valid speaker roles |
 
 ## Project Structure
 

@@ -19,9 +19,11 @@ The discourse structure is validated using enums and requirements:
 - **[SpeakerRoleEnum](src/speakers/enums/SpeakerRoleEnum.py)**: Speaker roles (Presiding Chair, Secretary, Presenter, Committee Member, etc.)
 - **[SpeakerRoleRequirementsEnum](src/speakers/validation/SpeakerRoleRequirementsEnum.py)**: Role definitions with requirements and valid speaker positions
 - **[RoleRequirements](src/speakers/validation/RoleRequirements.py)**: Dataclass defining role validation requirements
+- **[SectionEnum](src/speakers/enums/SectionEnum.py)**: Section types (Intro, Presentation, Discussion, Vote, etc.)
 - **[SectionSpeakerRequirementsEnum](src/speakers/validation/SectionSpeakerRequirementsEnum.py)**: Defines which speaker roles are valid in each section type
 - **[SectionRequirements](src/speakers/validation/SectionRequirements.py)**: Dataclass defining section validation requirements
 - **[MotionEnum](src/enums/MotionEnum.py)**: Types of motions (Due Pass, Reconsideration, Amendment)
+- **[SpeechActEnum](src/enums/SpeechActEnum.py)**: Types of speech acts (Introduction, Roll Call)
 
 For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
 
@@ -69,8 +71,6 @@ graph TB
     SR_PRESIDING_CHAIR -.->|valid positions| SP_VICE_CHAIRMAN
     SR_SECRETARY -.->|valid positions| SP_SECRETARY
     SR_PRESENTER -.->|valid positions| SP_LEGISLATOR
-    SR_EXPERT -.->|valid positions| SP_LEGISLATOR
-    SR_EXPERT -.->|valid positions| SP_NONLEGISLATOR
     SR_PUBLIC -.->|valid positions| SP_NONLEGISLATOR
     SR_UNKNOWN -.->|valid positions| SP_UNKNOWN
 
