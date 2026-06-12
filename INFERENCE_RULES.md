@@ -1,109 +1,19 @@
 # Inference Rules
 If the context is satisfied, then the implicature follows.
-Mark
 
-|   `ValidPositions`   |   `Speaker.is_legislator` |   `Speaker.is_committee_member`   |   `Speaker.is_bill_author`    |   Other Context                   |   Implied `SpeakerRoleEnum` |   Implied `SectionEnum`                     |   Description                     |
-|   --------------------        |    ---------------------  |   --------------------            |    ---------------------      |   --------------------      |    ---------------------    |   --------------------       |   --------------------    |
-|   N/A                         |    N/A                    |   False                           |    N/A                        |   N/A                         |    `PRESENTER` or `EXPERT`  |   `PRESENTATION` or `EXPERT_TESTIMONY`      |   if a non-member of a committee is speaking at a hearing, they are either an expert or a presenter   |
-
-
-# TODO: Parse the following items as table entries above
-if a non-member of a committee is speaking at a hearing, they are either an expert or a presenter (entry already added)
-
-non-presiding chairs should be treated the same as SpeakerRoleEnum.MEMBER
-```
-∀s:Speaker. (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN)) ∧ ¬presiding_at(s, h)
-→
-has_role(s, COMMITTEE_MEMBER)
-```
-
-if the primary author (as indicated by bills.csv) is present and they're the only non-committee-member legislator, then they will be a presenter
-```
-∃s:Speaker. (is_author(s, bill(h)) ∧ is_legislator(s) ∧ ¬is_committee_member(s) ∧ ∀s':Speaker. (¬(s' = s) → ¬is_author(s', bill(h)) ∨ is_committee_member(s')) )
-→
-has_role(s, PRESENTER)
-```
-
-if a non-legislator's name is mentioned before their first utterance and they have a longer utterance than average, they are probably an expert
-```
-∀s:Speaker, u:Utterance. ¬is_legislator(s) ∧ first_utterance(s, u) ∧ mentioned_before(s, u) ∧ len(u) > average_utterance_length
-→
-has_role(s, EXPERT)
-```
-
-first expert utterance to the last expert utterance is the whole expert testimony section (even if it includes legislator discussion in the middle)
-```
-∀h:Hearing, s1, s2, s3:Speaker, u1,u2,u3:Utterance. speaker(u1) = s1 ∧ speaker(u3) = s3  ∧ role(s1) = EXPERT ∧ role(s3) = EXPERT ∧ u1.uid ≤ u2.uid ≤ u3.uid
-→
-in_section(u2, EXPERT_TESTIMONY)
-```
-
-members of the public and sometimes experts will introduce themselves (see Dimitrijevik 2026 and Das 2026)
-```
-∀s:Speaker. ∃u:Utterance. is_first_utterance(u, s) ∧ mentions(u, s)
-→
-has_role(s, PUBLIC) ∨ has_role(s, EXPERT)
-```
-
-experts' names will always be mentioned before their first utterance.
-```
-∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
-→
-has_role(s, EXPERT)
-```
-
-members of the public will never be mentioned before their first utterance.
-```
-∀s:Speaker. (has_role(s, PUBLIC) ∨ has_role(s, EXPERT)) ∧ ¬∃u1, u2:Utterance. is_first_utterance(u2, s) ∧ mentions(u1, s) ∧ u1.uid < u2.uid
-→
-has_role(s, PUBLIC)
-```
-
-if a statement by a committee member is purely for demarcating a transition, you can leave it untagged/unsectioned
-```
-∀s:Speaker, u:Utterance. is_transition(u)
-→
-in_section(u, None)
-```
-
-any committee member may file motions. so if there's an annotation error and the pid is not in people.csv but they've filed a motion, then they must be in the committeeRosters.csv
-so you can try fuzzy matching on the members of the committee in committeeRosters.csv
-```
-∀s:Speaker, u:Utterance. speaker(u) = s ∧ has_position(s, UNKNOWN) ∧ is_motion(u) ∃s':Speaker. (has_role(PRESIDING_CHAIR) ∧ ¬(s = s'))
-→
-has_role(s, COMMITTEE_MEMBER)
-```
-
-if every speaker has a role and there is only 1 CHAIRMAN or VICE_CHAIR, then that will be the PRESIDING_CHAIR
-```
-∀s:Speaker. ¬has_position(s, UNKNOWN) ∧ ∃!s':Speaker. (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN))
-→
-has_role(s, PRESIDING_CHAIR)
-```
-
-utterances by members of the public will never preceed utterances by experts
-(DL rule is contrapositive of this statement)
-```
-∃u₁,u₂:Utterance. precedes(u₁, u₂)
-→
-¬has_role(speaker(u₁), PUBLIC) ∨ ¬has_role(speaker(u₂), EXPERT)
-```
-
-# Other Rules (parse and integrate later)
-
-a member of the public will never have more than 3 utterances
-```
-∀s:Speaker. has_role(s, PUBLIC)
-→
-|{u:Utterance | uttered_by(u, s)}| ≤ 3
-```
-
-speaker name mentions may be misspelled
-```
-∀mention:NameMention. [speaker name mentions may be misspelled]
-```
-
-there will always be exactly 1 presiding chair per hearing (chair, co-chair, vice-chair are only ones allowed to preside)
-```
-∀h:Hearing. ∃!s:Speaker. (presiding_at(s, h) ∧ (has_position(s, CHAIRMAN) ∨ has_position(s, VICE_CHAIRMAN)))
-```
+| Description | `ValidPositions` | `Speaker.is_legislator` | `Speaker.is_committee_member` | `Speaker.is_presiding` | `Speaker.has_position_UNKNOWN` | `Speaker.is_mentioned_prior` | `Speaker.existing_role` | `Utterance.is_first_by_speaker` | `Utterance.is_self_introduction` | `Utterance.order_relation` | Other Context | Implied `SpeakerRoleEnum` | Implied `SectionEnum` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| If a non-member of a committee is speaking at a hearing, they are either an expert or a presenter. | - | - | False | - | - | - | - | - | - | - | - | `PRESENTER` or `EXPERT` | `PRESENTATION` or `EXPERT_TESTIMONY` |
+| Non-presiding chairs should be labelled the same as committee members. | `CHAIRMAN` or `VICE_CHAIRMAN` | - | - | False | - | - | - | - | - | - | - | `COMMITTEE_MEMBER` | - |
+| If the primary author is present and is the only non-committee-member legislator, then they are a presenter. | - | True | False | - | - | - | - | - | - | - | Primary author is indicated by `bills.csv`; all other bill authors, if present, are committee members.; `Speaker.is_bill_author`: True; `Hearing.unique_noncommittee_author`: True | `PRESENTER` | - |
+| The section from the first expert utterance through the last expert utterance is expert testimony. | - | - | - | - | - | - | - | - | - | `first_expert_utterance.uid <= u.uid <= last_expert_utterance.uid` | - | - | `EXPERT_TESTIMONY` |
+| Members of the public, and sometimes experts, introduce themselves. | - | - | - | - | - | - | - | True | True | - | - | `PUBLIC` or `EXPERT` | - |
+| Experts' names are always mentioned before their first utterance and they will usually utter more than 3 sentences. | - | - | - | - | - | True | `PUBLIC` or `EXPERT` | True | True | - | `Speaker.total_sentences`: `> 3` | `EXPERT` | - |
+| Members of the public are never mentioned before their first utterance and will never utter more than 3 sentences. | - | - | - | - | - | False | `PUBLIC` or `EXPERT` | True | True | - | `Speaker.total_sentences`: `<= 3` | `PUBLIC` | - |
+| If an utterance is purely transitional, leave it untagged/unsectioned. | - | - | - | - | - | - | - | - | - | - | `Utterance.is_transition`: True | - | `None` |
+| Any committee member may file motions; if an unknown-position speaker files a motion, infer committee membership. | - | - | - | - | True | - | - | - | - | - | Speaker filed a motion; fuzzy match against `committeeRosters.csv` when `people.csv` does not contain the `pid`; another speaker has role `PRESIDING_CHAIR`.; `Utterance.is_motion`: True | `COMMITTEE_MEMBER` | - |
+| If every speaker has a known position and there is only one chair or vice chair, that speaker is the presiding chair. | `CHAIRMAN` or `VICE_CHAIRMAN` | - | - | - | False | - | - | - | - | - | `Hearing.has_unknown_speaker`: False; `Hearing.unique_chair_or_vice_chair`: True | `PRESIDING_CHAIR` | - |
+| Utterances by members of the public never precede utterances by experts. | - | - | - | - | - | - | Earlier speaker: candidate `PUBLIC`<br>Later speaker: candidate `EXPERT` | - | - | `u1 precedes u2` | Rule is the contrapositive of the natural-language statement. | Not both: earlier `PUBLIC` and later `EXPERT` | - |
+# Additional Notes
+- Names may be misspelled
+- There will always be exactly one presiding chair per hearing.
