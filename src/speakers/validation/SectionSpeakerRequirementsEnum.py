@@ -1,5 +1,6 @@
 from enum import Enum
 from ..enums.SpeakerRoleEnum import SpeakerRoleEnum
+from .SectionRequirements import SectionRequirements
 
 """
 describes the valid speaker roles associated with each section
@@ -8,18 +9,42 @@ SpeakerRoleEnum.CHAIRMAN and SpeakerRoleEnum.SECRETARY are always allowed as spe
 """
 class SectionSpeakerRequirementsEnum(Enum):
     # introducing senators, pledge of allegiance, etc.
-    INTRO=                  {SpeakerRoleEnum.PRESIDING_CHAIR}
+    INTRO=                  SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR
+    }))
 
     # bill description/introduction
-    PRESENTATION=           {SpeakerRoleEnum.PRESENTER}
+    PRESENTATION=           SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESENTER
+    }))
 
     # sequence of different discussion sections
-    LEGISLATOR_DISCUSSION=  {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY, SpeakerRoleEnum.COMMITTEE_MEMBER}
-    EXPERT_TESTIMONY=       {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY, SpeakerRoleEnum.COMMITTEE_MEMBER, SpeakerRoleEnum.EXPERT}
-    PUBLIC_COMMENTS=        {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY, SpeakerRoleEnum.PUBLIC}
+    LEGISLATOR_DISCUSSION=  SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR,
+        SpeakerRoleEnum.SECRETARY,
+        SpeakerRoleEnum.COMMITTEE_MEMBER
+    }))
+    EXPERT_TESTIMONY=       SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR,
+        SpeakerRoleEnum.SECRETARY,
+        SpeakerRoleEnum.COMMITTEE_MEMBER,
+        SpeakerRoleEnum.EXPERT
+    }))
+    PUBLIC_COMMENTS=        SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR,
+        SpeakerRoleEnum.SECRETARY,
+        SpeakerRoleEnum.PUBLIC
+    }))
 
     # closing remarks by committee chair or bill presenter
-    CLOSING_REMARKS=        {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.PRESENTER}
+    CLOSING_REMARKS=        SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR,
+        SpeakerRoleEnum.PRESENTER
+    }))
 
     # voting section
-    VOTE=                   {SpeakerRoleEnum.PRESIDING_CHAIR, SpeakerRoleEnum.SECRETARY, SpeakerRoleEnum.COMMITTEE_MEMBER}
+    VOTE=                   SectionRequirements(frozenset({
+        SpeakerRoleEnum.PRESIDING_CHAIR,
+        SpeakerRoleEnum.SECRETARY,
+        SpeakerRoleEnum.COMMITTEE_MEMBER
+    }))
