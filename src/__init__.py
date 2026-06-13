@@ -6,5 +6,7 @@ from the Digital Democracy Corpus (2015-2018).
 """
 
 from .HearingLoader import HearingLoader
+from .HearingParser import HearingParser
+from .to_dataframe import build_utterance_rows
 
-__all__ = ['HearingLoader']
+__all__ = ['HearingLoader', 'HearingParser', 'build_utterance_rows']
