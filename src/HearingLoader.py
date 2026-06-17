@@ -126,21 +126,21 @@ class HearingLoader:
 
     def _update_speaker_position(self, cid: int, speaker: Speaker):
         # default to non-legislator with non-committee membership and non-authorship
-        speaker.is_legislator = False
-        speaker.is_committee_member = False
-        speaker.is_bill_author = False
+        speaker.speaker_position = None
+        speaker.can_file_motions = False
+        speaker.is_presenter = False
 
         # if its someone tracked in the dataset
         if speaker.pid in self.all_pids:
             # if it's a legislator
             if speaker.pid in self.pids:
-                speaker.is_legislator = True
+                speaker.speaker_position = SpeakerPositionEnum.LEGISLATOR
                 # TODO: check if they're a primary author on the bill
 
                 # if they're a member of the committee
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
                 if pos:
-                    speaker.is_committee_member = True
+                    speaker.can_file_motions = True
                     speaker.speaker_position = pos
                     return speaker
 
@@ -150,7 +150,8 @@ class HearingLoader:
 
             # if it's just the committee secretary or staff
             if speaker.first_name == "Committee" and speaker.last_name == "Secretary":
-                speaker.speaker_position = SpeakerPositionEnum.SECRETARY
+                speaker.can_file_motions = True
+                speaker.speaker_position = None
                 return speaker
 
             # if it's not a legislator,
@@ -180,7 +181,7 @@ class HearingLoader:
                 return self._update_speaker_position(cid, speaker)
         
         # if no speaker match found, mark as unknown
-        speaker.speaker_position = SpeakerPositionEnum.UNKNOWN
+        speaker.speaker_position = None
         return speaker
 
 
@@ -273,9 +274,6 @@ class HearingLoader:
 
             if pid not in speakers:
                 speakers[pid] = Speaker(
-                    is_legislator=None,
-                    is_committee_member=None,
-                    is_bill_author=None,
                     pid=pid,
                     first_name=(
                         speech_row[SPEECH_FIRST_NAME_IDX]
@@ -288,7 +286,8 @@ class HearingLoader:
                         else None
                     ),
                     speaker_position=None,
-                    speaker_role=None
+                    can_file_motions=None,
+                    is_presenter=None
                 )
 
             utterances.append(
@@ -326,14 +325,12 @@ class HearingLoader:
             if hid_str == row[SPEECH_HID_IDX] and bid == row[SPEECH_BID_IDX]:
                 speaker_pid = int(row[SPEECH_PID_IDX]) if row[SPEECH_PID_IDX] else -1
                 speakers[speaker_pid] = Speaker(
-                    is_legislator=None,
-                    is_committee_member=None,
-                    is_bill_author=None,
                     pid=speaker_pid,
                     first_name=row[SPEECH_FIRST_NAME_IDX] if row[SPEECH_FIRST_NAME_IDX] else None,
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
                     speaker_position=None,
-                    speaker_role=None,
+                    can_file_motions=None,
+                    is_presenter=None
                 )
 
                 oral_contribution = OralContribution(

@@ -7,7 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from .constants import *
-from .dataclasses.Hearing import RawHearing, TaggedHearing, ParsedHearing
+from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .HearingTagger import HearingTagger
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -26,12 +26,9 @@ class HearingParser:
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
 
-    def __init__(self, return_type: str = 'dataframe') -> None:
+    def __init__(self) -> None:
         self.hearing_tagger = HearingTagger()
-        # return_type == 'dataframe' or 'json'
-        #   if return_type == 'json', parse the hearing into a ParsedHearing instance and serialize its contents as JSON
-        #   if return_type == 'dataframe', just return the row-level parsed hearing dataframe
-        self.return_type = return_type
+        # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model()
 

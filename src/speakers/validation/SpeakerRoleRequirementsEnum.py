@@ -4,71 +4,47 @@ from .RoleRequirements import RoleRequirements
 
 class SpeakerRoleRequirementsEnum(Enum):
     """
-    each SpeakerRoleRequirementsEnum is defined by:
-        valid_speaker_positions:    a set of the types of speakers that may hold the role
-        is_committee_member:    whether the speaker with this role must be a committee member,
-        is_bill_author:         whether the speaker with this role must be a primary bill author
+    each SpeakerRoleRequirementsEnum denotes the speaker properties
+        required for setting a particular attribute to "True"
+    if SpeakerRoleRequirementsEnum.speaker_position <= speaker.speaker_position and speaker.speaker_position <= SpeakerRoleRequirementsEnum.max_speaker_position:
+        check relevant role classification rules
+
+    TODO: organize the rules below into an interval tree for faster, simpler lookup
     """
 
     # procedural roles
-    PRESIDING_CHAIR=        RoleRequirements(
-        is_legislator=              True,
-        is_committee_member=        True,
-        is_bill_author=             None,
-        # only chairmen or vicechairmen can preside
-        valid_speaker_positions=    frozenset({
-            SpeakerPositionEnum.CHAIRMAN,
-            SpeakerPositionEnum.VICE_CHAIRMAN,
-        }),
-    )
-    SECRETARY=              RoleRequirements(
-        is_legislator=              False,
-        is_committee_member=        False,
-        is_bill_author=             False,
-        valid_speaker_positions=    frozenset({
-            SpeakerPositionEnum.SECRETARY,
-        }),
+    is_presiding=        RoleRequirements(
+        # only vicechairmen or chairmen can preside
+        valid_speaker_position_intervals=          {
+            (SpeakerPositionEnum.VICE_CHAIRMAN, SpeakerPositionEnum.PRESIDING_CHAIR),
+        },
+        can_file_motions=           True,
+        is_presenter=               None,
     )
 
     # legislator roles
-    PRESENTER=              RoleRequirements(
-        is_legislator=              True,
-        is_committee_member=        None,
-        is_bill_author=             None,
-        # presiding chair cannot present bill
-        valid_speaker_positions=    frozenset({
-            SpeakerPositionEnum.LEGISLATOR,
-        }),
-    )
-    COMMITTEE_MEMBER=       RoleRequirements(
-        is_legislator=              True,
-        is_committee_member=        True,
-        is_bill_author=             None,
-        # anyone who's a committee member can have this role
-        valid_speaker_positions=    None,
+    is_presenter=       RoleRequirements(
+        valid_speaker_position_intervals=          {
+            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.BILL_AUTHOR),
+            (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PRESIDING_CHAIR),
+        },
+        can_file_motions=           None,
+        is_presenter=               None,
     )
 
     # other roles
-    EXPERT=             RoleRequirements(
-        is_legislator=              None,
-        is_committee_member=        False,
-        is_bill_author=             False,
-        # experts can be legislators or nonlegislators
-        valid_speaker_positions=    None,
+    is_expert=          RoleRequirements(
+        # experts can be legislators or nonlegislators but not committee members
+        valid_speaker_position_intervals=          {
+            (SpeakerPositionEnum.NONLEGISLATOR, SpeakerPositionEnum.EXPERT),
+        },
+        can_file_motions=           False,
+        is_presenter=               False,
     )
-    PUBLIC=             RoleRequirements(
-        is_legislator=              False,
-        is_committee_member=        False,
-        is_bill_author=             False,
-        valid_speaker_positions=    frozenset({
-            SpeakerPositionEnum.NONLEGISLATOR
-        }),
-    )
-    UNKNOWN=            RoleRequirements(
-        is_legislator=              False,
-        is_committee_member=        False,
-        is_bill_author=             False,
-        valid_speaker_positions=    frozenset({
-            SpeakerPositionEnum.UNKNOWN
-        }),
+    is_public=          RoleRequirements(
+        valid_speaker_position_intervals=          {
+            (SpeakerPositionEnum.NONLEGISLATOR, SpeakerPositionEnum.NONLEGISLATOR),
+        },
+        can_file_motions=           False,
+        is_presenter=               False,
     )

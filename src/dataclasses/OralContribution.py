@@ -1,9 +1,7 @@
 from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
-from ..speakers.interfaces.RoleProperties import RoleProperties
-from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
-from ..speakers.enums.SpeakerRoleEnum import SpeakerRoleEnum
+from ..speakers.interfaces.SpeakerProperties import SpeakerProperties
 from ..speakers.enums.SectionEnum import SectionEnum
 
 """
@@ -26,14 +24,7 @@ class OralContribution:
 
 
 @dataclass
-class TaggedOralContribution(OralContribution):
-    section: Optional[SectionEnum]
-
-    speaker_position: Optional[SpeakerPositionEnum]
-    speaker_is_legislator: bool
-    speaker_is_committee_member: bool
-    speaker_role: Optional[SpeakerRoleEnum]
-
+class TaggedOralContribution(SpeakerProperties, OralContribution):
     # pids of any speakers (including the current one) that were mentioned
     mentions_speakers: Optional[List[int]]
     # bids of any bills (including the current one) that were mentioned
@@ -52,3 +43,5 @@ class TaggedOralContribution(OralContribution):
     is_motion: Optional[bool]
     # if it's just a transitional utterance
     is_transition: Optional[bool]
+    # section for classification
+    section: Optional[SectionEnum]

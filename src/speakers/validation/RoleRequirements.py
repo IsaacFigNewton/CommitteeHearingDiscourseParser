@@ -1,8 +1,8 @@
-from typing import List, Dict, Tuple, Union, Optional, FrozenSet
+from typing import List, Tuple, Set, Union, Optional, FrozenSet
 from dataclasses import dataclass
 
-from .types import ValidPositions
-from ..interfaces.RoleProperties import RoleProperties
+from ..enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ..interfaces.SpeakerProperties import RoleProperties
 
 """
 Used to configure SpeakerRoleEnum items
@@ -10,4 +10,4 @@ Used to configure SpeakerRoleEnum items
 
 @dataclass
 class RoleRequirements(RoleProperties):
-    valid_speaker_positions:    Optional[ValidPositions]
+    valid_speaker_position_intervals:       Optional[Set[Tuple[SpeakerPositionEnum, SpeakerPositionEnum]]]

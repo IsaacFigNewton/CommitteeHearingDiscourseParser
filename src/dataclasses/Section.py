@@ -1,7 +1,7 @@
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
-from ..speakers.validation.SectionSpeakerRequirementsEnum import SectionSpeakerRequirementsEnum
+from ..speakers.validation.SectionRoleRequirementsEnum import SectionSpeakerRequirementsEnum
 from ..enums.MotionEnum import MotionEnum
 from .OralContribution import OralContribution
 
@@ -15,13 +15,3 @@ class Section:
     span: Tuple[int, int]
     valid_speakers: SectionSpeakerRequirementsEnum
     utterances: List[OralContribution]
-
-
-@dataclass
-class VoteSection(Section):
-    motion_type: MotionEnum
-    motion: OralContribution
-    second: OralContribution
-    roll_call: OralContribution
-    results: List[OralContribution]
-    discussion: Optional[List[OralContribution]]
