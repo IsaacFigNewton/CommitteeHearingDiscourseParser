@@ -197,7 +197,7 @@ class HearingLoader:
         # Index hearing metadata once by hid
         hearing_rows_by_hid = {
             int(row["hid"]): row
-            for i, row in self.hearings.iterrows()
+            for _, row in self.hearings.iterrows()
         }
 
         # Build nested speech index: cid -> hid -> bid -> rows

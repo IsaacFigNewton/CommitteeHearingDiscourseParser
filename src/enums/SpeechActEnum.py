@@ -6,5 +6,6 @@ used to enumerate the different kinds of speech acts/utterances
 """
 
 class SpeechActEnum(Enum):
-    INTRODUCTION=   "INTRODUCTION"
-    ROLL_CALL=      "ROLL_CALL"
+    INTRODUCTION = "INTRODUCTION"
+    ROLL_CALL = "ROLL_CALL"
+    

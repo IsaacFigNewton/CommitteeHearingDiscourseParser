@@ -1,6 +1,7 @@
 digitaldemocracy-2015-2018/
 DH2024_Corpus_Release/
 __MACOSX/*
+utterances.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
