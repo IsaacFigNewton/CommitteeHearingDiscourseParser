@@ -7,7 +7,7 @@ ASSEMBLY_BILL_REGEX = r'\bAssembly\s+Bill\s+\d+\b'
 SENATE_BILL_REGEX = r'\bSenate\s+Bill\s+\d+\b'
 
 PRESENTATION_HANDOFF_PHRASES = [
-    'Please proceed',
+    'please proceed',
     'please present',
     'feel free to present',
 ]
@@ -23,7 +23,24 @@ PRESENTATION_START_PHRASES = [
     'I present',
 ]
 
+PRESENTATION_CUES = [
+    'i would like to present',
+    "i'm pleased to present",
+    "i'm here to present",
+    'this bill',
+    'this measure',
+    'the bill contains',
+    'this is the',
+    'includes the following changes',
+]
+
 BILL_PREFIXES = ['AB', 'SB', 'SJR']
+
+BILL_SYNONYMS = [
+    "bill",
+    "motion",
+    "measure"
+]
 
 BILL_ACTION_VERBS = [
     'require',
@@ -50,23 +67,23 @@ BILL_ACTION_PATTERN = re.compile(
 )
 
 VOTE_START_PHRASES = [
-    'The motion is due pass',
-    'The motion is do pass',
+    'is due pass',
+    'is do pass',
+    'is so moved',
+    'is seconded',
 ]
 
 MOTION_CUES = [
-    'motion is do pass',
-    'motion is due pass',
-    'do pass',
-    'due pass',
-    'do pass as amended',
-    'due pass as amended',
-    'so moved',
-    'second',
     'refer to the committee',
     're-refer to the committee',
 ]
 
+
+DISPOSITION_SUFFIXES = [
+    "'s out",
+    'is out',
+    'passes',
+]
 
 DISPOSITION_CUES = [
     "the measure's out",
@@ -75,16 +92,4 @@ DISPOSITION_CUES = [
     'the bill passes',
     'the measure passes',
     'without objection',
-]
-
-
-PRESENTATION_CUES = [
-    'i would like to present',
-    "i'm pleased to present",
-    "i'm here to present",
-    'this bill',
-    'this measure',
-    'the bill contains',
-    'this is the',
-    'includes the following changes',
 ]

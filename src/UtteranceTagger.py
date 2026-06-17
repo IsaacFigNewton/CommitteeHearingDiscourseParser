@@ -55,7 +55,7 @@ class UtteranceTagger(ITagger):
             relative_len=                   None,
 
             # tags for evaluation
-            is_motion=self.contains_any_phrase(text, MOTION_CUES),
+            is_motion=self.contains_any_phrase(text, VOTE_START_PHRASES + MOTION_CUES),
             is_transition=None,
             section=None,
         )
