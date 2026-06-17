@@ -1,11 +1,8 @@
+from typing import Optional
 from .dataclasses.Hearing import ParsedHearing, RawHearing
-from .parsing_constants import (
-    PRESENTATION_HANDOFF_PHRASES,
-    PRESENTATION_START_PHRASES,
-    BILL_ACTION_PATTERN,
-)
-from .parsing_utils import match_regex_pattern, match_any_phrase
 
+from .constants import *
+from .HearingTagger import HearingTagger
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -14,22 +11,13 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 class HearingParser:
     def __init__(self) -> None:
-        pass
-
-    def _detect_first_presentation_utterance(self, raw_hearing: RawHearing) -> int:
-        """Returns the index of the first utterance that is believed to be a presenting a bill, or -1 if none found"""
-        for i, u in enumerate(raw_hearing.utterances):
-            # The presenter may say a phrase that indicates they are beginning to present or the chairperson is introducing them
-            if match_any_phrase(u.text, PRESENTATION_START_PHRASES + PRESENTATION_HANDOFF_PHRASES):
-                return i
-            
-            if match_regex_pattern(BILL_ACTION_PATTERN, u.text):
-                return i
-
-        return -1
-
-    def parse_hearing(self, raw_hearing: RawHearing) -> ParsedHearing:
-        pass
+        self.hearing_tagger = HearingTagger()
+    
+    
+    def parse_hearing(self, raw_hearing: RawHearing) -> Optional[ParsedHearing]:
+        tagged_hearing = self.hearing_tagger(raw_hearing)
+        # TODO: insert section tagging, assignment pipeline
+        # return ParsedHearing()
 
     @staticmethod
     def pprint_hearing(hearing: RawHearing):

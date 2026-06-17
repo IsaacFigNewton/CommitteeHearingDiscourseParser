@@ -124,7 +124,7 @@ class HearingLoader:
         return payload
 
 
-    def _update_role(self, cid: int, speaker: Speaker):
+    def _update_speaker_position(self, cid: int, speaker: Speaker):
         # default to non-legislator with non-committee membership and non-authorship
         speaker.is_legislator = False
         speaker.is_committee_member = False
@@ -177,7 +177,7 @@ class HearingLoader:
                 speaker.pid = pid
                 speaker.first_name = clean_first
                 speaker.last_name = clean_last
-                return self._update_role(cid, speaker)
+                return self._update_speaker_position(cid, speaker)
         
         # if no speaker match found, mark as unknown
         speaker.speaker_position = SpeakerPositionEnum.UNKNOWN
@@ -241,7 +241,7 @@ class HearingLoader:
                     # enrich speakers with speaker role info
                     if cid in self.cid_pid_pos:
                         for pid in hearing.speakers.keys():
-                            hearing.speakers[pid] = self._update_role(cid, hearing.speakers[pid])
+                            hearing.speakers[pid] = self._update_speaker_position(cid, hearing.speakers[pid])
 
                     hearings.append(hearing)
 
@@ -296,9 +296,6 @@ class HearingLoader:
                     uid=uid,
                     pid=pid,
                     text=speech_row[SPEECH_TEXT_IDX],
-                    is_motion=None,
-                    is_transition=None,
-                    mentions=None
                 )
             )
 
@@ -343,9 +340,6 @@ class HearingLoader:
                     uid=uid,
                     pid=speaker_pid,
                     text=row[SPEECH_TEXT_IDX],
-                    is_motion=None,
-                    is_transition=None,
-                    mentions=None
                 )
 
                 lines.append(oral_contribution)
