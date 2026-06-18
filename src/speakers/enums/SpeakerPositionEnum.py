@@ -10,9 +10,9 @@ class SpeakerPositionEnum(Enum):
     CHAIRMAN=           6
     VICE_CHAIRMAN=      5
     COMMITTEE_MEMBER=   4
-    BILL_AUTHOR=        3   # subdivided by can_file_motions
+    BILL_AUTHOR=        3   # subdivided by can_file_motions, determines is_presenter
     LEGISLATOR=         2
-    EXPERT=             1   # subdivided by is_presenter
+    EXPERT=             1
     NONLEGISLATOR=      0
 
 
