@@ -42,9 +42,9 @@ class HearingParser:
         return Pipeline([
             ('features', ColumnTransformer([
                 ('text', TfidfVectorizer(
-                    ngram_range=(1, 2),
+                    ngram_range=(2, 3),
                     min_df=1,
-                    max_features=20000
+                    max_features=2000
                 ), cls.TEXT_COL),
                 ('categorical', OneHotEncoder(
                     handle_unknown='ignore'

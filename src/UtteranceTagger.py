@@ -95,6 +95,61 @@ class UtteranceTagger(ITagger):
         return int(vote_phrase_found or repeated_votes_found)
 
 
+    def _match_entity_to_speaker(
+        self,
+        entity_text: str,
+        speaker_names_pids: Dict[str, int],
+        speakers: Dict[int, Speaker],
+        fuzzy_threshold: int = 85
+    ) -> Optional[int]:
+        """
+        Match an entity text to a speaker using fuzzy matching.
+
+        Args:
+            entity_text: The cleaned entity text to match
+            speaker_names_pids: Dict mapping speaker names to their PIDs
+            speakers: Dict mapping PIDs to Speaker objects
+            fuzzy_threshold: Minimum fuzzy match score (0-100) to consider a match
+
+        Returns:
+            The PID of the best matching speaker, or None if no match found
+        """
+        # Stopwords to filter out from entity text
+        STOPWORDS = {"senator", "member", "assembly", "assemblymember"}
+
+        # Remove stopwords from entity text
+        entity_tokens = [
+            token for token in entity_text.split()
+            if token.lower() not in STOPWORDS
+        ]
+        entity_text_cleaned = " ".join(entity_tokens).strip()
+
+        if not entity_text_cleaned:
+            return None
+
+        # Try to fuzzy match against speaker names
+        best_match_pid = None
+        best_match_score = 0
+
+        for speaker_name, pid in speaker_names_pids.items():
+            speaker = speakers[pid]
+
+            # Try matching against full name, first name, and last name
+            candidates = [speaker_name]
+            if speaker.first_name:
+                candidates.append(speaker.first_name)
+            if speaker.last_name:
+                candidates.append(speaker.last_name)
+
+            for candidate in candidates:
+                score = fuzz.ratio(entity_text_cleaned.lower(), candidate.lower())
+
+                if score > best_match_score and score >= fuzzy_threshold:
+                    best_match_score = score
+                    best_match_pid = pid
+
+        return best_match_pid
+
     def substitute_named_entities(
         self,
         text: str,
@@ -120,36 +175,38 @@ class UtteranceTagger(ITagger):
         # Tokenize and extract named entities
         doc = self.nlp(text)
 
-        # Store matches: (start_char, end_char, pid, position_name)
+        # Store matches: (start_char, end_char, position_name)
         replacements = []
         pids_mentioned = set()
 
-        # Iterate through PERSON entities
+        # Iterate through entities
         for ent in doc.ents:
-            if ent.label_ == "PERSON":
-                entity_text = ent.text
+            match ent.label_:
+                case "PERSON":
+                    matched_pid = self._match_entity_to_speaker(
+                        ent.text, speaker_names_pids, speakers, fuzzy_threshold
+                    )
 
-                # Try to fuzzy match against speaker names
-                best_match_pid = None
-                best_match_score = 0
+                    # If we found a match
+                    if matched_pid is not None:
+                        pids_mentioned.add(matched_pid)
+                        speaker = speakers[matched_pid]
 
-                for speaker_name, pid in speaker_names_pids.items():
-                    # Calculate fuzzy match score
-                    score = fuzz.ratio(entity_text.lower(), speaker_name.lower())
+                        # Get the position name if available
+                        if speaker.speaker_position:
+                            position_name = speaker.speaker_position.name
+                            replacements.append((ent.start_char, ent.end_char, position_name))
 
-                    if score > best_match_score and score >= fuzzy_threshold:
-                        best_match_score = score
-                        best_match_pid = pid
+                case "GPE":
+                    # GPE (Geopolitical Entity) - replace with GPE
+                    replacements.append((ent.start_char, ent.end_char, "GPE"))
 
-                # If we found a match
-                if best_match_pid is not None:
-                    pids_mentioned.add(best_match_pid)
-                    speaker = speakers[best_match_pid]
-
-                    # Get the position name if available
-                    if speaker.speaker_position:
-                        position_name = speaker.speaker_position.name
-                        replacements.append((ent.start_char, ent.end_char, position_name))
+                case "ORG":
+                    # ORG (Organization) - replace with ORG
+                    replacements.append((ent.start_char, ent.end_char, "ORG"))
+                
+                case _:
+                    continue
 
         # Apply replacements in reverse order to maintain character positions
         modified_text = text
