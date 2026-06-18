@@ -22,9 +22,11 @@ class HearingParser:
     TEXT_COL = 'text'
     CAT_COLS = []
     NUM_COLS = [
-    'speaker_position', 'can_file_motion', 'relative_position', 'word_count',   # 'is_presiding',
-    'bids_mentioned', 'has_bill_action', 'has_presentation_cue',                # 'pids_mentioned'
-    'has_motion_cue', 'has_vote_cue', 'has_disposition_cue',
+    'speaker.position', 'speaker.is_presiding',
+    'relative_position', 'relative_length',
+    'mentions_speaker', 'mentions_bill',
+    'has_bill_action', 'has_presentation_cue',
+    'has_motion_cue', 'has_vote_cue', 'has_closing_cue',
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
 
@@ -129,8 +131,7 @@ class HearingParser:
         X = filled_df[self.feature_cols]
 
         # Extract masking information for the classifier
-        speaker_positions = filled_df['speaker_position'].values
-        can_file_motions = filled_df['can_file_motion'].astype(bool).values
+        speaker_positions = filled_df['speaker.position'].values
 
         # Transform features through the pipeline's feature transformer
         X_transformed = self.model.named_steps['features'].transform(X)
@@ -139,7 +140,6 @@ class HearingParser:
         labels = list(self.model.named_steps['classifier'].predict(
             X_transformed,
             speaker_positions=speaker_positions,
-            can_file_motions=can_file_motions
         ))
 
         return self.smooth_label_list(labels) if smooth else labels
@@ -180,7 +180,7 @@ class HearingParser:
                 'speaker.position':     s.speaker_position.value if s and s.speaker_position else None,
                 'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
                 'relative_position':    u.relative_position,
-                'relative_length':           u.relative_len,
+                'relative_length':      u.relative_len,
                 'mentions_speaker':     int(bool(u.pids_mentioned)),
                 'mentions_bill':        int(bool(u.mentions_bills)),
                 'has_bill_action':      int(u.has_bill_action),
