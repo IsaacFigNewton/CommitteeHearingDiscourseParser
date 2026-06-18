@@ -180,7 +180,7 @@ class HearingParser:
                 'speaker.position':     s.speaker_position.value if s and s.speaker_position else None,
                 'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
                 'relative_position':    u.relative_position,
-                'word_count':           u.relative_len,
+                'relative_length':           u.relative_len,
                 'mentions_speaker':     int(bool(u.pids_mentioned)),
                 'mentions_bill':        int(bool(u.mentions_bills)),
                 'has_bill_action':      int(u.has_bill_action),
