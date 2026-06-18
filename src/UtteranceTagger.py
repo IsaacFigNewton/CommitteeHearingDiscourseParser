@@ -50,12 +50,12 @@ class UtteranceTagger(ITagger):
             mentions_bills=                 re.findall(BILL_ID_PATTERN, normalized_text),
             bids_mentioned=                 None,
             has_bill_action=                bool(BILL_ACTION_PATTERN.search(normalized_text)),
-            has_presentation_cue=           self.contains_any_phrase(normalized_text, PRESENTATION_CUES),
+            has_presentation_cue=           self.contains_any_phrase(normalized_text, PHRASE_GROUPS["PRESENTING"]),
             has_vote_cue=                   bool(self.has_vote_cue(normalized_text)),
-            has_closing_cue=                self.contains_any_phrase(normalized_text, DISPOSITION_CUES),
+            has_closing_cue=                self.contains_any_phrase(normalized_text, PHRASE_GROUPS["DISPOSITION"]),
 
             # tags for evaluation
-            is_motion=self.contains_any_phrase(normalized_text, VOTE_START_PHRASES + MOTION_CUES),
+            is_motion=self.contains_any_phrase(normalized_text, list(PHRASE_GROUPS["START_VOTE"]) + list(PHRASE_GROUPS["MOTION"])),
             is_transition=None,
             section=None,
         )

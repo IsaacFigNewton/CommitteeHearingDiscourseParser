@@ -126,9 +126,9 @@ class HearingTagger(ITagger):
         """Returns the index of the first utterance that is believed to be a presenting a bill, or -1 if none found"""
         for i, u in enumerate(raw_hearing.utterances):
             # The presenter may say a phrase that indicates they are beginning to present or the chairperson is introducing them
-            if cls.contains_any_phrase(u.text, PRESENTATION_START_PHRASES + PRESENTATION_HANDOFF_PHRASES):
+            if cls.contains_any_phrase(u.text, PHRASE_GROUPS["PRESENTING"]):
                 return i
-            
+
             if cls.match_regex_pattern(BILL_ACTION_PATTERN, u.text):
                 return i
 

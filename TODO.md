@@ -4,21 +4,13 @@
 2. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables (use a dictionary?)
 3. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
 4. replace RROO keyphrase mentions with the associated SpeechActEnum
-5. use manual rules for speaker role induction
-6. use regexes and/or a SpaCy Matcher to match speaker name and bill name mentions in the utterances
-7. replace speaker name mentions with role info
-8. replace bill name (or sometimes section number) mentions with the associated BID or a "BILL" token
-9. map common keyphrases and stop-phrases to these KeyPhraseEnum enumerables (use a dictionary?)
-11. replace KeyPhraseEnum mentions with the associated KeyPhraseEnum values
-13. (Optional) associate authorship info (in bills.csv) with initial speaker parsing
+5. associate authorship info (in bills.csv) with initial speaker parsing
 
 ## Feature extraction
-1. tokenize the cleaned utterances
-2. perform ngram TF-IDF with ngrams of length 2, 3
-3. get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules
+1. . get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules
  - terms are tokens
  - docs are loose requirement-based section spans
   - get initial bounds for section spans by taking earliest possible start, latest possible end
   - ex: if legislator_discussion has largest possible span of (4, 7) and expert_testimony has largest possible span of (3, 9), treat each as a separate instance of their own doc type and get 2 TF-IDF embeddings for tokens in (3, 4)
-4. filter down to top correlated ngrams
-5. add the top-correlated ngrams to KeyPhraseEnum and its associated map
+2. filter down to top correlated ngrams
+3. add the top-correlated ngrams to KeyPhraseEnum and its associated map
