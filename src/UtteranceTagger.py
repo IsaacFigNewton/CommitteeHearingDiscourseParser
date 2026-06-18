@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 import re
 from .interfaces.ITagger import ITagger
 from .dataclasses.OralContribution import OralContribution, TaggedOralContribution, FlatTaggedOralContribution
@@ -18,14 +18,26 @@ class UtteranceTagger(ITagger):
     def __call__(
         self,
         utterance: OralContribution,
+        speaker_names_pids: Dict[str, int],
+        speakers: Dict[int, Speaker],
         speaker: Optional[Speaker] = None,
     ) -> TaggedOralContribution | FlatTaggedOralContribution:
         # use empty text as default
         text = ""
         if utterance.text:
             text = utterance.text
-            text = self.normalize_text(text)
 
+        # build a set of the pids of speakers mentioned
+        pids_mentioned = set()
+        for s in speakers_mentioned:
+            # just try strict name matching for now
+            matched_pid = speaker_names_pids.get(s)
+            # if a speaker was matched
+            if matched_pid:
+                # add their pid to the set of speakers mentioned
+                pids_mentioned.add(matched_pid)
+                
+        normalized_text = self.normalize_text(text)
         tagged_u = TaggedOralContribution(
             # metadata
             uid=                            utterance.uid,
@@ -34,17 +46,17 @@ class UtteranceTagger(ITagger):
 
             # mention features
             # match all capitalized bigrams that might be names
-            mentions_speakers=              set(re.findall(NAME_BIGRAM_REGEX, utterance.text)),
-            pids_mentioned=                 None,
-            mentions_bills=                 re.findall(BILL_ID_PATTERN, text),
+            mentions_speakers=              None,
+            pids_mentioned=                 pids_mentioned,
+            mentions_bills=                 re.findall(BILL_ID_PATTERN, normalized_text),
             bids_mentioned=                 None,
-            has_bill_action=                bool(BILL_ACTION_PATTERN.search(text)),
-            has_presentation_cue=           self.contains_any_phrase(text, PRESENTATION_CUES),
-            has_vote_cue=                   bool(self.has_vote_cue(text)),
-            has_closing_cue=            self.contains_any_phrase(text, DISPOSITION_CUES),
+            has_bill_action=                bool(BILL_ACTION_PATTERN.search(normalized_text)),
+            has_presentation_cue=           self.contains_any_phrase(normalized_text, PRESENTATION_CUES),
+            has_vote_cue=                   bool(self.has_vote_cue(normalized_text)),
+            has_closing_cue=                self.contains_any_phrase(normalized_text, DISPOSITION_CUES),
 
             # tags for evaluation
-            is_motion=self.contains_any_phrase(text, VOTE_START_PHRASES + MOTION_CUES),
+            is_motion=self.contains_any_phrase(normalized_text, VOTE_START_PHRASES + MOTION_CUES),
             is_transition=None,
             section=None,
         )

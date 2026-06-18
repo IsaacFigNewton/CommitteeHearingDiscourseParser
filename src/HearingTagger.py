@@ -45,25 +45,21 @@ class HearingTagger(ITagger):
             raw_hearing.speakers[u.pid].last_uid = max(raw_hearing.speakers[u.pid].last_uid, u.uid)
             
             # tag the utterance using utterance and speaker data only
-            tagged_u = self.utterance_tagger(u, speaker)
+            tagged_u = self.utterance_tagger(
+                u,
+                speaker_names_pids,
+                raw_hearing.speakers,
+                speaker
+            )
             if not isinstance(tagged_u, FlatTaggedOralContribution):
                 raise ValueError(f"expected flattened, tagged utterance of type FlatTaggedOralContribution, received {type(tagged_u)}")
 
-            # if some speakers might have been mentioned
-            if tagged_u.mentions_speakers is not None:
-                # build a set of the pids of speakers mentioned
-                tagged_u.pids_mentioned = set()
-                for s in tagged_u.mentions_speakers:
-                    # just try strict name matching for now
-                    matched_pid = speaker_names_pids.get(s)
-                    # if a speaker was matched
-                    if matched_pid:
-                        # add their pid to the set of speakers mentioned
-                        tagged_u.pids_mentioned.add(matched_pid)
-                        # update the associated speaker's mention metadata (as needed)
-                        if raw_hearing.speakers[matched_pid].first_mention_uid is None:
-                            raw_hearing.speakers[matched_pid].first_mention_uid = u.uid
-                
+            if tagged_u.pids_mentioned:
+                for matched_pid in tagged_u.pids_mentioned:
+                    # update the associated speaker's mention metadata (as needed)
+                    if raw_hearing.speakers[matched_pid].first_mention_uid is None:
+                        raw_hearing.speakers[matched_pid].first_mention_uid = u.uid
+            
             # add hearing contextual features
             tagged_u.relative_position = i / max(len(word_counts) - 1, 1)
             tagged_u.relative_len = word_counts[i] / max_word_count
