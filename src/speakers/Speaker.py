@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple, Union, Optional
 from dataclasses import dataclass
 
-from .interfaces.SpeakerProperties import SpeakerProperties
+from .interfaces.SpeakerProperties import SpeakerPositionRoleProperties
 
 """
 Inspired by the UK Parliament's agent ontology
@@ -9,7 +9,7 @@ Inspired by the UK Parliament's agent ontology
 """
 
 @dataclass
-class Speaker(SpeakerProperties):
+class Speaker(SpeakerPositionRoleProperties):
     pid: int
 
     # first and last name not always available

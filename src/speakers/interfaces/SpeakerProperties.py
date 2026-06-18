@@ -13,6 +13,15 @@ class RoleProperties:
     is_presenter:           Optional[bool]
 
 @dataclass
-class SpeakerProperties(RoleProperties):
+class PositionRoleProperties(RoleProperties):
     # speaker's level of legislative authority
     speaker_position:       Optional[SpeakerPositionEnum]
+
+@dataclass
+class SpeakerPositionRoleProperties(PositionRoleProperties):
+    # first uid in which speaker is mentioned
+    first_mention_uid:      Optional[int]
+    # uid of speaker's first utterance
+    first_uid:              int
+    # uid of speaker's last utterance
+    last_uid:               int

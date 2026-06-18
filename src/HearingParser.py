@@ -18,10 +18,10 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 class HearingParser:
     TEXT_COL = 'text'
-    CAT_COLS = ['speaker_position']
+    CAT_COLS = []
     NUM_COLS = [
-    'is_legislator', 'is_committee_member', 'relative_position', 'word_count',
-    'mentions_bills', 'has_bill_action', 'has_presentation_cue',
+    'speaker_position', 'can_file_motion', 'relative_position', 'word_count',   # 'is_presiding',
+    'bids_mentioned', 'has_bill_action', 'has_presentation_cue',                # 'pids_mentioned'
     'has_motion_cue', 'has_vote_cue', 'has_disposition_cue',
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
@@ -147,19 +147,19 @@ class HearingParser:
     def _build_utterance_rows(self, hearings: Optional[List[TaggedHearing]]) -> pd.DataFrame:
         return pd.DataFrame([
             {
-                'hid':                  h.hid,
-                'bid':                  h.bid,
                 'state':                h.state,
+                'bid':                  h.bid,
+                'hid':                  h.hid,
                 'uid':                  u.uid,
                 'pid':                  u.pid,
                 'text':                 u.text,
                 'speaker_position':     s.speaker_position.value if s and s.speaker_position else None,
-                'is_legislator':        int(bool(getattr(s, 'is_legislator', False))),
-                'is_committee_member':  int(bool(getattr(s, 'is_committee_member', False))),
+                'is_presiding':         int(bool(getattr(s, 'is_presiding', False))),
+                'can_file_motion':      int(bool(getattr(s, 'can_file_motion', False))),
                 'relative_position':    u.relative_position,
                 'word_count':           u.relative_len,
-                'mentions_speakers':    int(bool(u.mentions_speakers)),
-                'mentions_bills':       int(bool(u.mentions_bills)),
+                'pids_mentioned':       int(bool(u.pids_mentioned)),
+                'bids_mentioned':       int(bool(u.mentions_bills)),
                 'has_bill_action':      int(u.has_bill_action),
                 'has_presentation_cue': int(u.has_presentation_cue),
                 'has_vote_cue':         int(u.has_vote_cue),

@@ -13,71 +13,71 @@ class SectionSpeakerRequirementsEnum(Enum):
     # introducing senators, pledge of allegiance, etc.
     INTRO=                  RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.VICE_CHAIRMAN, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.VICE_CHAIRMAN.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           True,
-        is_secretary=               False,
-        is_presenter=               None,
+        can_file_motions=               True,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
 
     # bill description/introduction
     PRESENTATION=           RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.BILL_AUTHOR),
-            (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.BILL_AUTHOR.value),
+            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           None,
-        is_secretary=               False,
-        is_presenter=               True,
+        can_file_motions=               None,
+        is_presenter=                   True,
+        cmp_first_mention_first_uid=    None,
     )
 
     # sequence of different discussion sections
     LEGISLATOR_DISCUSSION=  RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           True,
-        is_secretary=               None,
-        is_presenter=               None,
+        can_file_motions=               True,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
     # expert testimony goes from first expert utterance to last
     EXPERT_TESTIMONY=       RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.EXPERT, SpeakerPositionEnum.EXPERT),
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.EXPERT.value, SpeakerPositionEnum.EXPERT.value),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           None,
-        is_secretary=               None,
-        is_presenter=               None,
+        can_file_motions=               None,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
     # public comments never contain expert testimony
     PUBLIC_COMMENTS=        RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR, SpeakerPositionEnum.NONLEGISLATOR),
-            (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.NONLEGISLATOR.value),
+            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           None,
-        is_secretary=               None,
-        is_presenter=               None,
+        can_file_motions=               None,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
 
     # closing remarks by committee chair XOR bill presenter, but not generic committee member
     CLOSING_REMARKS=        RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.BILL_AUTHOR),
-            (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.BILL_AUTHOR.value),
+            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           None,
-        is_secretary=               False,
-        is_presenter=               None,
+        can_file_motions=               None,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
 
     # voting section
     VOTE=                   RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           True,
-        is_secretary=               None,
-        is_presenter=               None,
+        can_file_motions=               True,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )

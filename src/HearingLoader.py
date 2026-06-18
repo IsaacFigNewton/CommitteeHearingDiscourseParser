@@ -287,7 +287,10 @@ class HearingLoader:
                     ),
                     speaker_position=None,
                     can_file_motions=None,
-                    is_presenter=None
+                    is_presenter=None,
+                    first_mention_uid=None,
+                    first_uid=1000000,
+                    last_uid=-1
                 )
 
             utterances.append(
@@ -330,7 +333,10 @@ class HearingLoader:
                     last_name=row[SPEECH_LAST_NAME_IDX] if row[SPEECH_LAST_NAME_IDX] else None,
                     speaker_position=None,
                     can_file_motions=None,
-                    is_presenter=None
+                    is_presenter=None,
+                    first_mention_uid=None,
+                    first_uid=1000000,
+                    last_uid=-1
                 )
 
                 oral_contribution = OralContribution(

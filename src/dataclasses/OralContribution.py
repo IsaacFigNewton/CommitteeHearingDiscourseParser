@@ -1,7 +1,7 @@
-from typing import List, Dict, Tuple, Union, Optional
+from typing import List, Dict, Tuple, Union, Optional, Set
 from dataclasses import dataclass
 
-from ..speakers.interfaces.SpeakerProperties import SpeakerProperties
+from ..speakers.interfaces.SpeakerProperties import PositionRoleProperties
 from ..speakers.enums.SectionEnum import SectionEnum
 
 """
@@ -24,19 +24,20 @@ class OralContribution:
 
 
 @dataclass
-class TaggedOralContribution(SpeakerProperties, OralContribution):
+class TaggedOralContribution(OralContribution):
+    # names of any speakers (including the current one) that were mentioned
+    mentions_speakers: Optional[Set[str]]
     # pids of any speakers (including the current one) that were mentioned
-    mentions_speakers: Optional[List[int]]
-    # bids of any bills (including the current one) that were mentioned
-    mentions_bills: Optional[List[str]]
+    pids_mentioned: Optional[Set[int]]
+    # names of any bills (including the current one) that were mentioned
+    mentions_bills: Optional[Set[str]]
+    # bids of any speakers (including the current one) that were mentioned
+    bids_mentioned: Optional[Set[int]]
+    
     has_bill_action: bool
     has_presentation_cue: bool
     has_vote_cue: bool
     has_disposition_cue: bool
-
-    # metadata features
-    relative_position: Optional[float]
-    relative_len: Optional[float]
 
     # tags for evaluation
     # if it's a motion
@@ -45,3 +46,10 @@ class TaggedOralContribution(SpeakerProperties, OralContribution):
     is_transition: Optional[bool]
     # section for classification
     section: Optional[SectionEnum]
+
+
+@dataclass
+class FlatTaggedOralContribution(PositionRoleProperties, TaggedOralContribution):
+    # metadata features
+    relative_position: Optional[float]
+    relative_len: Optional[float]

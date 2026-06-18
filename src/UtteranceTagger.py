@@ -1,7 +1,7 @@
 from typing import Optional
 import re
 from .interfaces.ITagger import ITagger
-from .dataclasses.OralContribution import OralContribution, TaggedOralContribution
+from .dataclasses.OralContribution import OralContribution, TaggedOralContribution, FlatTaggedOralContribution
 from .speakers.Speaker import Speaker
 from .constants import *
 
@@ -19,46 +19,51 @@ class UtteranceTagger(ITagger):
         self,
         utterance: OralContribution,
         speaker: Optional[Speaker] = None,
-    ) -> TaggedOralContribution | OralContribution:
+    ) -> TaggedOralContribution | FlatTaggedOralContribution:
         # use empty text as default
         text = ""
         if utterance.text:
             text = utterance.text
             text = self.normalize_text(text)
 
-        return TaggedOralContribution(
+        tagged_u = TaggedOralContribution(
             # metadata
             uid=                            utterance.uid,
             pid=                            utterance.pid,
             text=                           text,
 
-            # speaker features
-            speaker_position=               (
-                speaker.speaker_position
-                if speaker and speaker.speaker_position
-                else None
-            ),
-            speaker_is_legislator=          bool(getattr(speaker, "is_legislator", False)),
-            speaker_is_committee_member=    bool(getattr(speaker, "is_committee_member", False)),
-            speaker_role=                   None,
-
             # mention features
+            # match all capitalized bigrams that might be names
+            mentions_speakers=              set(re.findall(NAME_BIGRAM_REGEX, text)),
+            pids_mentioned=                 None,
             mentions_bills=                 re.findall(BILL_ID_PATTERN, text),
-            mentions_speakers=              None,
+            bids_mentioned=                 None,
             has_bill_action=                bool(BILL_ACTION_PATTERN.search(text)),
             has_presentation_cue=           self.contains_any_phrase(text, PRESENTATION_CUES),
             has_vote_cue=                   bool(self.has_vote_cue(text)),
             has_disposition_cue=            self.contains_any_phrase(text, DISPOSITION_CUES),
-
-            # metadata features
-            relative_position=              None,
-            relative_len=                   None,
 
             # tags for evaluation
             is_motion=self.contains_any_phrase(text, VOTE_START_PHRASES + MOTION_CUES),
             is_transition=None,
             section=None,
         )
+
+        if speaker is not None:
+            # if speaker provided
+            return FlatTaggedOralContribution(
+                **vars(tagged_u),
+                # speaker features
+                is_presenter=                   speaker.is_presenter,
+                can_file_motions=               speaker.can_file_motions,
+                speaker_position=               speaker.speaker_position,
+
+                # metadata features
+                relative_position=              None,
+                relative_len=                   None,
+            )
+        
+        return tagged_u
 
     def has_vote_cue(self, text: Optional[str]) -> int:
         if not text:

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from .OralContribution import OralContribution, TaggedOralContribution
 from ..speakers.Speaker import Speaker
-from .Section import Section, VoteSection
 
 
 @dataclass

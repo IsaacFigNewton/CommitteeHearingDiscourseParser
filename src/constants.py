@@ -5,6 +5,7 @@ SB_BILL_REGEX = r'\bSB\s*\d+\b'
 SJR_BILL_REGEX = r'\bSJR\s*\d+\b'
 ASSEMBLY_BILL_REGEX = r'\bAssembly\s+Bill\s+\d+\b'
 SENATE_BILL_REGEX = r'\bSenate\s+Bill\s+\d+\b'
+NAME_BIGRAM_REGEX = r'(?<![A-Z][a-z] )\b[A-Z][a-z]+ [A-Z][a-z]+\b(?! [A-Z][a-z])'
 
 PRESENTATION_HANDOFF_PHRASES = [
     'please proceed',

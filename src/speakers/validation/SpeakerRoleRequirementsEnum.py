@@ -1,5 +1,6 @@
 from enum import Enum
 from ..enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ..enums.UtilEnums import RelativePositionEnum
 from .RoleRequirements import RoleRequirements
 
 class SpeakerRoleRequirementsEnum(Enum):
@@ -12,39 +13,33 @@ class SpeakerRoleRequirementsEnum(Enum):
     TODO: organize the rules below into an interval tree for faster, simpler lookup
     """
 
-    # procedural roles
-    is_presiding=        RoleRequirements(
-        # only vicechairmen or chairmen can preside
-        valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.VICE_CHAIRMAN, SpeakerPositionEnum.PRESIDING_CHAIR),
-        },
-        can_file_motions=           True,
-        is_presenter=               None,
-    )
-
     # legislator roles
     is_presenter=       RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.BILL_AUTHOR),
-            (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PRESIDING_CHAIR),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.BILL_AUTHOR.value),
+            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
-        can_file_motions=           None,
-        is_presenter=               None,
+        can_file_motions=               None,
+        is_presenter=                   None,
+        cmp_first_mention_first_uid=    None,
     )
 
     # other roles
     is_expert=          RoleRequirements(
         # experts can be legislators or nonlegislators but not committee members
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR, SpeakerPositionEnum.EXPERT),
+            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.EXPERT.value),
         },
-        can_file_motions=           False,
-        is_presenter=               False,
+        can_file_motions=               False,
+        is_presenter=                   False,
+        # if expert's name is mentioned before their first utterance
+        cmp_first_mention_first_uid=    RelativePositionEnum.BEFORE,
     )
     is_public=          RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR, SpeakerPositionEnum.NONLEGISLATOR),
+            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.NONLEGISLATOR.value),
         },
-        can_file_motions=           False,
-        is_presenter=               False,
+        can_file_motions=               False,
+        is_presenter=                   False,
+        cmp_first_mention_first_uid=    RelativePositionEnum.DURING,
     )
