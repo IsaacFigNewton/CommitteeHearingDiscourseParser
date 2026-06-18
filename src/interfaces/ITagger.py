@@ -24,10 +24,21 @@ class ITagger(ABC):
     def normalize_text(cls, text: Optional[str]) -> str:
         if not text:
             return ''
-        
-        text = text.lower()
-        text = re.sub(r'[^\w\s]', ' ', text)
-        text = re.sub(r'\s+', ' ', text)
+
+        # Convert words to lowercase only if not ALL_CAPS
+        words = text.split()
+        normalized_words = []
+        for word in words:
+            # Check if word (without punctuation) is ALL_CAPS
+            alpha_only = re.sub(r'[^\w]', '', word)
+            if alpha_only and alpha_only.isupper():
+                # Keep ALL_CAPS words as is
+                normalized_words.append(word)
+            else:
+                # Convert to lowercase
+                normalized_words.append(word.lower())
+
+        text = ' '.join(normalized_words)
         return text.strip()
 
     @classmethod

@@ -26,17 +26,13 @@ PHRASE_GROUPS = {
         'AB', 'SB', 'SJR'
     },
 
-    "BILL_REFERENCES": {
+    "BILL": {
         "this bill",
         "this measure",
         "the bill contains",
         "this is the",
         "includes the following changes",
-        "ab",
-        "sb",
-        "sjr",
         "bill",
-        "motion",
         "measure",
     },
 

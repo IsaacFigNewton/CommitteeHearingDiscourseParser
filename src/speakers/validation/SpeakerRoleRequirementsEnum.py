@@ -21,7 +21,7 @@ class SpeakerRoleRequirementsEnum(Enum):
         },
         can_file_motions=               None,
         is_presenter=                   None,
-        cmp_first_mention_first_uid=    None,
+        cmp_first_mention_first_uid=    RelativePositionEnum.BEFORE,
     )
 
     # other roles

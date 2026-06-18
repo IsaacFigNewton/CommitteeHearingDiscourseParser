@@ -35,8 +35,10 @@ class UtteranceTagger(ITagger):
             speaker_names_pids,
             speakers,
         )
-                
-        normalized_text = self.normalize_text(text)
+
+        # substitute keyphrases with their group names
+        text = self.substitute_keyphrases(text)
+
         tagged_u = TaggedOralContribution(
             # metadata
             uid=                            utterance.uid,
@@ -47,15 +49,15 @@ class UtteranceTagger(ITagger):
             # match all capitalized bigrams that might be names
             mentions_speakers=              None,
             pids_mentioned=                 pids_mentioned,
-            mentions_bills=                 re.findall(BILL_ID_PATTERN, normalized_text),
+            mentions_bills=                 re.findall(BILL_ID_PATTERN, text),
             bids_mentioned=                 None,
-            has_bill_action=                bool(BILL_ACTION_PATTERN.search(normalized_text)),
-            has_presentation_cue=           self.contains_any_phrase(normalized_text, PHRASE_GROUPS["PRESENTING"]),
-            has_vote_cue=                   bool(self.has_vote_cue(normalized_text)),
-            has_closing_cue=                self.contains_any_phrase(normalized_text, PHRASE_GROUPS["DISPOSITION"]),
+            has_bill_action=                bool(BILL_ACTION_PATTERN.search(text)),
+            has_presentation_cue=           self.contains_any_phrase(text, PHRASE_GROUPS["PRESENTING"]),
+            has_vote_cue=                   bool(self.has_vote_cue(text)),
+            has_closing_cue=                self.contains_any_phrase(text, PHRASE_GROUPS["DISPOSITION"]),
 
             # tags for evaluation
-            is_motion=self.contains_any_phrase(normalized_text, list(PHRASE_GROUPS["START_VOTE"]) + list(PHRASE_GROUPS["MOTION"])),
+            is_motion=self.contains_any_phrase(text, list(PHRASE_GROUPS["START_VOTE"]) + list(PHRASE_GROUPS["MOTION"])),
             is_transition=None,
             section=None,
         )
@@ -214,3 +216,53 @@ class UtteranceTagger(ITagger):
             modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
 
         return modified_text, pids_mentioned
+
+    def substitute_keyphrases(self, text: str) -> str:
+        """
+        Replace keyphrases from PHRASE_GROUPS with their phrase group names.
+
+        Args:
+            text: The utterance text to process
+
+        Returns:
+            Modified text with keyphrases replaced by their group names
+        """
+        if not text:
+            return text
+
+        # Normalize the input text for matching
+        normalized_text = self.normalize_text(text)
+
+        # Store matches: (start_pos, end_pos, group_name)
+        replacements = []
+
+        # Iterate through each phrase in PHRASE_TOKEN_MAP
+        for phrase, group_name in PHRASE_TOKEN_MAP.items():
+            # Find all occurrences of this phrase in the normalized text
+            start_pos = 0
+            while True:
+                pos = normalized_text.find(phrase, start_pos)
+                if pos == -1:
+                    break
+
+                # Record the replacement
+                replacements.append((pos, pos + len(phrase), group_name))
+                start_pos = pos + len(phrase)
+
+        # Sort by start position and filter overlapping matches (keep longest/first)
+        replacements.sort(key=lambda x: (x[0], -(x[1] - x[0])))
+
+        # Remove overlapping replacements
+        filtered_replacements = []
+        last_end = -1
+        for start, end, group_name in replacements:
+            if start >= last_end:
+                filtered_replacements.append((start, end, group_name))
+                last_end = end
+
+        # Apply replacements in reverse order to maintain character positions
+        modified_text = normalized_text
+        for start_pos, end_pos, group_name in reversed(filtered_replacements):
+            modified_text = modified_text[:start_pos] + group_name + modified_text[end_pos:]
+
+        return modified_text
