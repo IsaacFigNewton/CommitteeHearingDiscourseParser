@@ -21,7 +21,7 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             class_weight='balanced',
             solver='lbfgs',
             section_smoothing=True,
-            section_smoothing_min_run_length=6
+            section_smoothing_min_run_length=8
         ):
         self.max_iter = max_iter
         self.class_weight = class_weight

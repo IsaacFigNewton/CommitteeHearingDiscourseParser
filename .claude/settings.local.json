@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pandas as pd; from sklearn.model_selection import GroupShuffleSplit; df = pd.read_csv(''utterances_sample_labeled.csv''); groups = df[''bid'']; splitter = GroupShuffleSplit(n_splits=1, test_size=0.25, random_state=42); train_idx, test_idx = next(splitter.split(df, df[''section''], groups)); test_df = df.iloc[test_idx]; print(''Test set section counts:''); print(test_df[''section''].value_counts()); print(''\\nLEGISLATOR_DISCUSSION in test set:'', (test_df[''section''] == ''LEGISLATOR_DISCUSSION'').sum())\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
