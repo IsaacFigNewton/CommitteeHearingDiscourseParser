@@ -16,8 +16,13 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
     before softmax, ensuring they receive 0 probability.
     """
 
-    def __init__(self, max_iter=2000, class_weight='balanced', solver='lbfgs',
-                 section_smoothing=True, section_smoothing_min_run_length=8):
+    def __init__(self,
+            max_iter=2000,
+            class_weight='balanced',
+            solver='lbfgs',
+            section_smoothing=True,
+            section_smoothing_min_run_length=6
+        ):
         self.max_iter = max_iter
         self.class_weight = class_weight
         self.solver = solver
@@ -56,9 +61,11 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def _get_mask_for_utterance(self, speaker_position: Optional[int],
-                                 can_file_motion: bool,
-                                 is_presenter: Optional[bool] = None) -> np.ndarray:
+    def _get_mask_for_utterance(self,
+            speaker_position: Optional[int],
+            can_file_motion: bool,
+            is_presenter: Optional[bool] = None
+        ) -> np.ndarray:
         """
         Generate a boolean mask indicating which sections are valid for this utterance.
 
@@ -114,7 +121,10 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
 
         return mask
 
-    def _apply_mask_to_logits(self, logits: np.ndarray, masks: np.ndarray) -> np.ndarray:
+    def _apply_mask_to_logits(self,
+            logits: np.ndarray,
+            masks: np.ndarray
+        ) -> np.ndarray:
         """
         Apply masks to logits by setting invalid positions to -inf.
 
@@ -161,7 +171,10 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             return None
         return self._section_order_by_name.get(class_name)
 
-    def _build_section_order_masks(self, probas: np.ndarray, masks: np.ndarray) -> np.ndarray:
+    def _build_section_order_masks(self,
+            probas: np.ndarray,
+            masks: np.ndarray
+        ) -> np.ndarray:
         """
         Build sequence-level masks that prevent backward section transitions.
 
@@ -175,8 +188,7 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
         This makes the ordering robust to isolated noisy predictions. For
         example, with the default threshold, a single PUBLIC_COMMENTS
         prediction will not block later EXPERT_TESTIMONY, but a sustained
-        PUBLIC_COMMENTS block will. Classes
-        not present in SectionEnum, such as OTHER, are not constrained by this
+        PUBLIC_COMMENTS block will. OTHER is not constrained by this
         ordering pass.
         """
         n_samples = probas.shape[0]
@@ -235,7 +247,10 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
 
         return order_masks
 
-    def _apply_section_order_smoothing(self, logits: np.ndarray, masks: np.ndarray) -> np.ndarray:
+    def _apply_section_order_smoothing(self,
+            logits: np.ndarray,
+            masks: np.ndarray
+        ) -> np.ndarray:
         """Apply SectionEnum ordering constraints to already utterance-masked logits."""
         initial_probas = self._masked_softmax(logits)
         order_masks = self._build_section_order_masks(initial_probas, masks)
@@ -250,7 +265,12 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
 
         return self._apply_mask_to_logits(logits, smoothed_masks)
 
-    def predict_proba(self, X, speaker_positions=None, can_file_motions=None, is_presenters=None):
+    def predict_proba(self,
+            X,
+            speaker_positions=None,
+            can_file_motions=None,
+            is_presenters=None
+        ):
         """
         Predict class probabilities with masking.
 
@@ -299,7 +319,12 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
         # Compute masked softmax
         return self._masked_softmax(masked_logits)
 
-    def predict(self, X, speaker_positions=None, can_file_motions=None, is_presenters=None):
+    def predict(self,
+            X,
+            speaker_positions=None,
+            can_file_motions=None,
+            is_presenters=None
+        ):
         """
         Predict class labels with masking.
 
