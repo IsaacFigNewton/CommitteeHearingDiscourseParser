@@ -1,5 +1,7 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, Set, Tuple
 import re
+import spacy
+from rapidfuzz import fuzz
 from .interfaces.ITagger import ITagger
 from .dataclasses.OralContribution import OralContribution, TaggedOralContribution, FlatTaggedOralContribution
 from .speakers.Speaker import Speaker
@@ -13,7 +15,7 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 class UtteranceTagger(ITagger):
     def __init__(self) -> None:
-        pass
+        self.nlp = spacy.load("en_core_web_sm")
 
     def __call__(
         self,
@@ -23,19 +25,16 @@ class UtteranceTagger(ITagger):
         speaker: Optional[Speaker] = None,
     ) -> TaggedOralContribution | FlatTaggedOralContribution:
         # use empty text as default
-        text = ""
-        if utterance.text:
-            text = utterance.text
+        text = utterance.text
+        if not utterance.text:
+            text = ""
 
         # build a set of the pids of speakers mentioned
-        pids_mentioned = set()
-        for s in speakers_mentioned:
-            # just try strict name matching for now
-            matched_pid = speaker_names_pids.get(s)
-            # if a speaker was matched
-            if matched_pid:
-                # add their pid to the set of speakers mentioned
-                pids_mentioned.add(matched_pid)
+        text, pids_mentioned = self.substitute_named_entities(
+            text,
+            speaker_names_pids,
+            speakers,
+        )
                 
         normalized_text = self.normalize_text(text)
         tagged_u = TaggedOralContribution(
@@ -94,3 +93,67 @@ class UtteranceTagger(ITagger):
         repeated_votes_found = aye_count + nay_count >= 2
 
         return int(vote_phrase_found or repeated_votes_found)
+
+
+    def substitute_named_entities(
+        self,
+        text: str,
+        speaker_names_pids: Dict[str, int],
+        speakers: Dict[int, Speaker],
+        fuzzy_threshold: int = 85
+    ) -> Tuple[str, Set[int]]:
+        """
+        Replace speaker name mentions with their position names using spaCy NER.
+
+        Args:
+            text: The utterance text to process
+            speaker_names_pids: Dict mapping speaker names to their PIDs
+            speakers: Dict mapping PIDs to Speaker objects
+            fuzzy_threshold: Minimum fuzzy match score (0-100) to consider a match
+
+        Returns:
+            Tuple of (modified_text, pids_mentioned)
+        """
+        if not text:
+            return text, set()
+
+        # Tokenize and extract named entities
+        doc = self.nlp(text)
+
+        # Store matches: (start_char, end_char, pid, position_name)
+        replacements = []
+        pids_mentioned = set()
+
+        # Iterate through PERSON entities
+        for ent in doc.ents:
+            if ent.label_ == "PERSON":
+                entity_text = ent.text
+
+                # Try to fuzzy match against speaker names
+                best_match_pid = None
+                best_match_score = 0
+
+                for speaker_name, pid in speaker_names_pids.items():
+                    # Calculate fuzzy match score
+                    score = fuzz.ratio(entity_text.lower(), speaker_name.lower())
+
+                    if score > best_match_score and score >= fuzzy_threshold:
+                        best_match_score = score
+                        best_match_pid = pid
+
+                # If we found a match
+                if best_match_pid is not None:
+                    pids_mentioned.add(best_match_pid)
+                    speaker = speakers[best_match_pid]
+
+                    # Get the position name if available
+                    if speaker.speaker_position:
+                        position_name = speaker.speaker_position.name
+                        replacements.append((ent.start_char, ent.end_char, position_name))
+
+        # Apply replacements in reverse order to maintain character positions
+        modified_text = text
+        for start_char, end_char, replacement in reversed(replacements):
+            modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
+
+        return modified_text, pids_mentioned
