@@ -37,7 +37,7 @@ class TaggedOralContribution(OralContribution):
     has_bill_action: bool
     has_presentation_cue: bool
     has_vote_cue: bool
-    has_disposition_cue: bool
+    has_closing_cue: bool
 
     # tags for evaluation
     # if it's a motion

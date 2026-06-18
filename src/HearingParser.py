@@ -76,9 +76,8 @@ class HearingParser:
         """
         train_df = self._fill_missing(train_df, label_col)
 
-        # Convert labels to string format for sklearn compatibility
+        # Convert labels to SectionEnum first (handles legacy labels), then to string for sklearn
         labels = train_df[label_col].copy()
-        labels = labels.apply(lambda x: x.name if isinstance(x, SectionEnum) else x)
 
         self.model.fit(train_df[self.feature_cols], labels)
 
@@ -178,17 +177,16 @@ class HearingParser:
                 'uid':                  u.uid,
                 'pid':                  u.pid,
                 'text':                 u.text,
-                'speaker_position':     s.speaker_position.value if s and s.speaker_position else None,
-                'is_presiding':         int(bool(getattr(s, 'is_presiding', False))),
-                'can_file_motion':      int(bool(getattr(s, 'can_file_motion', False))),
+                'speaker.position':     s.speaker_position.value if s and s.speaker_position else None,
+                'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
                 'relative_position':    u.relative_position,
                 'word_count':           u.relative_len,
-                'pids_mentioned':       int(bool(u.pids_mentioned)),
-                'bids_mentioned':       int(bool(u.mentions_bills)),
+                'mentions_speaker':    int(bool(u.pids_mentioned)),
+                'mentions_bill':       int(bool(u.mentions_bills)),
                 'has_bill_action':      int(u.has_bill_action),
                 'has_presentation_cue': int(u.has_presentation_cue),
                 'has_vote_cue':         int(u.has_vote_cue),
-                'has_disposition_cue':  int(u.has_disposition_cue),
+                'has_closing_cue':      int(u.has_closing_cue),
 
                 # manual label
                 'has_motion_cue':       int(u.is_motion or False),

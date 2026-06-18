@@ -17,3 +17,6 @@ class SectionEnum(Enum):
 
     # voting section
     VOTE=                   "VOTE"
+
+    # catch-all category for utterances that don't fit other sections
+    OTHER=                  "OTHER"

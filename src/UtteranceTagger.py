@@ -41,7 +41,7 @@ class UtteranceTagger(ITagger):
             has_bill_action=                bool(BILL_ACTION_PATTERN.search(text)),
             has_presentation_cue=           self.contains_any_phrase(text, PRESENTATION_CUES),
             has_vote_cue=                   bool(self.has_vote_cue(text)),
-            has_disposition_cue=            self.contains_any_phrase(text, DISPOSITION_CUES),
+            has_closing_cue=            self.contains_any_phrase(text, DISPOSITION_CUES),
 
             # tags for evaluation
             is_motion=self.contains_any_phrase(text, VOTE_START_PHRASES + MOTION_CUES),

@@ -51,6 +51,8 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
         """
         Generate a boolean mask indicating which sections are valid for this utterance.
 
+        The 'OTHER' section is always available as a catch-all category.
+
         Args:
             speaker_position: Numeric speaker position value (or None)
             can_file_motion: Whether the speaker can file motions
@@ -69,6 +71,11 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
                 continue
 
             idx = self._section_to_idx[section_name]
+
+            # OTHER is always available (has no restrictions)
+            if section_name == 'OTHER':
+                continue
+
             requirements = section_enum.value
 
             # Check speaker position constraints

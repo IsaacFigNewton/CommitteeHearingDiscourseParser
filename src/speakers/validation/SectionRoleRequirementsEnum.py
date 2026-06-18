@@ -81,3 +81,11 @@ class SectionSpeakerRequirementsEnum(Enum):
         is_presenter=                   None,
         cmp_first_mention_first_uid=    None,
     )
+
+    # catch-all category - allows any speaker/utterance configuration
+    OTHER=                  RoleRequirements(
+        valid_speaker_position_intervals=          None,  # No restrictions
+        can_file_motions=               None,  # No restrictions
+        is_presenter=                   None,  # No restrictions
+        cmp_first_mention_first_uid=    None,
+    )
