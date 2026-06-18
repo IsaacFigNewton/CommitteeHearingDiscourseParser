@@ -1,14 +1,16 @@
 from typing import Optional, List, Union
 import pandas as pd
+import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from .constants import *
 from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .HearingTagger import HearingTagger
+from .MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
+from .speakers.enums.SectionEnum import SectionEnum
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -47,7 +49,7 @@ class HearingParser:
                 ), cls.CAT_COLS),
                 ('numeric', StandardScaler(), cls.NUM_COLS),
             ])),
-            ('classifier', LogisticRegression(
+            ('classifier', MaskedSoftmaxClassifier(
                 max_iter=2000,
                 class_weight='balanced',
                 solver='lbfgs'
@@ -69,23 +71,28 @@ class HearingParser:
         """Train the section prediction model on labeled data.
 
         Args:
-            train_df: DataFrame with utterance features and labels
+            train_df: DataFrame with utterance features and labels (accepts SectionEnum or string labels)
             label_col: Name of the column containing stage labels
         """
         train_df = self._fill_missing(train_df, label_col)
-        self.model.fit(train_df[self.feature_cols], train_df[label_col])
+
+        # Convert labels to string format for sklearn compatibility
+        labels = train_df[label_col].copy()
+        labels = labels.apply(lambda x: x.name if isinstance(x, SectionEnum) else x)
+
+        self.model.fit(train_df[self.feature_cols], labels)
 
     @staticmethod
-    def smooth_label_list(labels: List[str]) -> List[str]:
+    def smooth_label_list(labels: List[SectionEnum]) -> List[SectionEnum]:
         """Smooth label predictions by fixing single outlier labels.
 
         If a label is surrounded by identical labels, change it to match.
 
         Args:
-            labels: List of predicted labels
+            labels: List of predicted SectionEnum labels
 
         Returns:
-            Smoothed list of labels
+            Smoothed list of SectionEnum labels
         """
         labels = list(labels)
         for i, (prev_, curr, next_) in enumerate(zip(labels, labels[1:], labels[2:]), 1):
@@ -98,7 +105,7 @@ class HearingParser:
         hearing: TaggedHearing,
         utterances_df: pd.DataFrame,
         smooth: bool = True,
-    ) -> List[str]:
+    ) -> List[SectionEnum]:
         """Predict section labels for a single hearing.
 
         Args:
@@ -107,7 +114,7 @@ class HearingParser:
             smooth: Whether to apply label smoothing
 
         Returns:
-            List of predicted section labels, one per utterance
+            List of predicted SectionEnum labels, one per utterance
         """
         hearing_df = utterances_df[
             (utterances_df['hid'] == hearing.hid)
@@ -117,7 +124,25 @@ class HearingParser:
         if hearing_df.empty:
             raise ValueError(f'No rows found for hid={hearing.hid}, bid={hearing.bid}')
 
-        labels = list(self.model.predict(self._fill_missing(hearing_df)[self.feature_cols]))
+        filled_df = self._fill_missing(hearing_df)
+
+        # Extract features for the pipeline
+        X = filled_df[self.feature_cols]
+
+        # Extract masking information for the classifier
+        speaker_positions = filled_df['speaker_position'].values
+        can_file_motions = filled_df['can_file_motion'].astype(bool).values
+
+        # Transform features through the pipeline's feature transformer
+        X_transformed = self.model.named_steps['features'].transform(X)
+
+        # Get predictions from classifier with masking (returns string labels)
+        labels = list(self.model.named_steps['classifier'].predict(
+            X_transformed,
+            speaker_positions=speaker_positions,
+            can_file_motions=can_file_motions
+        ))
+
         return self.smooth_label_list(labels) if smooth else labels
 
     def predict_hearings_batch(self, hearings: List[TaggedHearing], smooth: bool = True) -> dict:
@@ -128,7 +153,7 @@ class HearingParser:
             smooth: Whether to apply label smoothing
 
         Returns:
-            Dictionary mapping (hid, bid) tuples to lists of predicted labels
+            Dictionary mapping (hid, bid) tuples to lists of predicted SectionEnum labels
         """
         # Build utterances dataframe for all hearings
         utterances_df = self._build_utterance_rows(hearings)
