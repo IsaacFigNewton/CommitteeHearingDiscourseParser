@@ -9,7 +9,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from .constants import *
 from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .HearingTagger import HearingTagger
-from .MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
+from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
 from .speakers.enums.SectionEnum import SectionEnum
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
