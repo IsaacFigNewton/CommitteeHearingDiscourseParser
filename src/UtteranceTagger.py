@@ -34,7 +34,7 @@ class UtteranceTagger(ITagger):
 
             # mention features
             # match all capitalized bigrams that might be names
-            mentions_speakers=              set(re.findall(NAME_BIGRAM_REGEX, text)),
+            mentions_speakers=              set(re.findall(NAME_BIGRAM_REGEX, utterance.text)),
             pids_mentioned=                 None,
             mentions_bills=                 re.findall(BILL_ID_PATTERN, text),
             bids_mentioned=                 None,

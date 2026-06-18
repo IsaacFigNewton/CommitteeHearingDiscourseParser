@@ -181,8 +181,8 @@ class HearingParser:
                 'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
                 'relative_position':    u.relative_position,
                 'word_count':           u.relative_len,
-                'mentions_speaker':    int(bool(u.pids_mentioned)),
-                'mentions_bill':       int(bool(u.mentions_bills)),
+                'mentions_speaker':     int(bool(u.pids_mentioned)),
+                'mentions_bill':        int(bool(u.mentions_bills)),
                 'has_bill_action':      int(u.has_bill_action),
                 'has_presentation_cue': int(u.has_presentation_cue),
                 'has_vote_cue':         int(u.has_vote_cue),
@@ -191,7 +191,7 @@ class HearingParser:
                 # manual label
                 'has_motion_cue':       int(u.is_motion or False),
                 'is_transition':        int(u.is_transition or False),
-                'stage_label':          None,
+                'section':              None,
             }
             for h in hearings or []
             for u in h.utterances
