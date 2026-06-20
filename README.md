@@ -8,22 +8,23 @@ The project models committee hearings using several core dataclasses:
 
 - **[Hearing](src/dataclasses/Hearing.py)**: Base class for committee hearings with metadata and speakers
 - **[RawHearing](src/dataclasses/Hearing.py)**: Extends Hearing with raw, unparsed utterances
-- **[ParsedHearing](src/dataclasses/Hearing.py)**: Extends Hearing with structured sections (intro, presentation, discussion, vote, etc.)
-- **[Speaker](src/speakers/Speaker.py)**: Represents a person speaking at the hearing with their role (based on UK Parliament's agent ontology)
+- **[TaggedHearing](src/dataclasses/Hearing.py)**: Extends Hearing with tagged utterances containing extracted features
+- **[Speaker](src/speakers/Speaker.py)**: Represents a person speaking at the hearing with their position and role (based on UK Parliament's agent ontology)
 - **[OralContribution](src/dataclasses/OralContribution.py)**: Represents a single utterance by a speaker (based on UK Parliament's oral contribution ontology)
-- **[Section](src/dataclasses/Section.py)**: Represents a segment of the hearing with a span of utterances and valid speaker roles
-- **[VoteSection](src/dataclasses/Section.py)**: Specialized section for votes with motion details and roll call
+- **[TaggedOralContribution](src/dataclasses/OralContribution.py)**: Extends OralContribution with extracted features and metadata
+- **[FlatTaggedOralContribution](src/dataclasses/OralContribution.py)**: Flattened version combining TaggedOralContribution with speaker properties for classification
+- **[Section](src/dataclasses/Section.py)**: Represents a segment of the hearing with a span of utterances
 
-The discourse structure is validated using enums and requirements:
-- **[SpeakerPositionEnum](src/speakers/enums/SpeakerPositionEnum.py)**: Speaker positions (Chairman, Vice Chairman, Secretary, Legislator, etc.)
-- **[SpeakerRoleEnum](src/speakers/enums/SpeakerRoleEnum.py)**: Speaker roles (Presiding Chair, Secretary, Presenter, Committee Member, etc.)
-- **[SpeakerRoleRequirementsEnum](src/speakers/validation/SpeakerRoleRequirementsEnum.py)**: Role definitions with requirements and valid speaker positions
-- **[RoleRequirements](src/speakers/validation/RoleRequirements.py)**: Dataclass defining role validation requirements
-- **[SectionEnum](src/speakers/enums/SectionEnum.py)**: Section types (Intro, Presentation, Discussion, Vote, etc.)
-- **[SectionSpeakerRequirementsEnum](src/speakers/validation/SectionSpeakerRequirementsEnum.py)**: Defines which speaker roles are valid in each section type
-- **[SectionRequirements](src/speakers/validation/SectionRequirements.py)**: Dataclass defining section validation requirements
+Supporting classes and enums:
+- **[SpeakerPositionEnum](src/speakers/enums/SpeakerPositionEnum.py)**: Speaker positions with hierarchical authority levels (Secretary, Presiding Chair, Chairman, Vice Chairman, Committee Member, Bill Author, Legislator, Expert, Nonlegislator, Public)
+- **[RoleProperties](src/speakers/interfaces/SpeakerProperties.py)**: Base properties for speaker roles (can_file_motions, is_presenter)
+- **[PositionRoleProperties](src/speakers/interfaces/SpeakerProperties.py)**: Extends RoleProperties with speaker_position
+- **[SpeakerPositionRoleProperties](src/speakers/interfaces/SpeakerProperties.py)**: Extends PositionRoleProperties with utterance tracking (first_mention_uid, first_uid, last_uid)
+- **[SectionEnum](src/enums/SectionEnum.py)**: Section types (INTRO, PRESENTATION, LEGISLATOR_DISCUSSION, EXPERT_TESTIMONY, PUBLIC_COMMENTS, CLOSING_REMARKS, VOTE, OTHER)
+- **[VoteSectionEnum](src/enums/SectionEnum.py)**: Vote subsection types (MOTION, SECOND, ROLL_CALL, RESULTS, DISCUSSION)
 - **[MotionEnum](src/enums/MotionEnum.py)**: Types of motions (Due Pass, Reconsideration, Amendment)
-- **[SpeechActEnum](src/enums/SpeechActEnum.py)**: Types of speech acts (Introduction, Roll Call)
+- **[SpeechActEnum](src/enums/SpeechActEnum.py)**: Types of speech acts (Statement, Argument)
+- **[TOP](src/Grammar.py)**: High-level hearing segment types for grammar (START, MIDDLE, LOWER_MIDDLE, END)
 
 For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
 
@@ -31,33 +32,36 @@ For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
 
 ```mermaid
 graph TB
-    subgraph "SpeakerPositionEnum"
-        SP_CHAIRMAN[CHAIRMAN]
-        SP_VICE_CHAIRMAN[VICE_CHAIRMAN]
-        SP_LEGISLATOR[LEGISLATOR]
-        SP_SECRETARY[SECRETARY]
-        SP_NONLEGISLATOR[NONLEGISLATOR]
-        SP_UNKNOWN[UNKNOWN]
+    subgraph "SpeakerPositionEnum (Hierarchical Authority)"
+        SP_SECRETARY[SECRETARY - 9]
+        SP_PRESIDING_CHAIR[PRESIDING_CHAIR - 8]
+        SP_CHAIRMAN[CHAIRMAN - 7]
+        SP_VICE_CHAIRMAN[VICE_CHAIRMAN - 6]
+        SP_COMMITTEE_MEMBER[COMMITTEE_MEMBER - 5]
+        SP_BILL_AUTHOR[BILL_AUTHOR - 4]
+        SP_LEGISLATOR[LEGISLATOR - 3]
+        SP_EXPERT[EXPERT - 2]
+        SP_NONLEGISLATOR[NONLEGISLATOR - 1]
+        SP_PUBLIC[PUBLIC - 0]
     end
 
-    subgraph "SpeakerRoleEnum"
-        SR_PRESIDING_CHAIR[PRESIDING_CHAIR]
-        SR_COMMITTEE_MEMBER[COMMITTEE_MEMBER]
-        SR_SECRETARY[SECRETARY]
-        SR_PRESENTER[PRESENTER]
-        SR_EXPERT[EXPERT]
-        SR_PUBLIC[PUBLIC]
-        SR_UNKNOWN[UNKNOWN]
+    subgraph "SectionEnum"
+        SEC_INTRO[INTRO]
+        SEC_PRESENTATION[PRESENTATION]
+        SEC_LEGISLATOR_DISCUSSION[LEGISLATOR_DISCUSSION]
+        SEC_EXPERT_TESTIMONY[EXPERT_TESTIMONY]
+        SEC_PUBLIC_COMMENTS[PUBLIC_COMMENTS]
+        SEC_CLOSING_REMARKS[CLOSING_REMARKS]
+        SEC_VOTE[VOTE]
+        SEC_OTHER[OTHER]
     end
 
-    subgraph "SectionSpeakerRequirementsEnum"
-        INTRO[INTRO]
-        PRESENTATION[PRESENTATION]
-        LEGISLATOR_DISCUSSION[LEGISLATOR_DISCUSSION]
-        EXPERT_TESTIMONY[EXPERT_TESTIMONY]
-        PUBLIC_COMMENTS[PUBLIC_COMMENTS]
-        CLOSING_REMARKS[CLOSING_REMARKS]
-        VOTE[VOTE]
+    subgraph "VoteSectionEnum"
+        VOTE_MOTION[MOTION]
+        VOTE_SECOND[SECOND]
+        VOTE_ROLL_CALL[ROLL_CALL]
+        VOTE_RESULTS[RESULTS]
+        VOTE_DISCUSSION[DISCUSSION]
     end
 
     subgraph "MotionEnum"
@@ -66,129 +70,171 @@ graph TB
         AMENDMENT[AMENDMENT]
     end
 
-    %% SpeakerRoleRequirementsEnum -> SpeakerPositionEnum mappings
-    SR_PRESIDING_CHAIR -.->|valid positions| SP_CHAIRMAN
-    SR_PRESIDING_CHAIR -.->|valid positions| SP_VICE_CHAIRMAN
-    SR_SECRETARY -.->|valid positions| SP_SECRETARY
-    SR_PRESENTER -.->|valid positions| SP_LEGISLATOR
-    SR_PUBLIC -.->|valid positions| SP_NONLEGISLATOR
-    SR_UNKNOWN -.->|valid positions| SP_UNKNOWN
+    subgraph "SpeechActEnum"
+        STATEMENT[STATEMENT]
+        ARGUMENT[ARGUMENT]
+    end
 
-    %% SectionSpeakerRequirementsEnum -> SpeakerRoleEnum validations
-    INTRO -.->|allows| SR_PRESIDING_CHAIR
-    PRESENTATION -.->|allows| SR_PRESENTER
-    LEGISLATOR_DISCUSSION -.->|allows| SR_PRESIDING_CHAIR
-    LEGISLATOR_DISCUSSION -.->|allows| SR_SECRETARY
-    LEGISLATOR_DISCUSSION -.->|allows| SR_COMMITTEE_MEMBER
-    EXPERT_TESTIMONY -.->|allows| SR_PRESIDING_CHAIR
-    EXPERT_TESTIMONY -.->|allows| SR_SECRETARY
-    EXPERT_TESTIMONY -.->|allows| SR_COMMITTEE_MEMBER
-    EXPERT_TESTIMONY -.->|allows| SR_EXPERT
-    PUBLIC_COMMENTS -.->|allows| SR_PRESIDING_CHAIR
-    PUBLIC_COMMENTS -.->|allows| SR_SECRETARY
-    PUBLIC_COMMENTS -.->|allows| SR_PUBLIC
-    CLOSING_REMARKS -.->|allows| SR_PRESIDING_CHAIR
-    CLOSING_REMARKS -.->|allows| SR_PRESENTER
-    VOTE -.->|allows| SR_PRESIDING_CHAIR
-    VOTE -.->|allows| SR_SECRETARY
-    VOTE -.->|allows| SR_COMMITTEE_MEMBER
+    subgraph "TOP (Grammar Segments)"
+        TOP_START[START]
+        TOP_MIDDLE[MIDDLE]
+        TOP_LOWER_MIDDLE[LOWER_MIDDLE]
+        TOP_END[END]
+    end
 
-    %% VoteSection -> MotionEnum
-    VOTE -.->|has motion type| MotionEnum
+    %% Section -> Speaker Position constraints (from Grammar)
+    SEC_INTRO -.->|allows| SP_PRESIDING_CHAIR
+    SEC_INTRO -.->|allows| SP_CHAIRMAN
+    SEC_INTRO -.->|allows| SP_VICE_CHAIRMAN
+    SEC_PRESENTATION -.->|allows| SP_BILL_AUTHOR
+    SEC_PRESENTATION -.->|allows| SP_PRESIDING_CHAIR
+    SEC_LEGISLATOR_DISCUSSION -.->|allows| SP_COMMITTEE_MEMBER
+    SEC_LEGISLATOR_DISCUSSION -.->|allows| SP_LEGISLATOR
+    SEC_EXPERT_TESTIMONY -.->|allows| SP_EXPERT
+    SEC_EXPERT_TESTIMONY -.->|allows| SP_LEGISLATOR
+    SEC_PUBLIC_COMMENTS -.->|allows| SP_PUBLIC
+    SEC_PUBLIC_COMMENTS -.->|allows| SP_LEGISLATOR
+    SEC_CLOSING_REMARKS -.->|allows| SP_PRESIDING_CHAIR
+    SEC_CLOSING_REMARKS -.->|allows| SP_BILL_AUTHOR
+    SEC_VOTE -.->|allows| SP_PRESIDING_CHAIR
+    SEC_VOTE -.->|allows| SP_SECRETARY
+    SEC_VOTE -.->|allows| SP_COMMITTEE_MEMBER
+
+    %% Vote subsections
+    SEC_VOTE -.->|contains| VoteSectionEnum
+    SEC_VOTE -.->|has motion type| MotionEnum
+
+    %% Grammar structure
+    TOP_START -.->|contains| SEC_INTRO
+    TOP_START -.->|contains| SEC_PRESENTATION
+    TOP_MIDDLE -.->|contains| SEC_LEGISLATOR_DISCUSSION
+    TOP_LOWER_MIDDLE -.->|contains| SEC_EXPERT_TESTIMONY
+    TOP_LOWER_MIDDLE -.->|contains| SEC_PUBLIC_COMMENTS
+    TOP_END -.->|contains| SEC_CLOSING_REMARKS
+    TOP_END -.->|contains| SEC_VOTE
 
     classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef valueClass fill:#e8f4f8,stroke:#333,stroke-width:1px,color:#000
 
-    class SpeakerPositionEnum,SpeakerRoleEnum,SectionSpeakerRequirementsEnum,MotionEnum enumClass
-    class SP_CHAIRMAN,SP_VICE_CHAIRMAN,SP_SECRETARY,SP_LEGISLATOR,SP_NONLEGISLATOR,SP_UNKNOWN valueClass
-    class SR_PRESIDING_CHAIR,SR_SECRETARY,SR_PRESENTER,SR_COMMITTEE_MEMBER,SR_EXPERT,SR_PUBLIC,SR_UNKNOWN valueClass
-    class INTRO,PRESENTATION,LEGISLATOR_DISCUSSION,EXPERT_TESTIMONY,PUBLIC_COMMENTS,CLOSING_REMARKS,VOTE valueClass
+    class SpeakerPositionEnum,SectionEnum,VoteSectionEnum,MotionEnum,SpeechActEnum,TOP enumClass
+    class SP_SECRETARY,SP_PRESIDING_CHAIR,SP_CHAIRMAN,SP_VICE_CHAIRMAN,SP_COMMITTEE_MEMBER,SP_BILL_AUTHOR,SP_LEGISLATOR,SP_EXPERT,SP_NONLEGISLATOR,SP_PUBLIC valueClass
+    class SEC_INTRO,SEC_PRESENTATION,SEC_LEGISLATOR_DISCUSSION,SEC_EXPERT_TESTIMONY,SEC_PUBLIC_COMMENTS,SEC_CLOSING_REMARKS,SEC_VOTE,SEC_OTHER valueClass
+    class VOTE_MOTION,VOTE_SECOND,VOTE_ROLL_CALL,VOTE_RESULTS,VOTE_DISCUSSION valueClass
     class DUE_PASS,RECONSIDERATION,AMENDMENT valueClass
+    class STATEMENT,ARGUMENT valueClass
+    class TOP_START,TOP_MIDDLE,TOP_LOWER_MIDDLE,TOP_END valueClass
+```
+
+## Class Hierarchy
+
+```mermaid
+graph TD
+    %% Hearing hierarchy
+    Hearing[Hearing]
+    Hearing -->|fields| hearing_fields["hid, bid, cid, cname, hearing_date, state, speakers: Dict[int, Speaker]"]
+    RawHearing[RawHearing]
+    RawHearing -->|adds| raw_fields["utterances: List[OralContribution]"]
+    RawHearing -->|extends| Hearing
+    TaggedHearing[TaggedHearing]
+    TaggedHearing -->|extends| Hearing
+    TaggedHearing -->|adds| tagged_fields["utterances: List[TaggedOralContribution]"]
+
+    %% OralContribution hierarchy
+    OralContribution[OralContribution]
+    TaggedOralContribution[TaggedOralContribution]
+    FlatTaggedOralContribution[FlatTaggedOralContribution]
+    FlatTaggedOralContribution -->|extends| TaggedOralContribution
+    FlatTaggedOralContribution -->|combines with| PositionRoleProperties
+
+    %% Speaker property hierarchy
+    RoleProperties[RoleProperties]
+    PositionRoleProperties[PositionRoleProperties]
+    SpeakerPositionRoleProperties[SpeakerPositionRoleProperties]
+    Speaker[Speaker]
+
+    %% Other classes
+    ParseNode[ParseNode]
+
+    %% OralContribution hierarchy relationships
+    TaggedOralContribution -->|extends| OralContribution
+
+    %% Speaker property hierarchy relationships
+    PositionRoleProperties -->|extends| RoleProperties
+    PositionRoleProperties -->|adds| position_fields["speaker_position"]
+    SpeakerPositionRoleProperties -->|extends| PositionRoleProperties
+    SpeakerPositionRoleProperties -->|adds| tracking_fields["first_mention_uid, first_uid, last_uid"]
+    Speaker -->|extends| SpeakerPositionRoleProperties
+
+    OralContribution -->|fields| oral_fields["uid, pid, text"]
+    TaggedOralContribution -->|adds| tagged_oral_fields["pids_mentioned, bids_mentioned, relative_position, sent_count, speech_act_cues, section_cues, section"]
+
+    RoleProperties -->|fields| role_fields["can_file_motions, is_presenter"]
+    Speaker -->|adds| speaker_fields["pid, first_name, last_name"]
+
+    ParseNode -->|fields| parse_fields["symbol, span: Tuple[int, int], children"]
+
+    %% Styling
+    classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
+    classDef fieldNode fill:#f0f0f0,stroke:#666,stroke-width:1px,color:#000,stroke-dasharray: 5 5
+
+    class Hearing,RawHearing,TaggedHearing,OralContribution,TaggedOralContribution,FlatTaggedOralContribution,RoleProperties,PositionRoleProperties,SpeakerPositionRoleProperties,Speaker,ParseNode dataclass
+    class hearing_fields,raw_fields,tagged_fields,oral_fields,tagged_oral_fields,role_fields,position_fields,tracking_fields,speaker_fields,section_fields,parse_fields fieldNode
 ```
 
 ## Architecture Diagram
 
 ```mermaid
-graph TD
-    %% Main entities
-    Hearing[Hearing]
-    RawHearing[RawHearing]
-    ParsedHearing[ParsedHearing]
-    Speaker[Speaker]
-    OralContribution[OralContribution]
+graph LR
+    %% Data flow
+    CSV[CSV Files<br/>Digital Democracy Corpus] -->|load| HearingLoader
 
-    %% Sections
-    Section[Section]
-    VoteSection[VoteSection]
+    HearingLoader -->|creates| RawHearing[RawHearing<br/>raw utterances]
 
-    %% Enums
-    SpeakerPositionEnum[SpeakerPositionEnum]
-    SpeakerRoleEnum[SpeakerRoleEnum]
-    SpeakerRoleRequirementsEnum[SpeakerRoleRequirementsEnum]
-    SectionSpeakerRequirementsEnum[SectionSpeakerRequirementsEnum]
-    MotionEnum[MotionEnum]
+    RawHearing -->|tag features| HearingTagger
+    HearingTagger -->|uses| UtteranceTagger
+    HearingTagger -->|creates| TaggedHearing[TaggedHearing<br/>tagged utterances]
 
-    %% Supporting classes
-    RoleProperties[RoleProperties]
-    RoleRequirements[RoleRequirements]
-    SectionRequirements[SectionRequirements]
+    TaggedHearing -->|parse & predict| HearingParser
+    HearingParser -->|uses| Tokenizer[Tokenizer<br/>CYK parsing]
+    HearingParser -->|uses| MaskedSoftmaxClassifier
 
-    %% Hearing hierarchy
-    RawHearing -->|extends| Hearing
-    ParsedHearing -->|extends| Hearing
+    Tokenizer -->|applies| Grammar[Grammar<br/>CNF production rules]
+    Tokenizer -->|creates| ParseNode[ParseNode<br/>parse tree]
 
-    %% Hearing relationships
-    Hearing -->|contains| Speaker
-    RawHearing -->|contains| OralContribution
+    MaskedSoftmaxClassifier -->|uses| MaskedSoftmaxHelper
+    MaskedSoftmaxHelper -->|constraints from| ParseNode
+    MaskedSoftmaxHelper -->|constraints from| Grammar
 
-    %% ParsedHearing sections
-    ParsedHearing -->|has optional| intro[intro: Section]
-    ParsedHearing -->|has| presentation[presentation: Section]
-    ParsedHearing -->|has optional| legislator_discussion[legislator_discussion: Section]
-    ParsedHearing -->|has optional| expert_testimony[expert_testimony: Section]
-    ParsedHearing -->|has list| discussion[discussion: List Section]
-    ParsedHearing -->|has optional| closing[closing_remarks: Section]
-    ParsedHearing -->|has list| vote[vote: List VoteSection]
+    HearingParser -->|outputs| PredictedSections[Predicted Section Labels<br/>per utterance]
 
-    intro -.->|type| Section
-    presentation -.->|type| Section
-    legislator_discussion -.->|type| Section
-    expert_testimony -.->|type| Section
-    discussion -.->|type| Section
-    closing -.->|type| Section
-    vote -.->|type| VoteSection
+    %% Component grouping
+    subgraph "Data Loading"
+        HearingLoader
+        CSV
+    end
 
-    %% Section relationships
-    Section -->|contains| OralContribution
-    Section -->|validates with| SectionSpeakerRequirementsEnum
-    VoteSection -->|extends| Section
-    VoteSection -->|has| MotionEnum
+    subgraph "Feature Extraction"
+        HearingTagger
+        UtteranceTagger
+    end
 
-    %% OralContribution relationships
-    OralContribution -->|spoken by| Speaker
-
-    %% Speaker relationships
-    Speaker -->|extends| RoleProperties
-    Speaker -->|has position| SpeakerPositionEnum
-    Speaker -->|has role| SpeakerRoleEnum
-    Speaker -->|validates with| SpeakerRoleRequirementsEnum
-
-    %% Role relationships
-    SpeakerRoleRequirementsEnum -->|has value type| RoleRequirements
-    RoleRequirements -->|extends| RoleProperties
-    RoleRequirements -->|uses| SpeakerPositionEnum
-    RoleRequirements -->|uses| SpeakerRoleEnum
-
-    %% Section validation relationships
-    SectionSpeakerRequirementsEnum -->|has value type| SectionRequirements
-    SectionRequirements -->|uses| SpeakerRoleEnum
+    subgraph "Section Classification"
+        HearingParser
+        Tokenizer
+        Grammar
+        ParseNode
+        MaskedSoftmaxClassifier
+        MaskedSoftmaxHelper
+    end
 
     %% Styling
-    classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
-    classDef enumClass fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
-    classDef sectionNode fill:#d4edda,stroke:#333,stroke-width:1px,color:#000
+    classDef input fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
+    classDef data fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
+    classDef processing fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
+    classDef output fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
 
-    class Hearing,RawHearing,ParsedHearing,Section,VoteSection,OralContribution,Speaker,RoleProperties,RoleRequirements,SectionRequirements dataclass
-    class SpeakerPositionEnum,SpeakerRoleEnum,SpeakerRoleRequirementsEnum,SectionSpeakerRequirementsEnum,MotionEnum enumClass
-    class intro,presentation,legislator_discussion,expert_testimony,discussion,closing,vote sectionNode
+    class CSV input
+    class RawHearing,TaggedHearing,ParseNode data
+    class HearingLoader,HearingTagger,UtteranceTagger,HearingParser,Tokenizer,Grammar,MaskedSoftmaxClassifier,MaskedSoftmaxHelper processing
+    class PredictedSections output
 ```
