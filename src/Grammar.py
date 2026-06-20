@@ -27,7 +27,7 @@ Hearing_Grammar = [
     (ROOT, [SectionEnum.OTHER, TOP.START, TOP.MIDDLE, TOP.END]),
 
     # fallback
-    # (SectionEnum.OTHER, [SectionEnum.OTHER, SectionEnum.OTHER]),
+    (SectionEnum.OTHER, [SectionEnum.OTHER, SectionEnum.OTHER]),
 
     # different discussion starts
     (TOP.START,                         [SectionEnum.INTRO, SectionEnum.PRESENTATION]),
