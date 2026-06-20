@@ -1,11 +1,9 @@
 # TODO
 ## Data cleaning and tokenization
 0. Update README.md and DATAMODEL.md
-1. enumerate the different kinds of speech acts in [[SpeechActEnum.py]]
-2. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables
-3. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
-4. replace RROO keyphrase mentions with the associated SpeechActEnum
-5. associate authorship info (in bills.csv) with initial speaker parsing
+1. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables
+2. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
+3. replace RROO keyphrase mentions with the associated SpeechActEnum
 
 ## Feature extraction
 1. . get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules

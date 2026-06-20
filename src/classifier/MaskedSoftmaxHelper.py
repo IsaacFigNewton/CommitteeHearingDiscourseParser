@@ -1,10 +1,11 @@
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
-from typing import Optional
+from typing import Optional, Dict, Set
 
-from ..speakers.validation.SectionRoleRequirementsEnum import SectionSpeakerRequirementsEnum
+from ..Grammar import Hearing_Grammar
 from ..enums.SectionEnum import SectionEnum
+from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 
 class MaskedSoftmaxHelper:
@@ -32,6 +33,30 @@ class MaskedSoftmaxHelper:
             section.name: order for order, section in enumerate(SectionEnum)
         }
 
+        # Extract valid speaker positions for each section from Hearing_Grammar
+        self.section_valid_speakers = self._extract_valid_speakers_from_grammar()
+
+    @staticmethod
+    def _extract_valid_speakers_from_grammar() -> Dict[str, Set[SpeakerPositionEnum]]:
+        """
+        Extract valid speaker positions for each section from Hearing_Grammar.
+
+        Returns a mapping from section name to set of valid SpeakerPositionEnum values.
+        """
+        valid_speakers = {}
+
+        for rule in Hearing_Grammar.values():
+            # Check if rule is a tuple of (SectionEnum, SpeakerPositionEnum)
+            if isinstance(rule, tuple) and len(rule) == 2:
+                section, speaker = rule
+                if isinstance(section, SectionEnum) and isinstance(speaker, SpeakerPositionEnum):
+                    section_name = section.name
+                    if section_name not in valid_speakers:
+                        valid_speakers[section_name] = set()
+                    valid_speakers[section_name].add(speaker)
+
+        return valid_speakers
+
     def build_utterance_mask(self,
             speaker_position: Optional[int],
             can_file_motion: bool,
@@ -41,45 +66,35 @@ class MaskedSoftmaxHelper:
         Generate a boolean mask indicating which sections are valid for one utterance.
 
         The 'OTHER' section is always available as a catch-all category.
+        Uses Hearing_Grammar expansion rules to determine valid section-speaker combinations.
         """
         mask = np.ones(len(self.classes_), dtype=bool)
 
-        for section_enum in SectionSpeakerRequirementsEnum:
-            section_name = section_enum.name
+        # If no speaker position provided, return full mask
+        if speaker_position is None:
+            return mask
 
-            # Skip if this section is not in our trained classes.
-            if section_name not in self.section_to_idx:
-                continue
+        # Convert speaker_position integer to SpeakerPositionEnum
+        speaker_enum = None
+        for sp in SpeakerPositionEnum:
+            if sp.value == speaker_position:
+                speaker_enum = sp
+                break
 
-            idx = self.section_to_idx[section_name]
+        if speaker_enum is None:
+            return mask
 
-            # OTHER is always available (has no restrictions).
+        # Apply grammar-based validation
+        for section_name, idx in self.section_to_idx.items():
+            # OTHER is always available (has no restrictions from grammar)
             if section_name == 'OTHER':
                 continue
 
-            requirements = section_enum.value
-
-            # Check speaker position constraints.
-            if requirements.valid_speaker_position_intervals is not None and speaker_position is not None:
-                position_valid = any(
-                    min_pos <= speaker_position <= max_pos
-                    for min_pos, max_pos in requirements.valid_speaker_position_intervals
-                )
-                if not position_valid:
+            # Check if this section has valid speakers defined in grammar
+            if section_name in self.section_valid_speakers:
+                valid_speakers = self.section_valid_speakers[section_name]
+                if speaker_enum not in valid_speakers:
                     mask[idx] = False
-                    continue
-
-            # Check can_file_motions constraint.
-            if requirements.can_file_motions is not None:
-                if requirements.can_file_motions != can_file_motion:
-                    mask[idx] = False
-                    continue
-
-            # Check is_presenter constraint.
-            if requirements.is_presenter is not None and is_presenter is not None:
-                if requirements.is_presenter != is_presenter:
-                    mask[idx] = False
-                    continue
 
         return mask
 
