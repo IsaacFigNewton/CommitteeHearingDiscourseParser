@@ -32,9 +32,13 @@ class SectionEnum(Enum):
     # closing remarks by committee chair or bill author
     CLOSING_REMARKS=        "CLOSING_REMARKS"
     
-    # voting section
+    # voting section includes all subsections described by VoteSectionEnum
     #   may include discussion by legislators
     VOTE=                   "VOTE"
+
+    # a fallback class used to tag ambiguous sections
+    #   that don't involve bill discussion or which do not pertain to the current bill
+    OTHER=                  "OTHER"
 
 
 class VoteSectionEnum(Enum):
