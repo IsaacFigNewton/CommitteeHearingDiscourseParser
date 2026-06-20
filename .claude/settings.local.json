@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \"import pandas as pd; from sklearn.model_selection import GroupShuffleSplit; df = pd.read_csv(''utterances_sample_labeled.csv''); groups = df[''bid'']; splitter = GroupShuffleSplit(n_splits=1, test_size=0.25, random_state=42); train_idx, test_idx = next(splitter.split(df, df[''section''], groups)); test_df = df.iloc[test_idx]; print(''Test set section counts:''); print(test_df[''section''].value_counts()); print(''\\nLEGISLATOR_DISCUSSION in test set:'', (test_df[''section''] == ''LEGISLATOR_DISCUSSION'').sum())\")"
+      "Bash(jupyter nbconvert --to notebook --execute evaluate_model.ipynb --output evaluate_model_output.ipynb)",
+      "Bash(python -m jupyter nbconvert --to notebook --execute evaluate_model.ipynb --output evaluate_model_output.ipynb)",
+      "Bash(python -c \"import sys; import nbformat; from nbconvert.preprocessors import ExecutePreprocessor; nb = nbformat.read(''evaluate_model.ipynb'', as_version=4); ep = ExecutePreprocessor(timeout=600); ep.preprocess(nb, {''metadata'': {''path'': ''.''}}); nbformat.write(nb, ''evaluate_model_output.ipynb'')\")"
     ],
     "deny": [],
     "ask": []

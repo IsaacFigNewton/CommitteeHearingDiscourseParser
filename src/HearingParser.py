@@ -21,11 +21,12 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 class HearingParser:
     TEXT_COL = 'text'
     CAT_COLS = [
+        'speaker.position',
         'section_cues',
         'speech_act_cues'
     ]
     NUM_COLS = [
-        'speaker.position', 'speaker.is_presiding',
+        'speaker.is_presiding',
         'relative_position', 'sent_count',
         'mentions_speaker', 'mentions_bill',
     ]
@@ -132,7 +133,7 @@ class HearingParser:
         X = filled_df[self.feature_cols]
 
         # Extract masking information for the classifier
-        speaker_positions = filled_df['speaker.position'].values
+        speaker_positions = filled_df['speaker.position_value'].values
 
         # Transform features through the pipeline's feature transformer
         X_transformed = self.model.named_steps['features'].transform(X)
@@ -180,8 +181,9 @@ class HearingParser:
                 'pid':                  u.pid,
 
                 # speaker features
-                'speaker.position':     s.speaker_position.name if s and s.speaker_position else None,
-                'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
+                'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
+                'speaker.position_value':   s.speaker_position.value if s and s.speaker_position else None,
+                'speaker.is_presiding':     int(bool(getattr(s, 'is_presiding', False))),
 
                 # metadata features
                 'relative_position':    u.relative_position,
