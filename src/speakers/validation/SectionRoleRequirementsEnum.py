@@ -34,7 +34,7 @@ class SectionSpeakerRequirementsEnum(Enum):
     # sequence of different discussion sections
     LEGISLATOR_DISCUSSION=  RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.SECRETARY.value),
         },
         can_file_motions=               True,
         is_presenter=                   None,
@@ -44,7 +44,7 @@ class SectionSpeakerRequirementsEnum(Enum):
     EXPERT_TESTIMONY=       RoleRequirements(
         valid_speaker_position_intervals=          {
             (SpeakerPositionEnum.EXPERT.value, SpeakerPositionEnum.EXPERT.value),
-            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.SECRETARY.value),
         },
         can_file_motions=               None,
         is_presenter=                   None,
@@ -54,7 +54,7 @@ class SectionSpeakerRequirementsEnum(Enum):
     PUBLIC_COMMENTS=        RoleRequirements(
         valid_speaker_position_intervals=          {
             (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.NONLEGISLATOR.value),
-            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
+            (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.SECRETARY.value),
         },
         can_file_motions=               None,
         is_presenter=                   None,
@@ -75,7 +75,7 @@ class SectionSpeakerRequirementsEnum(Enum):
     # voting section
     VOTE=                   RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
+            (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.SECRETARY.value),
         },
         can_file_motions=               True,
         is_presenter=                   None,

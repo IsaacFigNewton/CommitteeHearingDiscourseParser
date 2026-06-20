@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict, Any
 from .interfaces.ITagger import ITagger
+from .enums.SectionEnum import SectionEnum, SECTION_CUE_PHRASES
 from .dataclasses.OralContribution import FlatTaggedOralContribution
 from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
@@ -19,8 +20,7 @@ class HearingTagger(ITagger):
 
     def __call__(self, raw_hearing: RawHearing) -> Optional[TaggedHearing]:
         tagged_utterances = []
-        word_counts = [len(u.text.split(" ")) for u in raw_hearing.utterances]
-        max_word_count = max(word_counts)
+        sent_counts = [u.text.count(".") + u.text.count("!") + u.text.count("?") for u in raw_hearing.utterances]
         speaker_names_pids = {
             f"{s.first_name} {s.last_name}": pid
             for pid, s in raw_hearing.speakers.items()
@@ -61,11 +61,30 @@ class HearingTagger(ITagger):
                         raw_hearing.speakers[matched_pid].first_mention_uid = u.uid
             
             # add hearing contextual features
-            tagged_u.relative_position = i / max(len(word_counts) - 1, 1)
-            tagged_u.relative_len = word_counts[i] / max_word_count
+            tagged_u.relative_position = i / len(raw_hearing.utterances)
+            tagged_u.sent_count = sent_counts[i]
             
             # append to list of tagged utterances
             tagged_utterances.append(tagged_u)
+
+        # resolve ambiguous speakers' roles
+        ambiguous_speakers = {
+            pid: s for pid, s in raw_hearing.speakers.items()
+            if s.speaker_position == SpeakerPositionEnum.NONLEGISLATOR
+        }
+        for pid, s in ambiguous_speakers.items():
+            # if they're a nonlegislator that was mentioned (introduced)
+            #   before their first utterance,
+            #   then they must be an expert
+            # or if they're a nonlegislator that introduces themselves
+            #   and their first utterance has >3 sentences
+            #   then they must be an expert
+            if (
+                s.first_mention_uid and s.first_mention_uid < s.first_uid
+                or tagged_utterances[s.first_uid].sent_count > 3
+            ):
+                raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
+            
 
         return TaggedHearing(
             **{
@@ -118,21 +137,17 @@ class HearingTagger(ITagger):
                 for vc in vice_chairs[1:]:
                     speakers[vc[0]].speaker_position = SpeakerPositionEnum.COMMITTEE_MEMBER
         
+        # if there's no chair or vice chair designated in the committee roster data
+        else:
+            # assign the committee member with the first utterance the role of presiding chair
+            committee = [
+                s for s in speakers.values()
+                if s.speaker_position == SpeakerPositionEnum.COMMITTEE_MEMBER
+            ]
+            presiding_chair = min(committee, key=lambda s: s.first_uid)
+            speakers[presiding_chair.pid].speaker_position = SpeakerPositionEnum.PRESIDING_CHAIR
+
         return speakers
-
-
-    @classmethod
-    def _detect_first_presentation_utterance(cls, raw_hearing: RawHearing) -> int:
-        """Returns the index of the first utterance that is believed to be a presenting a bill, or -1 if none found"""
-        for i, u in enumerate(raw_hearing.utterances):
-            # The presenter may say a phrase that indicates they are beginning to present or the chairperson is introducing them
-            if cls.contains_any_phrase(u.text, PHRASE_GROUPS["PRESENTING"]):
-                return i
-
-            if cls.match_regex_pattern(BILL_ACTION_PATTERN, u.text):
-                return i
-
-        return -1
     
 
     @staticmethod

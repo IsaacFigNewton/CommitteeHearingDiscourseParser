@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from typing import Optional
 
 from ..speakers.validation.SectionRoleRequirementsEnum import SectionSpeakerRequirementsEnum
-from ..speakers.enums.SectionEnum import SectionEnum
+from ..enums.SectionEnum import SectionEnum
 
 
 class MaskedSoftmaxHelper:

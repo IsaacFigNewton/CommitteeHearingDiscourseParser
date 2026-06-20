@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Set
 from abc import ABC
 import re
 from rapidfuzz import fuzz
@@ -24,6 +24,9 @@ class ITagger(ABC):
     def normalize_text(cls, text: Optional[str]) -> str:
         if not text:
             return ''
+
+        # Remove punctuation symbols
+        text = re.sub(r'[.,!?:]', '', text)
 
         # Convert words to lowercase only if not ALL_CAPS
         words = text.split()
@@ -55,10 +58,8 @@ class ITagger(ABC):
 
 
     @classmethod
-    def contains_any_phrase(cls, text: Optional[str], phrases: list[str]) -> bool:
-        normalized = cls.normalize_text(text)
-
+    def contains_any_phrase(cls, text: str, phrases: Set[str]) -> bool:
         return any(
-            phrase in normalized
+            phrase in text
             for phrase in phrases
         )

@@ -151,7 +151,7 @@ class HearingLoader:
             # if it's just the committee secretary or staff
             if speaker.first_name == "Committee" and speaker.last_name == "Secretary":
                 speaker.can_file_motions = True
-                speaker.speaker_position = None
+                speaker.speaker_position = SpeakerPositionEnum.SECRETARY
                 return speaker
 
             # if it's not a legislator,

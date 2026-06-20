@@ -43,3 +43,58 @@ class VoteSectionEnum(Enum):
     ROLL_CALL=          "ROLL_CALL"
     RESULTS=            "RESULTS"
     DISCUSSION=         "DISCUSSION"
+
+
+SECTION_CUE_PHRASES = {
+    SectionEnum.INTRO: {
+        "includes the following changes",
+    },
+    
+    SectionEnum.PRESENTATION: {
+        "please proceed",
+        "please present",
+        "feel free to present",
+        "i would like to present",
+        "i'm pleased to present",
+        "i'm delighted to bring before you",
+        "i'm here to present",
+        "i would appreciate your support on this bill",
+        "ask for an aye vote",
+        "request an aye vote",
+        "i present",
+    },
+
+    SectionEnum.PUBLIC_COMMENTS: {
+        "NONLEGISLATOR with ORG",
+        "NONLEGISLATOR on behalf of ORG",
+        "NONLEGISLATOR representing ORG",
+        "NONLEGISLATOR, on behalf of ORG",
+        "NONLEGISLATOR, representing ORG"
+    },
+
+    VoteSectionEnum.MOTION: {
+        "is due pass",
+        "is do pass",
+        "is so moved",
+    },
+    VoteSectionEnum.MOTION: {
+        "refer to the committee",
+        "re-refer to the committee",
+    },
+    VoteSectionEnum.SECOND: {
+        "is seconded",
+    },
+    VoteSectionEnum.ROLL_CALL:{
+        "roll call",
+        "call the roll",
+    },
+    VoteSectionEnum.RESULTS: {
+        "'s out",
+        "is out",
+        "passes",
+        "BILL's out",
+        "BILL is out",
+        "BILL passes",
+        "without objection",
+    },
+}

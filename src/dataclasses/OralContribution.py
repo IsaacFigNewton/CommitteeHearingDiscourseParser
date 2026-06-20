@@ -2,7 +2,8 @@ from typing import List, Dict, Tuple, Union, Optional, Set
 from dataclasses import dataclass
 
 from ..speakers.interfaces.SpeakerProperties import PositionRoleProperties
-from ..speakers.enums.SectionEnum import SectionEnum
+from ..enums.SectionEnum import SectionEnum
+from ..enums.SpeechActEnum import SpeechActEnum
 
 """
 Based on the UK Parliament's oral contribution ontology
@@ -25,31 +26,26 @@ class OralContribution:
 
 @dataclass
 class TaggedOralContribution(OralContribution):
-    # names of any speakers (including the current one) that were mentioned
-    mentions_speakers: Optional[Set[str]]
     # pids of any speakers (including the current one) that were mentioned
     pids_mentioned: Optional[Set[int]]
-    # names of any bills (including the current one) that were mentioned
-    mentions_bills: Optional[Set[str]]
-    # bids of any speakers (including the current one) that were mentioned
-    bids_mentioned: Optional[Set[int]]
+    # bids of any bills (including the current one) that were mentioned
+    bids_mentioned: Optional[Set[str]]
+
+    # metadata features
+    # relative position of the utterance within the hearing transcript
+    relative_position: Optional[float]
+    # total # sentences in the utterance
+    sent_count: Optional[int]
     
-    has_bill_action: bool
-    has_presentation_cue: bool
-    has_vote_cue: bool
-    has_closing_cue: bool
+    # cues
+    speech_act_cues: Optional[Set[SpeechActEnum]]
+    section_cues: Optional[Set[SectionEnum]]
 
     # tags for evaluation
-    # if it's a motion
-    is_motion: Optional[bool]
-    # if it's just a transitional utterance
-    is_transition: Optional[bool]
     # section for classification
     section: Optional[SectionEnum]
 
 
 @dataclass
 class FlatTaggedOralContribution(PositionRoleProperties, TaggedOralContribution):
-    # metadata features
-    relative_position: Optional[float]
-    relative_len: Optional[float]
+    pass

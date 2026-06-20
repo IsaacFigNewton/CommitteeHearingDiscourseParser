@@ -4,8 +4,8 @@ from enum import Enum
 used to enumerate the different possible roles of speakers in a bill discussion
 """
 
-# secretary doesn't have a speaker position
 class SpeakerPositionEnum(Enum):
+    SECRETARY=          8
     PRESIDING_CHAIR=    7
     CHAIRMAN=           6
     VICE_CHAIRMAN=      5
@@ -16,9 +16,10 @@ class SpeakerPositionEnum(Enum):
     NONLEGISLATOR=      0
 
 
+
 COMMITTEE_POSITION_MAP = {
     "Chair":        SpeakerPositionEnum.CHAIRMAN,
     "Co-Chair":     SpeakerPositionEnum.CHAIRMAN,
     "Vice-Chair":   SpeakerPositionEnum.VICE_CHAIRMAN,
-    "Member":       SpeakerPositionEnum.LEGISLATOR
+    "Member":       SpeakerPositionEnum.COMMITTEE_MEMBER
 }

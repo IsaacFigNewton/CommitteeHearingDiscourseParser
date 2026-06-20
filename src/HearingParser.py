@@ -10,7 +10,7 @@ from .constants import *
 from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
-from .speakers.enums.SectionEnum import SectionEnum
+from .enums.SectionEnum import SectionEnum
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -20,7 +20,9 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 class HearingParser:
     TEXT_COL = 'text'
-    CAT_COLS = []
+    CAT_COLS = [
+        'section_cues'
+    ]
     NUM_COLS = [
     'speaker.position', 'speaker.is_presiding',
     'relative_position', 'relative_length',
@@ -171,27 +173,30 @@ class HearingParser:
     def _build_utterance_rows(self, hearings: Optional[List[TaggedHearing]]) -> pd.DataFrame:
         return pd.DataFrame([
             {
+                # metadata
                 'state':                h.state,
                 'bid':                  h.bid,
                 'hid':                  h.hid,
                 'uid':                  u.uid,
                 'pid':                  u.pid,
-                'text':                 u.text,
-                'speaker.position':     s.speaker_position.value if s and s.speaker_position else None,
-                'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
-                'relative_position':    u.relative_position,
-                'relative_length':      u.relative_len,
-                'mentions_speaker':     int(bool(u.pids_mentioned)),
-                'mentions_bill':        int(bool(u.mentions_bills)),
-                'has_bill_action':      int(u.has_bill_action),
-                'has_presentation_cue': int(u.has_presentation_cue),
-                'has_vote_cue':         int(u.has_vote_cue),
-                'has_closing_cue':      int(u.has_closing_cue),
 
-                # manual label
-                'has_motion_cue':       int(u.is_motion or False),
-                'is_transition':        int(u.is_transition or False),
+                # speaker features
+                'speaker.position':     s.speaker_position.name if s and s.speaker_position else None,
+                'speaker.is_presiding': int(bool(getattr(s, 'is_presiding', False))),
+
+                # metadata features 
+                'relative_position':    u.relative_position,
+                'sentence_count':       u.sent_count,
+                'mentions_speaker':     int(bool(u.pids_mentioned)),
+                'mentions_bill':        int(bool(u.bids_mentioned)),
+                'speech_act_cues':      [s.name for s in u.speech_act_cues],
+                'section_cues':         [s.name for s in u.section_cues],
+
+                # output label
                 'section':              None,
+
+                # text
+                'text':                 u.text,
             }
             for h in hearings or []
             for u in h.utterances

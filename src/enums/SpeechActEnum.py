@@ -6,6 +6,15 @@ used to enumerate the different kinds of speech acts/utterances
 """
 
 class SpeechActEnum(Enum):
-    INTRODUCTION = "INTRODUCTION"
-    ROLL_CALL = "ROLL_CALL"
-    
+    STATEMENT=  "STATEMENT"
+    ARGUMENT=   "ARGUMENT"
+
+SPEECH_ACT_CUES = {
+    SpeechActEnum.STATEMENT: {
+
+    },
+
+    SpeechActEnum.ARGUMENT: {
+        "ask for your aye vote"
+    }
+}

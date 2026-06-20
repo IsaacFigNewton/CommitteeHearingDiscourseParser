@@ -3,6 +3,8 @@ import re
 import spacy
 from rapidfuzz import fuzz
 from .interfaces.ITagger import ITagger
+from .enums.SpeechActEnum import SpeechActEnum, SPEECH_ACT_CUES
+from .enums.SectionEnum import SectionEnum, VoteSectionEnum, SECTION_CUE_PHRASES
 from .dataclasses.OralContribution import OralContribution, TaggedOralContribution, FlatTaggedOralContribution
 from .speakers.Speaker import Speaker
 from .constants import *
@@ -38,6 +40,13 @@ class UtteranceTagger(ITagger):
 
         # substitute keyphrases with their group names
         text = self.substitute_keyphrases(text)
+        normalized = self.normalize_text(text)
+
+        # get cues for different speech acts
+        speech_act_cues = self._get_speech_act_cues(normalized)
+
+        # check for single-keyphrase-occurrence-based cues
+        section_cues = self._get_section_cues(normalized)
 
         tagged_u = TaggedOralContribution(
             # metadata
@@ -46,20 +55,19 @@ class UtteranceTagger(ITagger):
             text=                           text,
 
             # mention features
+            # metadata features
+            relative_position=              None,
+            sent_count=                     None,
             # match all capitalized bigrams that might be names
-            mentions_speakers=              None,
             pids_mentioned=                 pids_mentioned,
-            mentions_bills=                 re.findall(BILL_ID_PATTERN, text),
-            bids_mentioned=                 None,
-            has_bill_action=                bool(BILL_ACTION_PATTERN.search(text)),
-            has_presentation_cue=           self.contains_any_phrase(text, PHRASE_GROUPS["PRESENTING"]),
-            has_vote_cue=                   bool(self.has_vote_cue(text)),
-            has_closing_cue=                self.contains_any_phrase(text, PHRASE_GROUPS["DISPOSITION"]),
+            bids_mentioned=                 re.findall(BILL_ID_PATTERN, text),
 
+            # cues
+            section_cues=                   section_cues,
+            speech_act_cues=                speech_act_cues,
+            
             # tags for evaluation
-            is_motion=self.contains_any_phrase(text, list(PHRASE_GROUPS["START_VOTE"]) + list(PHRASE_GROUPS["MOTION"])),
-            is_transition=None,
-            section=None,
+            section=                        None,
         )
 
         if speaker is not None:
@@ -70,31 +78,9 @@ class UtteranceTagger(ITagger):
                 is_presenter=                   speaker.is_presenter,
                 can_file_motions=               speaker.can_file_motions,
                 speaker_position=               speaker.speaker_position,
-
-                # metadata features
-                relative_position=              None,
-                relative_len=                   None,
             )
         
         return tagged_u
-
-    def has_vote_cue(self, text: Optional[str]) -> int:
-        if not text:
-            return 0
-
-        normalized = self.normalize_text(text)
-
-        vote_phrase_found = (
-            "roll call" in normalized
-            or "call the roll" in normalized
-            or "please call the roll" in normalized
-        )
-
-        aye_count = len(re.findall(r"\baye\b", text.lower()))
-        nay_count = len(re.findall(r"\bno\b", text.lower()))
-        repeated_votes_found = aye_count + nay_count >= 2
-
-        return int(vote_phrase_found or repeated_votes_found)
 
 
     def _match_entity_to_speaker(
@@ -266,3 +252,31 @@ class UtteranceTagger(ITagger):
             modified_text = modified_text[:start_pos] + group_name + modified_text[end_pos:]
 
         return modified_text
+    
+
+    def _get_speech_act_cues(self, text: str) -> set:
+        speech_act_cues = set()
+
+        for cue_grp, cue_set in SPEECH_ACT_CUES.items():
+            if self.contains_any_phrase(text, cue_set):
+                speech_act_cues.add(cue_grp)
+        
+        # if there's some statement about a bill procedure
+        if bool(BILL_ACTION_PATTERN.search(text)):
+            speech_act_cues.add(SpeechActEnum.STATEMENT)
+
+        return speech_act_cues
+    
+    
+    def _get_section_cues(self, text: str) -> set:
+        section_cues = set()
+        
+        for cue_grp, cue_set in SECTION_CUE_PHRASES.items():
+            if self.contains_any_phrase(text, cue_set):
+                section_cues.add(cue_grp)
+        
+        # if there's >1 aye, it's probably roll call
+        if text.count(" aye ") > 1:
+            section_cues.add(VoteSectionEnum.ROLL_CALL)
+
+        return section_cues
