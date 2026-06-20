@@ -53,7 +53,7 @@ class SectionSpeakerRequirementsEnum(Enum):
     # public comments never contain expert testimony
     PUBLIC_COMMENTS=        RoleRequirements(
         valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.NONLEGISLATOR.value),
+            (SpeakerPositionEnum.PUBLIC.value, SpeakerPositionEnum.NONLEGISLATOR.value),
             (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.SECRETARY.value),
         },
         can_file_motions=               None,

@@ -3,7 +3,7 @@ from .interfaces.ITagger import ITagger
 from .enums.SectionEnum import SectionEnum, SECTION_CUE_PHRASES
 from .dataclasses.OralContribution import FlatTaggedOralContribution
 from .dataclasses.Hearing import RawHearing, TaggedHearing
-from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum, SPEAKER_POSITION_CUES
 from .speakers.Speaker import Speaker
 
 from .constants import *
@@ -19,8 +19,6 @@ class HearingTagger(ITagger):
         self.utterance_tagger = UtteranceTagger()
 
     def __call__(self, raw_hearing: RawHearing) -> Optional[TaggedHearing]:
-        tagged_utterances = []
-        sent_counts = [u.text.count(".") + u.text.count("!") + u.text.count("?") for u in raw_hearing.utterances]
         speaker_names_pids = {
             f"{s.first_name} {s.last_name}": pid
             for pid, s in raw_hearing.speakers.items()
@@ -28,15 +26,17 @@ class HearingTagger(ITagger):
 
         unknown_speaker_count = sum([
             1 for s in raw_hearing.speakers.values()
-            if s.speaker_position is None and not s.can_file_motions
+            if s.speaker_position is None
         ])
 
-        # if all speakers are accounted for (i.e. no data annotation errors),
-        #   try subdividing them
-        if unknown_speaker_count == 0:
-            raw_hearing.speakers = self._assign_presiding_chair(raw_hearing.speakers)
+        if unknown_speaker_count > 0:
+            print(f"WARNING: Data annotation error for hearing {raw_hearing.hid}. Unidentified speakers: {unknown_speaker_count}")
+        
+        # subclassify each speaker
+        raw_hearing.speakers = self._assign_presiding_chair(raw_hearing.speakers)
 
         # tag utterances
+        tagged_utterances = []
         for i, u in enumerate(raw_hearing.utterances):
             speaker = raw_hearing.speakers[u.pid]
 
@@ -53,6 +53,10 @@ class HearingTagger(ITagger):
             )
             if not isinstance(tagged_u, FlatTaggedOralContribution):
                 raise ValueError(f"expected flattened, tagged utterance of type FlatTaggedOralContribution, received {type(tagged_u)}")
+            
+            # if the utterance includes a public speaker keyphrase
+            if self.contains_any_phrase(tagged_u.text, SPEAKER_POSITION_CUES[SpeakerPositionEnum.PUBLIC]):
+                raw_hearing.speakers[tagged_u.pid].speaker_position = SpeakerPositionEnum.PUBLIC
 
             if tagged_u.pids_mentioned:
                 for matched_pid in tagged_u.pids_mentioned:
@@ -62,10 +66,10 @@ class HearingTagger(ITagger):
             
             # add hearing contextual features
             tagged_u.relative_position = i / len(raw_hearing.utterances)
-            tagged_u.sent_count = sent_counts[i]
             
             # append to list of tagged utterances
             tagged_utterances.append(tagged_u)
+
 
         # resolve ambiguous speakers' roles
         ambiguous_speakers = {
@@ -76,14 +80,19 @@ class HearingTagger(ITagger):
             # if they're a nonlegislator that was mentioned (introduced)
             #   before their first utterance,
             #   then they must be an expert
-            # or if they're a nonlegislator that introduces themselves
-            #   and their first utterance has >3 sentences
-            #   then they must be an expert
             if (
                 s.first_mention_uid and s.first_mention_uid < s.first_uid
-                or tagged_utterances[s.first_uid].sent_count > 3
+                # or if they're a nonlegislator whose first utterance has >3 sentences
+                #   and is not representing an organization,
+                #   then they're probably an expert
+                or tagged_utterances[s.first_uid].sent_count > 4
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
+            
+            else:
+                raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
+            
+
             
 
         return TaggedHearing(
@@ -148,7 +157,7 @@ class HearingTagger(ITagger):
             speakers[presiding_chair.pid].speaker_position = SpeakerPositionEnum.PRESIDING_CHAIR
 
         return speakers
-    
+
 
     @staticmethod
     def pprint_hearing(hearing: RawHearing):

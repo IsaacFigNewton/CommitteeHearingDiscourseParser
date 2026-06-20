@@ -23,23 +23,3 @@ class SpeakerRoleRequirementsEnum(Enum):
         is_presenter=                   None,
         cmp_first_mention_first_uid=    RelativePositionEnum.BEFORE,
     )
-
-    # other roles
-    is_expert=          RoleRequirements(
-        # experts can be legislators or nonlegislators but not committee members
-        valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.EXPERT.value),
-        },
-        can_file_motions=               False,
-        is_presenter=                   False,
-        # if expert's name is mentioned before their first utterance
-        cmp_first_mention_first_uid=    RelativePositionEnum.BEFORE,
-    )
-    is_public=          RoleRequirements(
-        valid_speaker_position_intervals=          {
-            (SpeakerPositionEnum.NONLEGISLATOR.value, SpeakerPositionEnum.NONLEGISLATOR.value),
-        },
-        can_file_motions=               False,
-        is_presenter=                   False,
-        cmp_first_mention_first_uid=    RelativePositionEnum.DURING,
-    )

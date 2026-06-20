@@ -32,7 +32,7 @@ class UtteranceTagger(ITagger):
             text = ""
 
         # build a set of the pids of speakers mentioned
-        text, pids_mentioned = self.substitute_named_entities(
+        text, pids_mentioned, sent_count = self.substitute_named_entities(
             text,
             speaker_names_pids,
             speakers,
@@ -57,7 +57,7 @@ class UtteranceTagger(ITagger):
             # mention features
             # metadata features
             relative_position=              None,
-            sent_count=                     None,
+            sent_count=                     sent_count,
             # match all capitalized bigrams that might be names
             pids_mentioned=                 pids_mentioned,
             bids_mentioned=                 re.findall(BILL_ID_PATTERN, text),
@@ -144,7 +144,7 @@ class UtteranceTagger(ITagger):
         speaker_names_pids: Dict[str, int],
         speakers: Dict[int, Speaker],
         fuzzy_threshold: int = 85
-    ) -> Tuple[str, Set[int]]:
+    ) -> Tuple[str, Set[int], int]:
         """
         Replace speaker name mentions with their position names using spaCy NER.
 
@@ -162,7 +162,7 @@ class UtteranceTagger(ITagger):
 
         # Tokenize and extract named entities
         doc = self.nlp(text)
-
+        sent_count = len(list(doc.sents))
         # Store matches: (start_char, end_char, position_name)
         replacements = []
         pids_mentioned = set()
@@ -201,7 +201,7 @@ class UtteranceTagger(ITagger):
         for start_char, end_char, replacement in reversed(replacements):
             modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
 
-        return modified_text, pids_mentioned
+        return modified_text, pids_mentioned, sent_count
 
     def substitute_keyphrases(self, text: str) -> str:
         """
