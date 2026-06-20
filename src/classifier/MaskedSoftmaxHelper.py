@@ -45,10 +45,10 @@ class MaskedSoftmaxHelper:
         """
         valid_speakers = {}
 
-        for rule in Hearing_Grammar.values():
-            # Check if rule is a tuple of (SectionEnum, SpeakerPositionEnum)
-            if isinstance(rule, tuple) and len(rule) == 2:
-                section, speaker = rule
+        for key, value in Hearing_Grammar:
+            # Check if value is a tuple of (SectionEnum, SpeakerPositionEnum)
+            if isinstance(value, tuple) and len(value) == 2:
+                section, speaker = value
                 if isinstance(section, SectionEnum) and isinstance(speaker, SpeakerPositionEnum):
                     section_name = section.name
                     if section_name not in valid_speakers:
