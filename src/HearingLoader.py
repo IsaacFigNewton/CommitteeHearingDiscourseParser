@@ -43,6 +43,7 @@ class HearingLoader:
         self.speeches: Dict[str, Any] =         self.load_csv("speeches", method="custom")
         self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
         self.people: pd.DataFrame =             self.load_csv("people", method="pandas")
+        self.bills: pd.DataFrame =              self.load_csv("bills", method="pandas")[["bid", "pid"]]
         
         # get a set of all the cids
         self.cids = set(self.committeeRosters["cid"].unique().tolist())
@@ -124,7 +125,7 @@ class HearingLoader:
         return payload
 
 
-    def _update_speaker_position(self, cid: int, speaker: Speaker):
+    def _update_speaker_position(self, cid: int, bid: str, speaker: Speaker):
         # default to non-legislator with non-committee membership and non-authorship
         speaker.speaker_position = None
         speaker.can_file_motions = False
@@ -135,7 +136,17 @@ class HearingLoader:
             # if it's a legislator
             if speaker.pid in self.pids:
                 speaker.speaker_position = SpeakerPositionEnum.LEGISLATOR
-                # TODO: check if they're a primary author on the bill
+
+                # check if they're the primary author on the bill
+                # TODO: Fix so that the presiding chair can also be a bill author
+                bill_author_match = self.bills[(self.bills["bid"] == bid) & (self.bills["pid"] == speaker.pid)]
+                if not bill_author_match.empty:
+                    speaker.speaker_position = SpeakerPositionEnum.BILL_AUTHOR
+                    speaker.is_presenter = True
+                    # if they're also on the committee, they can file motions
+                    if speaker.pid in self.cid_pid_pos.get(cid, {}):
+                        speaker.can_file_motions = True
+                    return speaker
 
                 # if they're a member of the committee
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
@@ -178,7 +189,7 @@ class HearingLoader:
                 speaker.pid = pid
                 speaker.first_name = clean_first
                 speaker.last_name = clean_last
-                return self._update_speaker_position(cid, speaker)
+                return self._update_speaker_position(cid, bid, speaker)
         
         # if no speaker match found, mark as unknown
         speaker.speaker_position = None
@@ -242,7 +253,7 @@ class HearingLoader:
                     # enrich speakers with speaker role info
                     if cid in self.cid_pid_pos:
                         for pid in hearing.speakers.keys():
-                            hearing.speakers[pid] = self._update_speaker_position(cid, hearing.speakers[pid])
+                            hearing.speakers[pid] = self._update_speaker_position(cid, bid, hearing.speakers[pid])
 
                     hearings.append(hearing)
 

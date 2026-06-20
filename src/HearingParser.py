@@ -26,7 +26,6 @@ class HearingParser:
         'speech_act_cues'
     ]
     NUM_COLS = [
-        'speaker.is_presiding',
         'relative_position', 'sent_count',
         'mentions_speaker', 'mentions_bill',
     ]
@@ -183,7 +182,6 @@ class HearingParser:
                 # speaker features
                 'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
                 'speaker.position_value':   s.speaker_position.value if s and s.speaker_position else None,
-                'speaker.is_presiding':     int(bool(getattr(s, 'is_presiding', False))),
 
                 # metadata features
                 'relative_position':    u.relative_position,
