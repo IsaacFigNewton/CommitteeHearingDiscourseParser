@@ -53,9 +53,12 @@ class HearingTagger(ITagger):
             )
             if not isinstance(tagged_u, FlatTaggedOralContribution):
                 raise ValueError(f"expected flattened, tagged utterance of type FlatTaggedOralContribution, received {type(tagged_u)}")
-            
-            # if the utterance includes a public speaker keyphrase
-            if self.contains_any_phrase(tagged_u.text, SPEAKER_POSITION_CUES[SpeakerPositionEnum.PUBLIC]):
+
+            # if the utterance includes a public speaker keyphrase AND the speaker hasn't been
+            # assigned a more specific role (e.g., BILL_AUTHOR, LEGISLATOR, COMMITTEE_MEMBER),
+            # then mark them as PUBLIC
+            if (speaker.speaker_position == SpeakerPositionEnum.NONLEGISLATOR and
+                self.contains_any_phrase(tagged_u.text, SPEAKER_POSITION_CUES[SpeakerPositionEnum.PUBLIC])):
                 raw_hearing.speakers[tagged_u.pid].speaker_position = SpeakerPositionEnum.PUBLIC
 
             if tagged_u.pids_mentioned:
