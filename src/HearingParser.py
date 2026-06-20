@@ -133,6 +133,8 @@ class HearingParser:
 
         # Extract masking information for the classifier
         speaker_positions = filled_df['speaker.position_value'].values
+        can_file_motions = filled_df['can_file_motions'].values
+        is_presenters = filled_df['is_presenter'].values
 
         # Transform features through the pipeline's feature transformer
         X_transformed = self.model.named_steps['features'].transform(X)
@@ -141,6 +143,8 @@ class HearingParser:
         labels = list(self.model.named_steps['classifier'].predict(
             X_transformed,
             speaker_positions=speaker_positions,
+            can_file_motions=can_file_motions,
+            is_presenters=is_presenters,
         ))
 
         return self.smooth_label_list(labels) if smooth else labels
@@ -182,6 +186,8 @@ class HearingParser:
                 # speaker features
                 'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
                 'speaker.position_value':   s.speaker_position.value if s and s.speaker_position else None,
+                'can_file_motions':         s.can_file_motions if s else None,
+                'is_presenter':             s.is_presenter if s else None,
 
                 # metadata features
                 'relative_position':    u.relative_position,
