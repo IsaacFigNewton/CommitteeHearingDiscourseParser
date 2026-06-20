@@ -14,8 +14,8 @@ class TOP(Enum):
 
 # base types
 Terminal = Tuple[
-    SectionEnum | VoteSectionEnum | None,
-    SpeakerPositionEnum | None
+    SectionEnum | VoteSectionEnum,
+    SpeakerPositionEnum
 ] | SectionEnum | VoteSectionEnum | None
 Level2_Predicate = List[TOP | SectionEnum]
 Predicate = List["Predicate" | Terminal] | Terminal | None
@@ -65,6 +65,30 @@ Hearing_Grammar = {
     SectionEnum.CLOSING_REMARKS: [SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER],
     SectionEnum.CLOSING_REMARKS: [SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS],
     SectionEnum.VOTE: [SectionEnum.VOTE, SectionEnum.OTHER],
-    SectionEnum.VOTE: [SectionEnum.VOTE, SectionEnum.VOTE]
+    SectionEnum.VOTE: [SectionEnum.VOTE, SectionEnum.VOTE],
 
+    # valid role expansions
+    SectionEnum.INTRO: (SectionEnum.INTRO, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.PRESENTATION: (SectionEnum.PRESENTATION, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.PRESENTATION: (SectionEnum.PRESENTATION, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.LEGISLATOR_DISCUSSION: (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.LEGISLATOR_DISCUSSION: (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.COMMITTEE_MEMBER),
+    SectionEnum.LEGISLATOR_DISCUSSION: (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.LEGISLATOR_DISCUSSION: (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.SECRETARY),
+    SectionEnum.EXPERT_TESTIMONY: (SectionEnum.EXPERT_TESTIMONY, SpeakerPositionEnum.EXPERT),
+    SectionEnum.EXPERT_TESTIMONY: (SectionEnum.EXPERT_TESTIMONY, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.EXPERT_TESTIMONY: (SectionEnum.EXPERT_TESTIMONY, SpeakerPositionEnum.COMMITTEE_MEMBER),
+    SectionEnum.EXPERT_TESTIMONY: (SectionEnum.EXPERT_TESTIMONY, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.EXPERT_TESTIMONY: (SectionEnum.EXPERT_TESTIMONY, SpeakerPositionEnum.SECRETARY),
+    SectionEnum.PUBLIC_COMMENTS: (SectionEnum.PUBLIC_COMMENTS, SpeakerPositionEnum.PUBLIC),
+    SectionEnum.PUBLIC_COMMENTS: (SectionEnum.PUBLIC_COMMENTS, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.PUBLIC_COMMENTS: (SectionEnum.PUBLIC_COMMENTS, SpeakerPositionEnum.COMMITTEE_MEMBER),
+    SectionEnum.PUBLIC_COMMENTS: (SectionEnum.PUBLIC_COMMENTS, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.PUBLIC_COMMENTS: (SectionEnum.PUBLIC_COMMENTS, SpeakerPositionEnum.SECRETARY),
+    SectionEnum.CLOSING_REMARKS: (SectionEnum.CLOSING_REMARKS, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.CLOSING_REMARKS: (SectionEnum.CLOSING_REMARKS, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.VOTE: (SectionEnum.VOTE, SpeakerPositionEnum.BILL_AUTHOR),
+    SectionEnum.VOTE: (SectionEnum.VOTE, SpeakerPositionEnum.COMMITTEE_MEMBER),
+    SectionEnum.VOTE: (SectionEnum.VOTE, SpeakerPositionEnum.PRESIDING_CHAIR),
+    SectionEnum.VOTE: (SectionEnum.VOTE, SpeakerPositionEnum.SECRETARY),
 }
