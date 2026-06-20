@@ -11,6 +11,7 @@ from .dataclasses.Hearing import RawHearing, TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
 from .enums.SectionEnum import SectionEnum
+from .Tokenizer import Tokenizer
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -33,6 +34,7 @@ class HearingParser:
 
     def __init__(self) -> None:
         self.hearing_tagger = HearingTagger()
+        self.tokenizer = Tokenizer()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model()
@@ -136,6 +138,14 @@ class HearingParser:
         can_file_motions = filled_df['can_file_motions'].values
         is_presenters = filled_df['is_presenter'].values
 
+        # Generate parse tree for this hearing
+        parse_tree = None
+        try:
+            parse_tree = self.tokenizer.parse(hearing)
+        except Exception as e:
+            # If parsing fails, fall back to grammar rules
+            print(f"Warning: Parse tree generation failed for hearing {hearing.hid}/{hearing.bid}: {e}")
+
         # Transform features through the pipeline's feature transformer
         X_transformed = self.model.named_steps['features'].transform(X)
 
@@ -145,6 +155,7 @@ class HearingParser:
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
             is_presenters=is_presenters,
+            parse_tree=parse_tree,
         ))
 
         return self.smooth_label_list(labels) if smooth else labels

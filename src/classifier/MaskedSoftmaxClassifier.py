@@ -1,8 +1,11 @@
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from .MaskedSoftmaxHelper import MaskedSoftmaxHelper
+
+if TYPE_CHECKING:
+    from ..Tokenizer import ParseNode
 
 
 class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
@@ -90,7 +93,8 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             X,
             speaker_positions=None,
             can_file_motions=None,
-            is_presenters=None
+            is_presenters=None,
+            parse_tree: Optional['ParseNode'] = None
         ):
         """
         Predict class probabilities with masking.
@@ -100,6 +104,7 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             speaker_positions: Array of speaker position values (or None)
             can_file_motions: Array of can_file_motion boolean values (or None)
             is_presenters: Array of is_presenter values (or None)
+            parse_tree: Optional ParseNode from Tokenizer.parse()
 
         Returns:
             Probability matrix (n_samples, n_classes)
@@ -113,14 +118,16 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             logits,
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
-            is_presenters=is_presenters
+            is_presenters=is_presenters,
+            parse_tree=parse_tree
         )
 
     def predict(self,
             X,
             speaker_positions=None,
             can_file_motions=None,
-            is_presenters=None
+            is_presenters=None,
+            parse_tree: Optional['ParseNode'] = None
         ):
         """
         Predict class labels with masking.
@@ -130,9 +137,10 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             speaker_positions: Array of speaker position values (or None)
             can_file_motions: Array of can_file_motion boolean values (or None)
             is_presenters: Array of is_presenter values (or None)
+            parse_tree: Optional ParseNode from Tokenizer.parse()
 
         Returns:
             Array of predicted class labels
         """
-        probas = self.predict_proba(X, speaker_positions, can_file_motions, is_presenters)
+        probas = self.predict_proba(X, speaker_positions, can_file_motions, is_presenters, parse_tree)
         return self.classes_[np.argmax(probas, axis=1)]
