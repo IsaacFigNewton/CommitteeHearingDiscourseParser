@@ -18,8 +18,8 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             max_iter=2000,
             class_weight='balanced',
             solver='lbfgs',
-            section_smoothing=True,
-            section_smoothing_min_run_length=8
+            section_smoothing=False,
+            section_smoothing_min_run_length=2
         ):
         self.max_iter = max_iter
         self.class_weight = class_weight
