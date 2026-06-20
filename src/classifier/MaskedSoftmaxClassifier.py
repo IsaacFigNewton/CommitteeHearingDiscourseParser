@@ -18,14 +18,10 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
             max_iter=2000,
             class_weight='balanced',
             solver='lbfgs',
-            section_smoothing=False,
-            section_smoothing_min_run_length=2
         ):
         self.max_iter = max_iter
         self.class_weight = class_weight
         self.solver = solver
-        self.section_smoothing = section_smoothing
-        self.section_smoothing_min_run_length = section_smoothing_min_run_length
         self.base_classifier = None
         self.classes_ = None
         self.mask_helper_ = None
@@ -47,8 +43,6 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
         self.classes_ = self.base_classifier.classes_
         self.mask_helper_ = MaskedSoftmaxHelper(
             classes_=self.classes_,
-            section_smoothing=self.section_smoothing,
-            section_smoothing_min_run_length=self.section_smoothing_min_run_length
         )
 
         return self
@@ -91,24 +85,6 @@ class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
 
     def _masked_softmax(self, logits: np.ndarray) -> np.ndarray:
         return MaskedSoftmaxHelper.masked_softmax(logits)
-
-    def _get_section_order(self, class_name: str) -> Optional[int]:
-        self._require_fitted()
-        return self.mask_helper_.get_section_order(class_name)
-
-    def _build_section_order_masks(self,
-            probas: np.ndarray,
-            masks: np.ndarray
-        ) -> np.ndarray:
-        self._require_fitted()
-        return self.mask_helper_.build_section_order_masks(probas, masks)
-
-    def _apply_section_order_smoothing(self,
-            logits: np.ndarray,
-            masks: np.ndarray
-        ) -> np.ndarray:
-        self._require_fitted()
-        return self.mask_helper_.apply_section_order_smoothing(logits, masks)
 
     def predict_proba(self,
             X,
