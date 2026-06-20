@@ -69,12 +69,6 @@ class ParseNode:
         elif hasattr(symbol, 'name'):
             # Enum types (TOP, SectionEnum, SpeakerPositionEnum)
             return symbol.name
-        elif isinstance(symbol, tuple):
-            # Terminal (SectionEnum, SpeakerPositionEnum) tuples
-            section, speaker = symbol
-            section_name = section.name if hasattr(section, 'name') else str(section)
-            speaker_name = speaker.name if hasattr(speaker, 'name') else str(speaker)
-            return f"{section_name}+{speaker_name}"
         else:
             return str(symbol)
 
@@ -235,7 +229,7 @@ class Tokenizer:
         Check if a token matches a terminal symbol.
 
         Args:
-            terminal: Terminal from grammar (SectionEnum, SpeakerPositionEnum) tuple or None
+            terminal: Terminal from grammar (SpeakerPositionEnum)
             token: (SpeakerPositionEnum, utterance_index) tuple
 
         Returns:
@@ -244,10 +238,10 @@ class Tokenizer:
         if terminal is None:
             return False
 
-        if isinstance(terminal, tuple) and len(terminal) == 2:
-            section_enum, speaker_position = terminal
+        # Terminal is now just a SpeakerPositionEnum
+        if isinstance(terminal, SpeakerPositionEnum):
             token_speaker_position, _ = token
-            return speaker_position == token_speaker_position
+            return terminal == token_speaker_position
 
         return False
 

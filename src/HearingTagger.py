@@ -85,14 +85,17 @@ class HearingTagger(ITagger):
             #   then they must be an expert
             if (
                 s.first_mention_uid and s.first_mention_uid < s.first_uid
-                # or if they're a nonlegislator whose first utterance has >3 sentences
-                #   and is not representing an organization,
-                #   then they're probably an expert
-                or tagged_utterances[s.first_uid].sent_count > 4
+                or tagged_utterances[s.first_uid].sent_count > 5
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
             
-            else:
+            # or if they're a nonlegislator who is first mentioned within a self-introduction
+            #   and their first utterance has <4 sentences
+            #   then they're probably a member of the public
+            elif (
+                s.first_mention_uid and s.first_mention_uid == s.first_uid
+                or tagged_utterances[s.first_uid].sent_count < 4
+            ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
             
 
