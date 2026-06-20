@@ -27,7 +27,7 @@ class SectionSpeakerRequirementsEnum(Enum):
             (SpeakerPositionEnum.PRESIDING_CHAIR.value, SpeakerPositionEnum.PRESIDING_CHAIR.value),
         },
         can_file_motions=               None,
-        is_presenter=                   True,
+        is_presenter=                   None,
         cmp_first_mention_first_uid=    None,
     )
 
@@ -36,7 +36,7 @@ class SectionSpeakerRequirementsEnum(Enum):
         valid_speaker_position_intervals=          {
             (SpeakerPositionEnum.BILL_AUTHOR.value, SpeakerPositionEnum.SECRETARY.value),
         },
-        can_file_motions=               True,
+        can_file_motions=               None,
         is_presenter=                   None,
         cmp_first_mention_first_uid=    None,
     )
