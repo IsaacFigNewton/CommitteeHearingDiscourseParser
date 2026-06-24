@@ -18,6 +18,9 @@ Terminal = Union[SpeakerPositionEnum, SectionEnum, VoteSectionEnum, None]
 Level2_Predicate = List[Union[TOP, SectionEnum]]
 Predicate = Union[List[Union["Predicate", Terminal]], Terminal, None]
 
+# SpeakerPositionEnum should be disambiguated by now
+#   some rules included below for ambiguous positions in case they were missed
+#   such rules are marked
 Hearing_Grammar = [
     # broad hearing structures
     (ROOT, [TOP.START, TOP.MIDDLE, TOP.END]),
@@ -70,6 +73,8 @@ Hearing_Grammar = [
     # valid role expansions - terminals are now just SpeakerPositionEnum
     (SectionEnum.OTHER,                 SpeakerPositionEnum.LEGISLATOR),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.OTHER,                 SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.OTHER,                 SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.OTHER,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.SECRETARY),
 
@@ -81,6 +86,8 @@ Hearing_Grammar = [
 
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.SECRETARY),
 
@@ -88,6 +95,8 @@ Hearing_Grammar = [
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.EXPERT),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.SECRETARY),
 
@@ -96,6 +105,8 @@ Hearing_Grammar = [
     (SectionEnum.PUBLIC_COMMENTS,       [SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.EXPERT]),
     (SectionEnum.PUBLIC_COMMENTS,       [SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR]),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.SECRETARY),
 
@@ -104,6 +115,8 @@ Hearing_Grammar = [
     
     (SectionEnum.VOTE,                  SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.VOTE,                  SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.VOTE,                  SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.VOTE,                  SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.VOTE,                  SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.VOTE,                  SpeakerPositionEnum.SECRETARY),
 ]
