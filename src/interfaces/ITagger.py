@@ -29,6 +29,9 @@ class ITagger(ABC):
 
         # Remove punctuation symbols
         text = re.sub(r'[.,!?:]', '', text)
+
+        # Replace bill references BEFORE splitting into words
+        # (so multi-word phrases like "this bill 123" are matched)
         text = BILL_ID_PATTERN.sub("BILL", text)
 
         # Convert words to lowercase only if not ALL_CAPS

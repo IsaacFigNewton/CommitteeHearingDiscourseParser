@@ -84,16 +84,17 @@ GRAMMAR = [
     # valid role expansions - terminals are now just SpeakerPositionEnum
     (SectionEnum.OTHER,                 SpeakerPositionEnum.LEGISLATOR),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.OTHER,                 SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
-    (SectionEnum.OTHER,                 SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
-    (SectionEnum.OTHER,                 SpeakerPositionEnum.PRESIDING_CHAIR),
-    (SectionEnum.OTHER,                 SpeakerPositionEnum.SECRETARY),
-
+    
+    
+    (SectionEnum.INTRO,                 SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.INTRO,                 SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.INTRO,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.INTRO,                 SpeakerPositionEnum.SECRETARY),
 
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.BILL_AUTHOR),
+    (SectionEnum.PRESENTATION,                 SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.PRESENTATION,                 SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.PRESIDING_CHAIR),
 
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
@@ -126,6 +127,8 @@ GRAMMAR = [
 
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.BILL_AUTHOR),
+    (SectionEnum.CLOSING_REMARKS,                  SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.CLOSING_REMARKS,                  SpeakerPositionEnum.CHAIRMAN),              # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     
     (SectionEnum.VOTE,                  SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum

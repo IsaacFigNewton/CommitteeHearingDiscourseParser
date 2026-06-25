@@ -41,6 +41,8 @@ class UtteranceTagger(ITagger):
 
         # substitute keyphrases with their group names
         normalized = self.normalize_text(text)
+        if " the bill " in normalized:
+            raise ValueError(normalized)
 
         # get cues for different speech acts
         speech_act_cues = self._get_speech_act_cues(normalized)
@@ -60,7 +62,7 @@ class UtteranceTagger(ITagger):
             sent_count=                     sent_count,
             # match all capitalized bigrams that might be names
             pids_mentioned=                 pids_mentioned,
-            bids_mentioned=                 re.findall(NORMALIZED_BILL_REGEX, text),
+            bids_mentioned=                 set(re.findall(NORMALIZED_BILL_REGEX, normalized)),
 
             # cues
             section_cues=                   section_cues,

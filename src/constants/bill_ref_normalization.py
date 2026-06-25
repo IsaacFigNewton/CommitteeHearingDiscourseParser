@@ -1,31 +1,24 @@
 import re
 
-BILL_ID_REGEX = "|".join(
-    sorted(
-        map(re.escape, {
-            "AB",
-            "SB",
-            "SJR",
-            "Assembly Bill",
-            "Senate Bill",
-            "this bill",
-            "this measure",
-            "the bill",
-            "the measure",
-        }),
-        key=len,
-        reverse=True,
-    )
-)
+BILL_ID_TERMS = "|".join([
+    r"AB",
+    r"SB",
+    r"SJR",
+    r"Assembly\s+Bill",
+    r"Senate\s+Bill",
+    r"this\s+bill",
+    r"this\s+measure",
+    r"the\s+bill",
+    r"the\s+measure",
+    r"item\s+number",
+])
 
-# Used for normalizing bill references to "BILL"
 BILL_ID_REGEX = rf"""
     \b
     (?:
-        {BILL_ID_REGEX}
+        {BILL_ID_TERMS}
     )
-    \s+
-    \d+
+    (?:\s+\d+)?
     \b
 """
 

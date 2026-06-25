@@ -1,11 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(jupyter nbconvert --to notebook --execute evaluate_model.ipynb --output evaluate_model_output.ipynb)",
-      "Bash(python -m jupyter nbconvert --to notebook --execute evaluate_model.ipynb --output evaluate_model_output.ipynb)",
-      "Bash(python -c \"import sys; import nbformat; from nbconvert.preprocessors import ExecutePreprocessor; nb = nbformat.read(''evaluate_model.ipynb'', as_version=4); ep = ExecutePreprocessor(timeout=600); ep.preprocess(nb, {''metadata'': {''path'': ''.''}}); nbformat.write(nb, ''evaluate_model_output.ipynb'')\")",
-      "Bash(dir /s /b src*.py)",
-      "Bash(findstr -i \"requirement\")"
+      "Read(//c/**)",
+      "Bash(python -c \"from src.constants.bill_ref_normalization import BILL_ID_PATTERN; print(''Pattern:'', BILL_ID_PATTERN.pattern)\")"
     ],
     "deny": [],
     "ask": []
