@@ -3,7 +3,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
 from typing import Optional, Dict, Set, List, TYPE_CHECKING
 
-from ..Grammar import Hearing_Grammar
+from ..Grammar import GRAMMAR
 from ..enums.SectionEnum import SectionEnum
 from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
@@ -44,7 +44,7 @@ class MaskedSoftmaxHelper:
         """
         valid_speakers = {}
 
-        for key, value in Hearing_Grammar:
+        for key, value in GRAMMAR:
             # Check if value is a tuple of (SectionEnum, SpeakerPositionEnum)
             if isinstance(value, tuple) and len(value) == 2:
                 section, speaker = value

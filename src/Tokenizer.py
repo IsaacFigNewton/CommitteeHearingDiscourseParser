@@ -11,7 +11,7 @@ except ImportError:
 from .dataclasses.Hearing import TaggedHearing
 from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 from .enums.SectionEnum import SectionEnum
-from .Grammar import Hearing_Grammar, ROOT, Terminal, TOP
+from .Grammar import GRAMMAR, Terminal, TOP
 
 
 @dataclass
@@ -81,7 +81,7 @@ class Tokenizer:
 
     def __init__(self):
         """Initialize the Tokenizer with the grammar rules converted to CNF."""
-        self.original_grammar = self._parse_grammar(Hearing_Grammar)
+        self.original_grammar = self._parse_grammar(GRAMMAR)
 
         # Separate CNF rules by type for efficient CYK parsing
         self.terminal_rules = {}  # Maps terminals to set of non-terminals
@@ -265,9 +265,9 @@ class Tokenizer:
         n = len(tokens)
 
         # Check if ROOT symbol spans the entire input
-        if ROOT in table[0][n - 1]:
+        if TOP.ROOT in table[0][n - 1]:
             # Reconstruct parse tree
-            return self._reconstruct_parse_tree(table, backpointers, 0, n - 1, ROOT, tokens)
+            return self._reconstruct_parse_tree(table, backpointers, 0, n - 1, TOP.ROOT, tokens)
 
         return None
 

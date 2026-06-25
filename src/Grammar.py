@@ -5,30 +5,41 @@ from .enums.SectionEnum import SectionEnum, VoteSectionEnum
 from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 # base symbols
-ROOT = "ROOT"
-
 class TOP(Enum):
-    START = "START"
-    MIDDLE = "MIDDLE"
-    LOWER_MIDDLE = "LOWER_MIDDLE"
-    END = "END"
+    ROOT=   "ROOT"
+    START=          "START"
+    MIDDLE=         "MIDDLE"
+    LOWER_MIDDLE=   "LOWER_MIDDLE"
+    END=            "END"
 
 # base types
-Terminal = Union[SpeakerPositionEnum, SectionEnum, VoteSectionEnum, None]
-Level2_Predicate = List[Union[TOP, SectionEnum]]
-Predicate = Union[List[Union["Predicate", Terminal]], Terminal, None]
+Terminal = Union[
+    SpeakerPositionEnum
+]
+Symbol = Union[
+    TOP,
+    SectionEnum,
+    VoteSectionEnum,
+    Terminal,
+]
+# rule types
+Rule = Union[
+    Tuple[Symbol, List[Symbol]],
+    Tuple[Symbol, Symbol],
+    Tuple[Symbol, None]
+]
 
 # SpeakerPositionEnum should be disambiguated by now
 #   some rules included below for ambiguous positions in case they were missed
 #   such rules are marked
-Hearing_Grammar = [
+GRAMMAR = [
     # broad hearing structures
-    (ROOT, [TOP.START, TOP.MIDDLE, TOP.END]),
-    (ROOT, [SectionEnum.OTHER, TOP.START, TOP.MIDDLE, TOP.END]),
-    (ROOT, [TOP.START, TOP.END]),     # Hearings without MIDDLE
+    (TOP.ROOT,                          [TOP.START, TOP.MIDDLE, TOP.END]),
+    (TOP.ROOT,                          [SectionEnum.OTHER, TOP.START, TOP.MIDDLE, TOP.END]),
+    (TOP.ROOT,                          [TOP.START, TOP.END]),     # Hearings without MIDDLE
 
     # fallback for OTHER sections
-    (SectionEnum.OTHER, [SectionEnum.OTHER, SectionEnum.OTHER]),
+    (SectionEnum.OTHER,             [SectionEnum.OTHER, SectionEnum.OTHER]),
 
     # different discussion starts
     (TOP.START,                         [SectionEnum.INTRO, SectionEnum.PRESENTATION]),
