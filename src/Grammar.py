@@ -92,9 +92,11 @@ GRAMMAR = [
     (SectionEnum.INTRO,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.INTRO,                 SpeakerPositionEnum.SECRETARY),
 
+    (SectionEnum.PRESENTATION,          SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.PRESIDING_CHAIR),
 
+    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
@@ -104,6 +106,7 @@ GRAMMAR = [
 
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.NONLEGISLATOR),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.EXPERT),
+    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum
@@ -121,9 +124,11 @@ GRAMMAR = [
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.SECRETARY),
 
+    (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     
+    (SectionEnum.VOTE,                  SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.VOTE,                  SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.VOTE,                  SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.VOTE,                  SpeakerPositionEnum.VICE_CHAIRMAN),         # fallback for ambiguous SpeakerPositionEnum

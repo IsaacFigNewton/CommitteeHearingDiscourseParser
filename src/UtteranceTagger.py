@@ -7,7 +7,8 @@ from .enums.SpeechActEnum import SpeechActEnum, SPEECH_ACT_CUES
 from .enums.SectionEnum import SectionEnum, VoteSectionEnum, SECTION_CUE_PHRASES
 from .dataclasses.OralContribution import OralContribution, TaggedOralContribution, FlatTaggedOralContribution
 from .speakers.Speaker import Speaker
-from .constants import *
+from .constants.bill_ref_normalization import NORMALIZED_BILL_REGEX
+from .constants.constants import BILL_ACTION_PATTERN
 
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -39,7 +40,6 @@ class UtteranceTagger(ITagger):
         )
 
         # substitute keyphrases with their group names
-        text = self.substitute_keyphrases(text)
         normalized = self.normalize_text(text)
 
         # get cues for different speech acts
@@ -52,7 +52,7 @@ class UtteranceTagger(ITagger):
             # metadata
             uid=                            utterance.uid,
             pid=                            utterance.pid,
-            text=                           text,
+            text=                           normalized,
 
             # mention features
             # metadata features
@@ -60,7 +60,7 @@ class UtteranceTagger(ITagger):
             sent_count=                     sent_count,
             # match all capitalized bigrams that might be names
             pids_mentioned=                 pids_mentioned,
-            bids_mentioned=                 re.findall(BILL_ID_PATTERN, text),
+            bids_mentioned=                 re.findall(NORMALIZED_BILL_REGEX, text),
 
             # cues
             section_cues=                   section_cues,
@@ -202,56 +202,6 @@ class UtteranceTagger(ITagger):
             modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
 
         return modified_text, pids_mentioned, sent_count
-
-    def substitute_keyphrases(self, text: str) -> str:
-        """
-        Replace keyphrases from PHRASE_GROUPS with their phrase group names.
-
-        Args:
-            text: The utterance text to process
-
-        Returns:
-            Modified text with keyphrases replaced by their group names
-        """
-        if not text:
-            return text
-
-        # Normalize the input text for matching
-        normalized_text = self.normalize_text(text)
-
-        # Store matches: (start_pos, end_pos, group_name)
-        replacements = []
-
-        # Iterate through each phrase in PHRASE_TOKEN_MAP
-        for phrase, group_name in PHRASE_TOKEN_MAP.items():
-            # Find all occurrences of this phrase in the normalized text
-            start_pos = 0
-            while True:
-                pos = normalized_text.find(phrase, start_pos)
-                if pos == -1:
-                    break
-
-                # Record the replacement
-                replacements.append((pos, pos + len(phrase), group_name))
-                start_pos = pos + len(phrase)
-
-        # Sort by start position and filter overlapping matches (keep longest/first)
-        replacements.sort(key=lambda x: (x[0], -(x[1] - x[0])))
-
-        # Remove overlapping replacements
-        filtered_replacements = []
-        last_end = -1
-        for start, end, group_name in replacements:
-            if start >= last_end:
-                filtered_replacements.append((start, end, group_name))
-                last_end = end
-
-        # Apply replacements in reverse order to maintain character positions
-        modified_text = normalized_text
-        for start_pos, end_pos, group_name in reversed(filtered_replacements):
-            modified_text = modified_text[:start_pos] + group_name + modified_text[end_pos:]
-
-        return modified_text
     
 
     def _get_speech_act_cues(self, text: str) -> set:

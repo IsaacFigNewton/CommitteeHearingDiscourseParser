@@ -3,6 +3,8 @@ from abc import ABC
 import re
 from rapidfuzz import fuzz
 
+from ..constants.bill_ref_normalization import BILL_ID_PATTERN
+
 
 class ITagger(ABC):
     def __init__(self) -> None:
@@ -27,11 +29,11 @@ class ITagger(ABC):
 
         # Remove punctuation symbols
         text = re.sub(r'[.,!?:]', '', text)
+        text = BILL_ID_PATTERN.sub("BILL", text)
 
         # Convert words to lowercase only if not ALL_CAPS
-        words = text.split()
         normalized_words = []
-        for word in words:
+        for word in text.split():
             # Check if word (without punctuation) is ALL_CAPS
             alpha_only = re.sub(r'[^\w]', '', word)
             if alpha_only and alpha_only.isupper():
@@ -45,15 +47,8 @@ class ITagger(ABC):
         return text.strip()
 
     @classmethod
-    def simple_match(cls, text: str, phrase: str) -> bool:
-        return cls.normalize_text(phrase) in cls.normalize_text(text)
-
-    @classmethod
     def fuzzy_substring_match(cls, text: str, phrase: str, threshold: int = 80) -> bool:
-        normalized_text = cls.normalize_text(text)
-        normalized_phrase = cls.normalize_text(phrase)
-
-        score = fuzz.partial_ratio(normalized_phrase, normalized_text)
+        score = fuzz.partial_ratio(phrase, text)
         return score > threshold
 
 

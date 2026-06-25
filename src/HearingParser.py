@@ -6,8 +6,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from .constants import *
-from .dataclasses.Hearing import RawHearing, TaggedHearing
+from .constants.constants import *
+from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
 from .enums.SectionEnum import SectionEnum
@@ -218,19 +218,3 @@ class HearingParser:
             for u in h.utterances
             for s in [h.speakers[u.pid]]
         ])
-
-    @staticmethod
-    def pprint_hearing(hearing: RawHearing):
-        """Print formatted transcript."""
-        print()
-        print(f"State:\t\t{hearing.state}")
-        print(f"Committee:\t{hearing.cname}")
-        print(f"Bill:\t\t{hearing.bid}")
-        print(f"Date:\t\t{hearing.hearing_date.strftime('%Y-%m-%d')}")
-        print()
-        print("Transcript:")
-        for u in hearing.utterances:
-            speaker = hearing.speakers[u.pid]
-            name = f"{speaker.first_name or 'UNKNOWN'} {speaker.last_name or 'UNKNOWN'}:"
-            print(f"{name:<20} {u.text}")
-        print()

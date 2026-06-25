@@ -2,11 +2,11 @@ from typing import Optional, List, Dict, Any
 from .interfaces.ITagger import ITagger
 from .enums.SectionEnum import SectionEnum, SECTION_CUE_PHRASES
 from .dataclasses.OralContribution import FlatTaggedOralContribution
-from .dataclasses.Hearing import RawHearing, TaggedHearing
+from .dataclasses.Hearing import Hearing, TaggedHearing
 from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum, SPEAKER_POSITION_CUES
 from .speakers.Speaker import Speaker
 
-from .constants import *
+from .constants.constants import *
 from .UtteranceTagger import UtteranceTagger
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -18,7 +18,7 @@ class HearingTagger(ITagger):
     def __init__(self) -> None:
         self.utterance_tagger = UtteranceTagger()
 
-    def __call__(self, raw_hearing: RawHearing) -> Optional[TaggedHearing]:
+    def __call__(self, raw_hearing: Hearing) -> Optional[TaggedHearing]:
         speaker_names_pids = {
             f"{s.first_name} {s.last_name}": pid
             for pid, s in raw_hearing.speakers.items()
@@ -166,7 +166,7 @@ class HearingTagger(ITagger):
 
 
     @staticmethod
-    def pprint_hearing(hearing: RawHearing):
+    def pprint_hearing(hearing: Hearing):
         """Print formatted transcript."""
         print()
         print(f"State:\t\t{hearing.state}")

@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 import pandas as pd
 
 from .config import *
-from .dataclasses.Hearing import RawHearing
+from .dataclasses.Hearing import Hearing
 from .speakers.Speaker import Speaker
 from .dataclasses.OralContribution import OralContribution
 
@@ -196,7 +196,7 @@ class HearingLoader:
         return speaker
 
 
-    def load_all_committee_hearings(self) -> List[RawHearing]:
+    def load_all_committee_hearings(self) -> List[Hearing]:
         """
         Load all hearings for each committee and enrich speakers with their positions.
 
@@ -235,7 +235,7 @@ class HearingLoader:
             speeches_by_cid_hid_bid[cid][hid][bid].append(speech_row)
 
 
-        hearings: List[RawHearing] = []
+        hearings: List[Hearing] = []
         for cid in self.cids:
             hearings_by_hid = speeches_by_cid_hid_bid[cid]
             
@@ -266,7 +266,7 @@ class HearingLoader:
         bid: str,
         hearing_row: Any,
         speech_rows: List[List[Any]],
-    ) -> RawHearing:
+    ) -> Hearing:
         """
         Build a Hearing object from pre-indexed speech rows.
 
@@ -312,7 +312,7 @@ class HearingLoader:
                 )
             )
 
-        return RawHearing(
+        return Hearing(
             hid=hid,
             bid=bid,
             cid=int(hearing_row.cid),
@@ -327,7 +327,7 @@ class HearingLoader:
     def bill_discussion_info(self,
             hid: int,
             bid: str,
-        ) -> RawHearing:
+        ) -> Hearing:
         """Get complete bill discussion info."""
         hid_str = str(hid)
 
@@ -360,7 +360,7 @@ class HearingLoader:
                 uid += 1
 
         row = self.hearings.loc[self.hearings["hid"] == hid].iloc[0, :]
-        return RawHearing(
+        return Hearing(
             hid=hid,
             bid=bid,
             cid=int(row["cid"]),
@@ -373,7 +373,7 @@ class HearingLoader:
 
 
     @staticmethod
-    def pprint_hearing(hearing: RawHearing):
+    def pprint_hearing(hearing: Hearing):
         """Print formatted transcript."""
         print()
         print(f"State:\t\t{hearing.state}")
