@@ -34,24 +34,34 @@ class HearingParser:
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
 
-    def __init__(self) -> None:
+    def __init__(self, base_estimator=None) -> None:
         self.hearing_tagger = HearingTagger()
         self.tokenizer = Tokenizer()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
-        self.model = self._make_model()
+        self.model = self._make_model(base_estimator)
 
     @classmethod
-    def _make_model(cls):
+    def _make_model(cls, base_estimator=None):
         """Initialize the section prediction model pipeline.
 
         The pipeline has two stages:
         1. Feature extraction (TF-IDF, one-hot encoding, scaling)
-        2. Masked classification (LogisticRegression + grammar-constrained masking)
+        2. Masked classification (classifier + grammar-constrained masking)
 
-        The MaskedClassifier separates the logistic regression from the masking logic,
+        Args:
+            base_estimator: Optional sklearn classifier to use. If None, defaults to LogisticRegression.
+
+        The MaskedClassifier separates the base estimator from the masking logic,
         allowing masking parameters to be set via set_params() before prediction.
         """
+        if base_estimator is None:
+            base_estimator = LogisticRegression(
+                max_iter=2000,
+                class_weight='balanced',
+                solver='lbfgs'
+            )
+
         return Pipeline([
             ('features', ColumnTransformer([
                 ('text', TfidfVectorizer(
@@ -65,11 +75,7 @@ class HearingParser:
                 ('numeric', StandardScaler(), cls.NUM_COLS),
             ])),
             ('classifier', MaskedClassifier(
-                base_estimator=LogisticRegression(
-                    max_iter=2000,
-                    class_weight='balanced',
-                    solver='lbfgs'
-                ),
+                base_estimator=base_estimator,
             )),
         ])
 
