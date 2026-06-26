@@ -20,14 +20,14 @@ class ParseNode:
         else:
             return f"{indent}{self.symbol} (utterances: {self.utterance_indices})"
 
-    def _to_nltk_tree_recursive(self) -> 'Tree':
+    def to_nltk_tree(self) -> 'Tree':
         """Recursively convert ParseNode to NLTK Tree."""
         # Format the label based on symbol type
         label = self._format_symbol_label(self.symbol)
 
         if self.children:
             # Non-terminal node: recursively convert children
-            nltk_children = [child._to_nltk_tree_recursive() for child in self.children]
+            nltk_children = [child.to_nltk_tree() for child in self.children]
             return Tree(label, nltk_children)
         else:
             # Terminal node: use utterance indices as leaves

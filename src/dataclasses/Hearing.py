@@ -22,7 +22,6 @@ class Hearing:
     def __str__(self):
         """Print formatted transcript."""
         strings = list()
-        strings.append("\n")
         strings.append(f"State:\t\t{self.state}")
         strings.append(f"Committee:\t{self.cname}")
         strings.append(f"Bill:\t\t{self.bid}")

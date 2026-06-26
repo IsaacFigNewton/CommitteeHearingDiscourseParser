@@ -1,146 +1,133 @@
+from __future__ import annotations
+
+from typing import Any, Iterable, List, Optional, Sequence
+
 import numpy as np
-from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
-from typing import Optional, TYPE_CHECKING
-from .MaskedSoftmaxHelper import MaskedSoftmaxHelper
 
-if TYPE_CHECKING:
-    from ..grammar.ParseNode import ParseNode
+from src.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
 
+class MaskedSoftmaxClassifier(LogisticRegression):
+    """LogisticRegression classifier with grammar/parser-constrained softmax masking.
 
-class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):
-    """
-    A classifier that applies masked softmax based on speaker and utterance requirements.
+    The estimator behaves like sklearn's LogisticRegression during training. At
+    prediction time, it optionally accepts a per-row list of allowed SectionEnums
+    and zeroes out probability mass for classes outside that list before choosing
+    the argmax.
 
-    This classifier uses logistic regression internally but masks out invalid section predictions
-    based on SectionSpeakerRequirementsEnum constraints. Invalid sections get -inf logits
-    before softmax, ensuring they receive 0 probability.
-    """
-
-    def __init__(self,
-            max_iter=2000,
-            class_weight='balanced',
-            solver='lbfgs',
-        ):
-        self.max_iter = max_iter
-        self.class_weight = class_weight
-        self.solver = solver
-        self.base_classifier = None
-        self.classes_ = None
-        self.mask_helper_ = None
-
-    def fit(self, X, y):
-        """
-        Fit the underlying logistic regression model.
-
-        Args:
-            X: Feature matrix
-            y: Target labels (section names as strings)
-        """
-        self.base_classifier = LogisticRegression(
-            max_iter=self.max_iter,
-            class_weight=self.class_weight,
-            solver=self.solver
-        )
-        self.base_classifier.fit(X, y)
-        self.classes_ = self.base_classifier.classes_
-        self.mask_helper_ = MaskedSoftmaxHelper(
-            classes_=self.classes_,
-        )
-
-        return self
-
-    def _normalize_logits_shape(self, logits: np.ndarray) -> np.ndarray:
-        """
-        Normalize sklearn decision_function output to shape (n_samples, n_classes).
-
-        LogisticRegression.decision_function returns a 1D array for binary
-        classification. This classifier expects one logit column per class so
-        that masking and smoothing can be applied consistently.
-        """
-        if logits.ndim == 1:
-            return np.column_stack([-logits, logits])
-        return logits
-
-    def _require_fitted(self):
-        if self.base_classifier is None or self.mask_helper_ is None:
-            raise ValueError("Classifier must be fitted before calling predict_proba")
-
-    # Backward-compatible delegates for existing tests or callers that use the
-    # previous private helper methods directly.
-    def _get_mask_for_utterance(self,
-            speaker_position: Optional[int],
-            can_file_motion: bool,
-            is_presenter: Optional[bool] = None
-        ) -> np.ndarray:
-        self._require_fitted()
-        return self.mask_helper_.build_utterance_mask(
-            speaker_position,
-            can_file_motion,
-            is_presenter
-        )
-
-    def _apply_mask_to_logits(self,
-            logits: np.ndarray,
-            masks: np.ndarray
-        ) -> np.ndarray:
-        return MaskedSoftmaxHelper.apply_mask_to_logits(logits, masks)
-
-    def _masked_softmax(self, logits: np.ndarray) -> np.ndarray:
-        return MaskedSoftmaxHelper.masked_softmax(logits)
-
-    def predict_proba(self,
-            X,
-            speaker_positions=None,
-            can_file_motions=None,
-            is_presenters=None,
-            parse_tree: Optional['ParseNode'] = None
-        ):
-        """
-        Predict class probabilities with masking.
-
-        Args:
-            X: Feature matrix
-            speaker_positions: Array of speaker position values (or None)
-            can_file_motions: Array of can_file_motion boolean values (or None)
-            is_presenters: Array of is_presenter values (or None)
-            parse_tree: Optional ParseNode from Tokenizer.parse()
-
-        Returns:
-            Probability matrix (n_samples, n_classes)
-        """
-        self._require_fitted()
-
-        # Get base logits from the underlying classifier.
-        logits = self._normalize_logits_shape(self.base_classifier.decision_function(X))
-
-        return self.mask_helper_.predict_proba_from_logits(
-            logits,
+    Typical use from HearingParser:
+        allowed_sections = classifier.allowed_sections_for_hearing(
+            hearing=hearing,
+            tokenizer=self.tokenizer,
+            grammar=GRAMMAR,
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
             is_presenters=is_presenters,
-            parse_tree=parse_tree
+        )
+        y_hat = classifier.predict(X_transformed, allowed_sections=allowed_sections)
+    """
+
+    helper_class = MaskedSoftmaxHelper
+
+    def predict(
+        self,
+        X: Any,
+        allowed_sections: Optional[Sequence[Iterable[Any]]] = None,
+        **kwargs: Any,
+    ) -> np.ndarray:
+        """Predict labels after applying an optional per-sample section mask.
+
+        Extra kwargs are accepted for backward compatibility with older parser
+        calls. If ``allowed_sections`` is omitted and a hearing/tokenizer is
+        supplied, the classifier will attempt to build masks itself.
+        """
+        if (
+            allowed_sections is None
+            and "hearing" in kwargs
+            and "tokenizer" in kwargs
+        ):
+            allowed_sections = self.allowed_sections_for_hearing(
+                hearing=kwargs["hearing"],
+                tokenizer=kwargs["tokenizer"],
+                grammar=kwargs.get("grammar"),
+                speaker_positions=kwargs.get("speaker_positions"),
+                can_file_motions=kwargs.get("can_file_motions"),
+                is_presenters=kwargs.get("is_presenters"),
+            )
+
+        probs = self.predict_proba_masked(X, allowed_sections=allowed_sections)
+        return self.classes_[np.argmax(probs, axis=1)]
+
+    def predict_proba_masked(
+        self,
+        X: Any,
+        allowed_sections: Optional[Sequence[Iterable[Any]]] = None,
+    ) -> np.ndarray:
+        """Return class probabilities after masking and renormalizing."""
+        probs = super().predict_proba(X)
+
+        if allowed_sections is None:
+            return probs
+
+        if len(allowed_sections) != probs.shape[0]:
+            raise ValueError(
+                f"allowed_sections length ({len(allowed_sections)}) must match "
+                f"number of rows in X ({probs.shape[0]})."
+            )
+
+        masked = probs.copy()
+        class_keys = [self.helper_class._section_key(c) for c in self.classes_]
+
+        for row_idx, allowed in enumerate(allowed_sections):
+            allowed_keys = {self.helper_class._section_key(s) for s in allowed if s is not None}
+
+            # Empty/unknown mask means "do not constrain this row".
+            if not allowed_keys:
+                continue
+
+            keep = np.array([key in allowed_keys for key in class_keys], dtype=bool)
+
+            # If the grammar/parser produced labels that are not in the trained
+            # classifier classes, keep the unmasked classifier distribution.
+            if not keep.any():
+                continue
+
+            masked[row_idx, ~keep] = 0.0
+            denom = masked[row_idx].sum()
+
+            # LogisticRegression probabilities are non-negative, but guard
+            # against numerical/degenerate cases by falling back to a uniform
+            # distribution over allowed trained classes.
+            if denom > 0:
+                masked[row_idx] /= denom
+            else:
+                masked[row_idx, keep] = 1.0 / keep.sum()
+
+        return masked
+
+    @classmethod
+    def allowed_sections_for_hearing(
+        cls,
+        hearing: Any,
+        tokenizer: Any,
+        grammar: Any = None,
+        speaker_positions: Optional[Sequence[Any]] = None,
+        can_file_motions: Optional[Sequence[Any]] = None,
+        is_presenters: Optional[Sequence[Any]] = None,
+        max_parses: int = 2,
+    ) -> List[List[Any]]:
+        """Delegate hearing-mask construction to MaskedSoftmaxClassifierHelper."""
+        return cls.helper_class.allowed_sections_for_hearing(
+            hearing=hearing,
+            tokenizer=tokenizer,
+            grammar=grammar,
+            speaker_positions=speaker_positions,
+            can_file_motions=can_file_motions,
+            is_presenters=is_presenters,
+            max_parses=max_parses,
         )
 
-    def predict(self,
-            X,
-            speaker_positions=None,
-            can_file_motions=None,
-            is_presenters=None,
-            parse_tree: Optional['ParseNode'] = None
-        ):
-        """
-        Predict class labels with masking.
-
-        Args:
-            X: Feature matrix
-            speaker_positions: Array of speaker position values (or None)
-            can_file_motions: Array of can_file_motion boolean values (or None)
-            is_presenters: Array of is_presenter values (or None)
-            parse_tree: Optional ParseNode from Tokenizer.parse()
-
-        Returns:
-            Array of predicted class labels
-        """
-        probas = self.predict_proba(X, speaker_positions, can_file_motions, is_presenters, parse_tree)
-        return self.classes_[np.argmax(probas, axis=1)]
+    @classmethod
+    def _section_key(cls, value: Any) -> str:
+        """Return a stable section key for backward compatibility."""
+        return cls.helper_class._section_key(value)

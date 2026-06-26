@@ -370,22 +370,3 @@ class HearingLoader:
             speakers=speakers,
             utterances=lines
         )
-
-
-    @staticmethod
-    def pprint_hearing(hearing: Hearing):
-        """Print formatted transcript."""
-        print()
-        print(f"State:\t\t{hearing.state}")
-        print(f"Committee:\t{hearing.cname}")
-        print(f"Bill:\t\t{hearing.bid}")
-        print(f"Date:\t\t{hearing.hearing_date.strftime('%Y-%m-%d')}")
-        print()
-        print("Transcript:")
-        for contribution in hearing.utterances:
-            speaker = hearing.speakers[contribution.pid]
-            first_name = speaker.first_name or "UNKNOWN"
-            last_name = speaker.last_name or "UNKNOWN"
-            name = f"{first_name} {last_name}:"
-            print(f"{name:<20} {contribution.text}")
-        print()

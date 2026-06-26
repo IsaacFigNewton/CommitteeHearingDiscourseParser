@@ -408,7 +408,7 @@ class Tokenizer:
         Raises:
             ImportError: If NLTK is not installed
         """
-        return parse_node._to_nltk_tree_recursive()
+        return parse_node.to_nltk_tree()
 
     def parse_to_nltk_tree(self, hearing: TaggedHearing) -> Optional['Tree']:
         """
@@ -425,7 +425,7 @@ class Tokenizer:
         """
         parse_node = self.parse(hearing)
         if parse_node:
-            return parse_node._to_nltk_tree_recursive()
+            return parse_node.to_nltk_tree()
         return None
 
     def get_all_parses_as_nltk_trees(
@@ -447,4 +447,4 @@ class Tokenizer:
             ImportError: If NLTK is not installed
         """
         parse_nodes = self.get_all_parses(hearing, max_parses)
-        return [node._to_nltk_tree_recursive() for node in parse_nodes]
+        return [node.to_nltk_tree() for node in parse_nodes]
