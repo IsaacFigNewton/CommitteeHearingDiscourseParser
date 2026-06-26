@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 from .MaskedSoftmaxHelper import MaskedSoftmaxHelper
 
 if TYPE_CHECKING:
-    from ..Tokenizer import ParseNode
+    from ..grammar.ParseNode import ParseNode
 
 
 class MaskedSoftmaxClassifier(BaseEstimator, ClassifierMixin):

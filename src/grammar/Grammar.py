@@ -1,8 +1,8 @@
 from typing import Tuple, Set, Dict, List, Union
 from enum import Enum
 
-from .enums.SectionEnum import SectionEnum, VoteSectionEnum
-from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ..enums.SectionEnum import SectionEnum, VoteSectionEnum
+from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 # base symbols
 class TOP(Enum):

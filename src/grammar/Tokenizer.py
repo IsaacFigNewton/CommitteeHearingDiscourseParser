@@ -1,76 +1,12 @@
 from typing import List, Optional, Tuple, Dict, Any, Set
-from dataclasses import dataclass
 from collections import defaultdict
+from nltk.tree import Tree
 
-try:
-    from nltk.tree import Tree
-    NLTK_AVAILABLE = True
-except ImportError:
-    NLTK_AVAILABLE = False
-
-from .dataclasses.Hearing import TaggedHearing
-from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
-from .enums.SectionEnum import SectionEnum
+from src.grammar.ParseNode import ParseNode
+from ..dataclasses.Hearing import TaggedHearing
+from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ..enums.SectionEnum import SectionEnum
 from .Grammar import GRAMMAR, Terminal, TOP
-
-
-@dataclass
-class ParseNode:
-    """Represents a node in the parse tree."""
-    symbol: Any  # Can be ROOT, TOP, SectionEnum, or Terminal
-    children: Optional[List['ParseNode']] = None
-    utterance_indices: Optional[List[int]] = None  # Track which utterances this node covers
-
-    def __repr__(self, level=0):
-        indent = "  " * level
-        if self.children:
-            children_repr = "\n".join(child.__repr__(level + 1) for child in self.children)
-            return f"{indent}{self.symbol}\n{children_repr}"
-        else:
-            return f"{indent}{self.symbol} (utterances: {self.utterance_indices})"
-
-    def to_nltk_tree(self) -> 'Tree':
-        """
-        Convert this ParseNode to an NLTK Tree.
-
-        Returns:
-            NLTK Tree representation of this parse tree
-
-        Raises:
-            ImportError: If NLTK is not installed
-        """
-        if not NLTK_AVAILABLE:
-            raise ImportError("NLTK is not installed. Install it with: pip install nltk")
-
-        return self._to_nltk_tree_recursive()
-
-    def _to_nltk_tree_recursive(self) -> 'Tree':
-        """Recursively convert ParseNode to NLTK Tree."""
-        # Format the label based on symbol type
-        label = self._format_symbol_label(self.symbol)
-
-        if self.children:
-            # Non-terminal node: recursively convert children
-            nltk_children = [child._to_nltk_tree_recursive() for child in self.children]
-            return Tree(label, nltk_children)
-        else:
-            # Terminal node: use utterance indices as leaves
-            if self.utterance_indices:
-                return Tree(label, [f"utt_{idx}" for idx in self.utterance_indices])
-            else:
-                return Tree(label, [])
-
-    @staticmethod
-    def _format_symbol_label(symbol: Any) -> str:
-        """Format a symbol for use as an NLTK Tree label."""
-        if isinstance(symbol, str):
-            # ROOT symbol or generated CNF symbols
-            return symbol
-        elif hasattr(symbol, 'name'):
-            # Enum types (TOP, SectionEnum, SpeakerPositionEnum)
-            return symbol.name
-        else:
-            return str(symbol)
 
 
 class Tokenizer:
@@ -472,7 +408,7 @@ class Tokenizer:
         Raises:
             ImportError: If NLTK is not installed
         """
-        return parse_node.to_nltk_tree()
+        return parse_node._to_nltk_tree_recursive()
 
     def parse_to_nltk_tree(self, hearing: TaggedHearing) -> Optional['Tree']:
         """
@@ -489,7 +425,7 @@ class Tokenizer:
         """
         parse_node = self.parse(hearing)
         if parse_node:
-            return parse_node.to_nltk_tree()
+            return parse_node._to_nltk_tree_recursive()
         return None
 
     def get_all_parses_as_nltk_trees(
@@ -511,4 +447,4 @@ class Tokenizer:
             ImportError: If NLTK is not installed
         """
         parse_nodes = self.get_all_parses(hearing, max_parses)
-        return [node.to_nltk_tree() for node in parse_nodes]
+        return [node._to_nltk_tree_recursive() for node in parse_nodes]

@@ -4,7 +4,7 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 
-from ..Grammar import Rule
+from ..grammar.Grammar import Rule
 from src.enums.SectionEnum import SectionEnum
 from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 

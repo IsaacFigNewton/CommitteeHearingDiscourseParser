@@ -3,12 +3,12 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
 from typing import Optional, Dict, Set, List, TYPE_CHECKING
 
-from ..Grammar import GRAMMAR
+from ..grammar.Grammar import GRAMMAR
 from ..enums.SectionEnum import SectionEnum
 from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 if TYPE_CHECKING:
-    from ..Tokenizer import ParseNode
+    from ..grammar.ParseNode import ParseNode
 
 
 class MaskedSoftmaxHelper:

@@ -11,7 +11,7 @@ from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
 from .enums.SectionEnum import SectionEnum
-from .Tokenizer import Tokenizer
+from .grammar.Tokenizer import Tokenizer
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,

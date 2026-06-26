@@ -41,8 +41,6 @@ class UtteranceTagger(ITagger):
 
         # substitute keyphrases with their group names
         normalized = self.normalize_text(text)
-        if " the bill " in normalized:
-            raise ValueError(normalized)
 
         # get cues for different speech acts
         speech_act_cues = self._get_speech_act_cues(normalized)
