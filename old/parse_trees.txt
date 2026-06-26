@@ -22,9 +22,9 @@ Parse Tree (bracket notation):
           (EXPERT_TESTIMONY
             (EXPERT_TESTIMONY
               (EXPERT_TESTIMONY (EXPERT utt_2))
-              (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
             (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
         (PUBLIC_COMMENTS
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
@@ -35,22 +35,23 @@ Parse Tree (bracket notation):
                       (PUBLIC_COMMENTS
                         (PUBLIC_COMMENTS
                           (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS
-                              (PUBLIC_COMMENTS
-                                (PUBLIC_COMMENTS (PUBLIC utt_6))
-                                (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                              (PUBLIC_COMMENTS (PUBLIC utt_8)))
-                            (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                          (PUBLIC_COMMENTS (PUBLIC utt_10)))
-                        (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                      (PUBLIC_COMMENTS (PUBLIC utt_12)))
-                    (PUBLIC_COMMENTS (PUBLIC utt_13)))
-                  (PUBLIC_COMMENTS (PUBLIC utt_14)))
-                (PUBLIC_COMMENTS (PUBLIC utt_15)))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_16)))
-            (PUBLIC_COMMENTS (SECRETARY utt_17)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_18)))))
-    (END (VOTE (COMMITTEE_MEMBER utt_19)))))
+                            (PUBLIC_COMMENTS (PUBLIC utt_6))
+                            (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                          (PUBLIC_COMMENTS (PUBLIC utt_8)))
+                        (PUBLIC_COMMENTS (PUBLIC utt_9)))
+                      (PUBLIC_COMMENTS (PUBLIC utt_10)))
+                    (PUBLIC_COMMENTS (PUBLIC utt_11)))
+                  (PUBLIC_COMMENTS (PUBLIC utt_12)))
+                (PUBLIC_COMMENTS (PUBLIC utt_13)))
+              (PUBLIC_COMMENTS (PUBLIC utt_14)))
+            (PUBLIC_COMMENTS (PUBLIC utt_15)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_16)))))
+    (END
+      (VOTE
+        (VOTE
+          (VOTE (SECRETARY utt_17))
+          (VOTE (PRESIDING_CHAIR utt_18)))
+        (OTHER (COMMITTEE_MEMBER utt_19))))))
 
 Parse Tree (indented):
 (ROOT
@@ -62,9 +63,9 @@ Parse Tree (indented):
           (EXPERT_TESTIMONY
             (EXPERT_TESTIMONY
               (EXPERT_TESTIMONY (EXPERT utt_2))
-              (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
             (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
         (PUBLIC_COMMENTS
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
@@ -75,22 +76,21 @@ Parse Tree (indented):
                       (PUBLIC_COMMENTS
                         (PUBLIC_COMMENTS
                           (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS
-                              (PUBLIC_COMMENTS
-                                (PUBLIC_COMMENTS (PUBLIC utt_6))
-                                (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                              (PUBLIC_COMMENTS (PUBLIC utt_8)))
-                            (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                          (PUBLIC_COMMENTS (PUBLIC utt_10)))
-                        (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                      (PUBLIC_COMMENTS (PUBLIC utt_12)))
-                    (PUBLIC_COMMENTS (PUBLIC utt_13)))
-                  (PUBLIC_COMMENTS (PUBLIC utt_14)))
-                (PUBLIC_COMMENTS (PUBLIC utt_15)))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_16)))
-            (PUBLIC_COMMENTS (SECRETARY utt_17)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_18)))))
-    (END (VOTE (COMMITTEE_MEMBER utt_19)))))
+                            (PUBLIC_COMMENTS (PUBLIC utt_6))
+                            (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                          (PUBLIC_COMMENTS (PUBLIC utt_8)))
+                        (PUBLIC_COMMENTS (PUBLIC utt_9)))
+                      (PUBLIC_COMMENTS (PUBLIC utt_10)))
+                    (PUBLIC_COMMENTS (PUBLIC utt_11)))
+                  (PUBLIC_COMMENTS (PUBLIC utt_12)))
+                (PUBLIC_COMMENTS (PUBLIC utt_13)))
+              (PUBLIC_COMMENTS (PUBLIC utt_14)))
+            (PUBLIC_COMMENTS (PUBLIC utt_15)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_16)))))
+    (END
+      (VOTE
+        (VOTE (VOTE (SECRETARY utt_17)) (VOTE (PRESIDING_CHAIR utt_18)))
+        (OTHER (COMMITTEE_MEMBER utt_19))))))
 
 
 ================================================================================
@@ -111,9 +111,9 @@ Parse Tree (bracket notation):
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
               (PUBLIC_COMMENTS (PUBLIC utt_3))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4)))
             (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6)))))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_6)))))
     (END (VOTE (BILL_AUTHOR utt_7)))))
 
 Parse Tree (indented):
@@ -128,9 +128,9 @@ Parse Tree (indented):
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
               (PUBLIC_COMMENTS (PUBLIC utt_3))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4)))
             (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6)))))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_6)))))
     (END (VOTE (BILL_AUTHOR utt_7)))))
 
 
@@ -161,31 +161,33 @@ Parse Tree (bracket notation):
                                     (PUBLIC_COMMENTS
                                       (PUBLIC_COMMENTS
                                         (PUBLIC_COMMENTS
-                                          (PUBLIC_COMMENTS
-                                            (PUBLIC utt_1))
-                                          (PUBLIC_COMMENTS
-                                            (PRESIDING_CHAIR utt_2)))
-                                        (PUBLIC_COMMENTS
-                                          (PUBLIC utt_3)))
+                                          (PUBLIC utt_1))
+                                        (LEGISLATOR_DISCUSSION
+                                          (PRESIDING_CHAIR utt_2)))
                                       (PUBLIC_COMMENTS
-                                        (PRESIDING_CHAIR utt_4)))
-                                    (PUBLIC_COMMENTS (PUBLIC utt_5)))
-                                  (PUBLIC_COMMENTS
-                                    (PRESIDING_CHAIR utt_6)))
-                                (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                              (PUBLIC_COMMENTS
-                                (PRESIDING_CHAIR utt_8)))
-                            (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_10)))
-                        (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                      (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_12)))
-                    (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_13)))
-                  (PUBLIC_COMMENTS (PUBLIC utt_14)))
-                (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_15)))
-              (PUBLIC_COMMENTS (PUBLIC utt_16)))
-            (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_17)))
-          (PUBLIC_COMMENTS (SECRETARY utt_18)))))
-    (END (VOTE (PRESIDING_CHAIR utt_19)))))
+                                        (PUBLIC utt_3)))
+                                    (LEGISLATOR_DISCUSSION
+                                      (PRESIDING_CHAIR utt_4)))
+                                  (PUBLIC_COMMENTS (PUBLIC utt_5)))
+                                (LEGISLATOR_DISCUSSION
+                                  (PRESIDING_CHAIR utt_6)))
+                              (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                            (LEGISLATOR_DISCUSSION
+                              (PRESIDING_CHAIR utt_8)))
+                          (PUBLIC_COMMENTS (PUBLIC utt_9)))
+                        (LEGISLATOR_DISCUSSION
+                          (PRESIDING_CHAIR utt_10)))
+                      (PUBLIC_COMMENTS (PUBLIC utt_11)))
+                    (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_12)))
+                  (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_13)))
+                (PUBLIC_COMMENTS (PUBLIC utt_14)))
+              (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_15)))
+            (PUBLIC_COMMENTS (PUBLIC utt_16)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_17)))))
+    (END
+      (VOTE
+        (VOTE (SECRETARY utt_18))
+        (VOTE (PRESIDING_CHAIR utt_19))))))
 
 Parse Tree (indented):
 (ROOT
@@ -209,26 +211,24 @@ Parse Tree (indented):
                                   (PUBLIC_COMMENTS
                                     (PUBLIC_COMMENTS
                                       (PUBLIC_COMMENTS
-                                        (PUBLIC_COMMENTS
-                                          (PUBLIC_COMMENTS (PUBLIC utt_1))
-                                          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_2)))
-                                        (PUBLIC_COMMENTS (PUBLIC utt_3)))
-                                      (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4)))
-                                    (PUBLIC_COMMENTS (PUBLIC utt_5)))
-                                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6)))
-                                (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_8)))
-                            (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_10)))
-                        (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                      (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_12)))
-                    (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_13)))
-                  (PUBLIC_COMMENTS (PUBLIC utt_14)))
-                (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_15)))
-              (PUBLIC_COMMENTS (PUBLIC utt_16)))
-            (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_17)))
-          (PUBLIC_COMMENTS (SECRETARY utt_18)))))
-    (END (VOTE (PRESIDING_CHAIR utt_19)))))
+                                        (PUBLIC_COMMENTS (PUBLIC utt_1))
+                                        (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_2)))
+                                      (PUBLIC_COMMENTS (PUBLIC utt_3)))
+                                    (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4)))
+                                  (PUBLIC_COMMENTS (PUBLIC utt_5)))
+                                (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_6)))
+                              (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                            (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_8)))
+                          (PUBLIC_COMMENTS (PUBLIC utt_9)))
+                        (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_10)))
+                      (PUBLIC_COMMENTS (PUBLIC utt_11)))
+                    (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_12)))
+                  (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_13)))
+                (PUBLIC_COMMENTS (PUBLIC utt_14)))
+              (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_15)))
+            (PUBLIC_COMMENTS (PUBLIC utt_16)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_17)))))
+    (END (VOTE (VOTE (SECRETARY utt_18)) (VOTE (PRESIDING_CHAIR utt_19))))))
 
 
 ================================================================================
@@ -248,20 +248,20 @@ Parse Tree (bracket notation):
           (EXPERT_TESTIMONY
             (EXPERT_TESTIMONY
               (EXPERT_TESTIMONY (NONLEGISLATOR utt_2))
-              (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
             (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
         (PUBLIC_COMMENTS
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
               (PUBLIC_COMMENTS
                 (PUBLIC_COMMENTS
                   (PUBLIC_COMMENTS (PUBLIC utt_6))
-                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_7)))
+                  (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_7)))
                 (PUBLIC_COMMENTS (NONLEGISLATOR utt_8)))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_9)))
-            (OTHER (LEGISLATOR utt_10)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_11)))))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_9)))
+            (LEGISLATOR_DISCUSSION (LEGISLATOR utt_10)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_11)))))
     (END (VOTE (COMMITTEE_MEMBER utt_12)))))
 
 Parse Tree (indented):
@@ -274,20 +274,20 @@ Parse Tree (indented):
           (EXPERT_TESTIMONY
             (EXPERT_TESTIMONY
               (EXPERT_TESTIMONY (NONLEGISLATOR utt_2))
-              (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
             (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
         (PUBLIC_COMMENTS
           (PUBLIC_COMMENTS
             (PUBLIC_COMMENTS
               (PUBLIC_COMMENTS
                 (PUBLIC_COMMENTS
                   (PUBLIC_COMMENTS (PUBLIC utt_6))
-                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_7)))
+                  (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_7)))
                 (PUBLIC_COMMENTS (NONLEGISLATOR utt_8)))
-              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_9)))
-            (OTHER (LEGISLATOR utt_10)))
-          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_11)))))
+              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_9)))
+            (LEGISLATOR_DISCUSSION (LEGISLATOR utt_10)))
+          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_11)))))
     (END (VOTE (COMMITTEE_MEMBER utt_12)))))
 
 
