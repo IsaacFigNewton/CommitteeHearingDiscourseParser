@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple, Union, Optional, Set
 from dataclasses import dataclass
 
-from ..speakers.interfaces.SpeakerProperties import PositionRoleProperties
+from ..speakers.interfaces.SpeakerProperties import RoleProperties
 from ..enums.SectionEnum import SectionEnum
 from ..enums.SpeechActEnum import SpeechActEnum
 
@@ -47,5 +47,5 @@ class TaggedOralContribution(OralContribution):
 
 
 @dataclass
-class FlatTaggedOralContribution(PositionRoleProperties, TaggedOralContribution):
+class FlatTaggedOralContribution(RoleProperties, TaggedOralContribution):
     pass

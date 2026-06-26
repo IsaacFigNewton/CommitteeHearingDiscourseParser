@@ -6,7 +6,8 @@
       "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\MaskedClassifier.py\")",
       "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\SoftmaxMaskingTransformer.py\")",
       "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\HearingParser.py\")",
-      "Bash(python test_refactoring.py)"
+      "Bash(python test_refactoring.py)",
+      "Bash(python -c \"from src.HearingParser import HearingParser; hp = HearingParser(); print(''HearingParser methods:'', [m for m in dir(hp) if ''build'' in m.lower()])\")"
     ],
     "deny": [],
     "ask": []

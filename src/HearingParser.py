@@ -196,8 +196,19 @@ class HearingParser:
 
         return results
 
-    def _build_utterance_rows(self, hearings: Optional[List[TaggedHearing]]) -> pd.DataFrame:
-        return pd.DataFrame([
+    def build_utterances_dataframe(self, hearings: List[TaggedHearing]) -> pd.DataFrame:
+        """Build a DataFrame of utterance features from a list of tagged hearings.
+
+        Builds raw utterance rows without filling missing values.
+        Missing values are automatically filled.
+
+        Args:
+            hearings: List of TaggedHearing instances to convert to DataFrame
+
+        Returns:
+            DataFrame with utterance features, sorted by state, bid, hid, uid
+        """
+        df = pd.DataFrame([
             {
                 # metadata
                 'state':                h.state,
@@ -230,3 +241,11 @@ class HearingParser:
             for u in h.utterances
             for s in [h.speakers[u.pid]]
         ])
+
+        # Sort by state, bid, hid, uid for consistent ordering
+        df = df.sort_values(by=['state', 'bid', 'hid', 'uid']).reset_index(drop=True)
+
+        # Fill missing values
+        df = self._fill_missing(df)
+
+        return df

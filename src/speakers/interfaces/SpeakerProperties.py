@@ -12,13 +12,11 @@ class RoleProperties:
     # is the speaker presenting the current bill?
     is_presenter:           Optional[bool]
 
-@dataclass
-class PositionRoleProperties(RoleProperties):
     # speaker's level of legislative authority
     speaker_position:       Optional[SpeakerPositionEnum]
 
 @dataclass
-class SpeakerPositionRoleProperties(PositionRoleProperties):
+class SpeakerProperties(RoleProperties):
     # first uid in which speaker is mentioned
     first_mention_uid:      Optional[int]
     # uid of speaker's first utterance
