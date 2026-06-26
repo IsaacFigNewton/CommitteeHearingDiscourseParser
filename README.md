@@ -81,20 +81,23 @@ graph TD
     HearingLoader -->|creates| Hearing[Hearing<br/>with OralContributions]
 
     Hearing -->|tag features| HearingTagger
-    HearingTagger -->|uses| UtteranceTagger
-    HearingTagger -->|creates| TaggedHearing[TaggedHearing<br/>with TaggedOralContributions]
+    subgraph HearingTagger[HearingTagger]
+        OralContributions -->|input to| UtteranceTagger
+    end
 
-    TaggedHearing -->|flatten| Features
+    HearingTagger -->|creates| TaggedHearing
+    subgraph TaggedHearing[TaggedHearing]
+        TaggedOralContributions
+    end
+    TaggedHearing -->|input to| HearingParser
 
     subgraph HearingParser[HearingParser]
-        Features[Feature DataFrame] -->|flows through| CT
+        Features[Feature DataFrame] -->|input to| Pipeline
 
         subgraph Pipeline["sklearn Pipeline"]
             direction TB
 
-            CT[ColumnTransformer]
-
-            CT -->|text column| TfidfVec[TfidfVectorizer]
+            CT[ColumnTransformer] -->|text column| TfidfVec[TfidfVectorizer]
             CT -->|categorical columns| OHE[OneHotEncoder]
             CT -->|numeric columns| Scaler[StandardScaler]
 
@@ -102,13 +105,13 @@ graph TD
             OHE -->|sparse matrix| FeatureMatrix
             Scaler -->|dense array| FeatureMatrix
 
-            FeatureMatrix -->|input to| LR
+            FeatureMatrix -->|input to| MC
 
             subgraph MC[MaskedClassifier]
                 direction TB
 
-                LR[BaseEstimator]
-                LR -->|output to| MSH
+                BE[BaseEstimator]
+                BE -->|outputs| RawProbs[Raw SectionEnum class probabilities]
 
                 subgraph MSH[MaskedSoftmaxHelper]
                     direction TB
@@ -118,11 +121,11 @@ graph TD
                     Tokenizer -->|generates| ParseNode[ParseNode<br/>parse tree]
                 end
 
-                MSH -->|masked probabilities| Predictions[Noisy SectionEnum Predictions]
+                MSH -->|masks| RawProbs
             end
         end
-
-        Predictions -->|smooth outliers| SmoothedSectionLabels[Smoothed SectionEnum Predictions]
+        MC --> NoisyPredictions[Noisy SectionEnum Predictions]
+        NoisyPredictions -->|smooth outliers| SmoothedSectionLabels[Smoothed SectionEnum Predictions]
     end
     SmoothedSectionLabels -->|returns| PredictedSections[Final Section Labels<br/>per utterance]
 
@@ -133,8 +136,8 @@ graph TD
     classDef output fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
 
     class CSV input
-    class Hearing,TaggedHearing,Features,FeatureMatrix,ParseNode,Predictions,SmoothedSectionLabels,PredictedSections data
-    class HearingLoader,HearingTagger,UtteranceTagger,HearingParser,CT,TfidfVec,OHE,Scaler,MC,LR,MSH,Tokenizer,Grammar processing
+    class Hearing,TaggedHearing,OralContributions,TaggedOralContributions,Features,FeatureMatrix,ParseNode,RawProbs,NoisyPredictions,SmoothedSectionLabels,PredictedSections data
+    class HearingLoader,HearingTagger,UtteranceTagger,HearingParser,CT,TfidfVec,OHE,Scaler,MC,BE,MSH,Tokenizer,Grammar processing
 
     %% Softer HSV-inspired subgraph fills
     style HearingParser fill:#ffd6d6,stroke:#333,stroke-width:2px,color:#000
