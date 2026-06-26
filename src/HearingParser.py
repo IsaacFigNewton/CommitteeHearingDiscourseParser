@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from .constants.constants import *
 from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
-from .classifier.MaskedSoftmaxClassifier import MaskedSoftmaxClassifier
+from .classifier.MaskedClassifier import MaskedClassifier
 from .enums.SectionEnum import SectionEnum
 from .grammar.Tokenizer import Tokenizer
 from .grammar.Grammar import GRAMMAR
@@ -42,12 +43,20 @@ class HearingParser:
 
     @classmethod
     def _make_model(cls):
-        """Initialize the section prediction model pipeline."""
+        """Initialize the section prediction model pipeline.
+
+        The pipeline has two stages:
+        1. Feature extraction (TF-IDF, one-hot encoding, scaling)
+        2. Masked classification (LogisticRegression + grammar-constrained masking)
+
+        The MaskedClassifier separates the logistic regression from the masking logic,
+        allowing masking parameters to be set via set_params() before prediction.
+        """
         return Pipeline([
             ('features', ColumnTransformer([
                 ('text', TfidfVectorizer(
                     ngram_range=(2, 5),
-                    min_df=3,
+                    min_df=4,
                     max_features=2000
                 ), cls.TEXT_COL),
                 ('categorical', OneHotEncoder(
@@ -55,10 +64,12 @@ class HearingParser:
                 ), cls.CAT_COLS),
                 ('numeric', StandardScaler(), cls.NUM_COLS),
             ])),
-            ('classifier', MaskedSoftmaxClassifier(
-                max_iter=2000,
-                class_weight='balanced',
-                solver='lbfgs'
+            ('classifier', MaskedClassifier(
+                base_estimator=LogisticRegression(
+                    max_iter=2000,
+                    class_weight='balanced',
+                    solver='lbfgs'
+                ),
             )),
         ])
 
@@ -139,25 +150,19 @@ class HearingParser:
         can_file_motions = filled_df['can_file_motions'].values
         is_presenters = filled_df['is_presenter'].values
 
-        # Transform features through the pipeline's feature transformer
-        X_transformed = self.model.named_steps['features'].transform(X)
-
-        classifier = self.model.named_steps['classifier']
-
-        allowed_sections = classifier.allowed_sections_for_hearing(
-            hearing=hearing,
-            tokenizer=self.tokenizer,
-            grammar=GRAMMAR,
-            speaker_positions=speaker_positions,
-            can_file_motions=can_file_motions,
-            is_presenters=is_presenters,
-            max_parses=2,
+        # Set masking parameters on the classifier stage
+        self.model.set_params(
+            classifier__hearing=hearing,
+            classifier__tokenizer=self.tokenizer,
+            classifier__grammar=GRAMMAR,
+            classifier__speaker_positions=speaker_positions,
+            classifier__can_file_motions=can_file_motions,
+            classifier__is_presenters=is_presenters,
+            classifier__max_parses=2,
         )
 
-        labels = list(classifier.predict(
-            X_transformed,
-            allowed_sections=allowed_sections,
-        ))
+        # Predict with masking applied
+        labels = list(self.model.predict(X))
 
         return self.smooth_label_list(labels) if smooth else labels
 

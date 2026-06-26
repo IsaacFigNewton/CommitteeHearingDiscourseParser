@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Read(//c/**)",
-      "Bash(python -c \"from src.constants.bill_ref_normalization import BILL_ID_PATTERN; print(''Pattern:'', BILL_ID_PATTERN.pattern)\")"
+      "Bash(python -c \"from src.constants.bill_ref_normalization import BILL_ID_PATTERN; print(''Pattern:'', BILL_ID_PATTERN.pattern)\")",
+      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\MaskedClassifier.py\")",
+      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\SoftmaxMaskingTransformer.py\")",
+      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\HearingParser.py\")",
+      "Bash(python test_refactoring.py)"
     ],
     "deny": [],
     "ask": []

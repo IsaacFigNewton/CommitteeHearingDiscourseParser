@@ -8,11 +8,16 @@ from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional
 class MaskedSoftmaxHelper:
     """Utilities for building and applying grammar/parser-constrained masks.
 
-    This helper owns the non-estimator logic used by MaskedSoftmaxClassifier:
+    This helper owns the non-estimator logic used by masking components:
     - building per-utterance allowed SectionEnum masks for a hearing
     - reading SectionEnum ancestors from parser trees
     - deriving fallback masks from grammar terminal rules and speaker metadata
     - normalizing enum/name/value-like section labels into stable keys
+
+    Used by:
+    - MaskedClassifier (new pipeline-based approach)
+    - SoftmaxMaskingTransformer (alternative transformer-based approach)
+    - MaskedSoftmaxClassifier (deprecated, backward compatibility only)
     """
 
     @classmethod
