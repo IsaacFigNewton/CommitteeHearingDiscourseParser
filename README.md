@@ -34,34 +34,34 @@ For detailed field-level documentation, see [DATAMODEL.md](DATAMODEL.md).
 graph TD
     %% Hearing hierarchy
     Hearing[Hearing]
-    Hearing -->|fields| hearing_fields["hid, bid, cid, cname, hearing_date, state,<br/>speakers: Dict[int, Speaker],<br/>utterances: List[OralContribution]"]
+    Hearing -->|fields| hearing_fields["hearing, speaker, and utterance metadata"]
     TaggedHearing[TaggedHearing]
     TaggedHearing -->|extends| Hearing
-    TaggedHearing -->|overrides| tagged_fields["utterances: List[TaggedOralContribution]"]
+    TaggedHearing -->|includes| tagged_fields["additional utterance metadata"]
 
     %% OralContribution hierarchy
     OralContribution[OralContribution]
     OralContribution -->|fields| oral_fields["uid, pid, text"]
     TaggedOralContribution[TaggedOralContribution]
     TaggedOralContribution -->|extends| OralContribution
-    TaggedOralContribution -->|adds| tagged_oral_fields["pids_mentioned, bids_mentioned, relative_position,<br/>sent_count, speech_act_cues, section_cues, section"]
+    TaggedOralContribution -->|adds| tagged_oral_fields["additional utterance metadata"]
     FlatTaggedOralContribution[FlatTaggedOralContribution]
     FlatTaggedOralContribution -->|extends| TaggedOralContribution
     FlatTaggedOralContribution -->|extends| RoleProperties
 
     %% Speaker property hierarchy
     RoleProperties[RoleProperties]
-    RoleProperties -->|fields| role_fields["can_file_motions, is_presenter, speaker_position"]
+    RoleProperties -->|fields| role_fields["speaker metadata"]
     SpeakerProperties[SpeakerProperties]
     SpeakerProperties -->|extends| RoleProperties
-    SpeakerProperties -->|adds| tracking_fields["first_mention_uid, first_uid, last_uid"]
+    SpeakerProperties -->|adds| tracking_fields["utterance-based speaker metadata"]
     Speaker[Speaker]
     Speaker -->|extends| SpeakerProperties
-    Speaker -->|adds| speaker_fields["pid, first_name, last_name"]
+    Speaker -->|adds| speaker_fields["speaker identification metadata"]
 
     %% Other classes
     ParseNode[ParseNode]
-    ParseNode -->|fields| parse_fields["symbol: TOP | SectionEnum | SpeakerPositionEnum,<br/>children: Optional[List[ParseNode]],<br/>utterance_indices: Optional[List[int]]"]
+    ParseNode -->|fields| parse_fields["grammar symbol, utterance span, and any child nodes"]
 
     %% Styling
     classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
@@ -71,77 +71,97 @@ graph TD
     class hearing_fields,tagged_fields,oral_fields,tagged_oral_fields,role_fields,position_fields,tracking_fields,speaker_fields,parse_fields fieldNode
 ```
 
-## Architecture Diagram
+## Data Flow Diagram
 
 ```mermaid
-graph TD
-    %% Data flow
-    CSV[CSV Files<br/>Digital Democracy Corpus] -->|load| HearingLoader
+flowchart TD
+    %% External entity / source
+    CSV[/"CSV Files<br/>Digital Democracy Corpus"/]
 
-    HearingLoader -->|creates| Hearing[Hearing<br/>with OralContributions]
+    %% Processes
+    P1(("Load<br/>Hearings"))
+    P2(("Tag<br/>Utterance Features"))
+    P3(("Build<br/>Feature Matrix"))
+    P4(("Predict<br/>Section Labels"))
+    P5(("Apply<br/>Grammar Mask"))
+    P6(("Smooth<br/>Predictions"))
 
-    Hearing -->|tag features| HearingTagger
-    subgraph HearingTagger[HearingTagger]
-        OralContributions -->|input to| UtteranceTagger
-    end
+    %% Data stores
+    D1[(Hearing + OralContributions)]
+    D2[(TaggedHearing + TaggedOralContributions)]
+    D3[(Feature DataFrame)]
+    D4[(Transformed Feature Matrix)]
+    D5[(CNF Grammar Productions)]
+    RAW[(Raw Probability Store)]
 
-    HearingTagger -->|creates| TaggedHearing
-    subgraph TaggedHearing[TaggedHearing]
-        TaggedOralContributions
-    end
-    TaggedHearing -->|input to| HearingParser
+    %% Outputs
+    OUT[/"Final Section Labels<br/>per utterance"/]
 
-    subgraph HearingParser[HearingParser]
-        Features[Feature DataFrame] -->|input to| Pipeline
+    %% Main data flow
+    CSV -->|raw hearing rows| P1
+    P1 -->|hearing objects| D1
 
-        subgraph Pipeline["sklearn Pipeline"]
-            direction TB
+    D1 -->|oral contributions| P2
+    P2 -->|tagged oral contributions| D2
 
-            CT[ColumnTransformer] -->|text column| TfidfVec[TfidfVectorizer]
-            CT -->|categorical columns| OHE[OneHotEncoder]
-            CT -->|numeric columns| Scaler[StandardScaler]
+    D2 -->|tagged hearing data| P3
+    P3 -->|feature dataframe| D3
 
-            TfidfVec -->|sparse matrix| FeatureMatrix[Combined Feature Matrix]
-            OHE -->|sparse matrix| FeatureMatrix
-            Scaler -->|dense array| FeatureMatrix
+    D3 -->|text column| T1["TfidfVectorizer"]
+    D3 -->|categorical columns| T2["OneHotEncoder"]
+    D3 -->|numeric columns| T3["StandardScaler"]
 
-            FeatureMatrix -->|input to| MC
+    T1 -->|text features<br/>sparse matrix| D4
+    T2 -->|categorical features<br/>sparse matrix| D4
+    T3 -->|numeric features<br/>dense array| D4
 
-            subgraph MC[MaskedClassifier]
-                direction TB
+    D4 -->|combined features| P4
+    P4 -->|raw SectionEnum class probabilities| RAW
 
-                BE[BaseEstimator]
-                BE -->|outputs| RawProbs[Raw SectionEnum class probabilities]
+    RAW -->|unmasked probabilities| P5
+    D5 -->|valid section transitions| P5
 
-                subgraph MSH[MaskedSoftmaxHelper]
-                    direction TB
+    P5 -->|grammar-constrained probabilities| MASKED[(Masked Probability Store)]
+    MASKED -->|noisy SectionEnum predictions| P6
 
-                    Tokenizer[Tokenizer<br/>CYK parsing]
-                    Tokenizer -->|uses| Grammar[Grammar<br/>CNF production rules]
-                    Tokenizer -->|generates| ParseNode[ParseNode<br/>parse tree]
-                end
+    P6 -->|smoothed SectionEnum predictions| OUT
 
-                MSH -->|masks| RawProbs
-            end
-        end
-        MC --> NoisyPredictions[Noisy SectionEnum Predictions]
-        NoisyPredictions -->|smooth outliers| SmoothedSectionLabels[Smoothed SectionEnum Predictions]
-    end
-    SmoothedSectionLabels -->|returns| PredictedSections[Final Section Labels<br/>per utterance]
+    %% Internal grammar parsing support
+    TOK(("Tokenize / CYK Parse"))
+    PN[(Parse Tree<br/>ParseNode)]
+    D5 -->|production rules| TOK
+    TOK -->|parse tree| PN
+    PN -->|valid masks| P5
+
+    %% Implementation annotations
+    HL["HearingLoader"]
+    HT["HearingTagger"]
+    UT["UtteranceTagger"]
+    HP["HearingParser"]
+    BE["BaseEstimator"]
+    MC["MaskedClassifier"]
+    MSH["MaskedSoftmaxHelper"]
+
+    HL -. implements .- P1
+    HT -. coordinates .- P2
+    UT -. tags .- P2
+    HP -. runs .- P3
+    HP -. runs .- P4
+    HP -. runs .- P6
+    MC -. wraps .- P4
+    BE -. estimates .- P4
+    MSH -. implements .- P5
 
     %% Styling
-    classDef input fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
-    classDef data fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
-    classDef processing fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
+    classDef external fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
+    classDef process fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
+    classDef datastore fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
     classDef output fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
+    classDef impl fill:#f4f4f4,stroke:#777,stroke-width:1px,color:#000,stroke-dasharray: 4 4
 
-    class CSV input
-    class Hearing,TaggedHearing,OralContributions,TaggedOralContributions,Features,FeatureMatrix,ParseNode,RawProbs,NoisyPredictions,SmoothedSectionLabels,PredictedSections data
-    class HearingLoader,HearingTagger,UtteranceTagger,HearingParser,CT,TfidfVec,OHE,Scaler,MC,BE,MSH,Tokenizer,Grammar processing
-
-    %% Softer HSV-inspired subgraph fills
-    style HearingParser fill:#ffd6d6,stroke:#333,stroke-width:2px,color:#000
-    style Pipeline fill:#e5ffd6,stroke:#333,stroke-width:2px,color:#000
-    style MC fill:#d6fffd,stroke:#333,stroke-width:2px,color:#000
-    style MSH fill:#ead6ff,stroke:#333,stroke-width:2px,color:#000
+    class CSV external
+    class P1,P2,P3,P4,P5,P6,T1,T2,T3,TOK process
+    class D1,D2,D3,D4,D5,RAW,MASKED,PN datastore
+    class OUT output
+    class HL,HT,UT,HP,PIPE,BE,MC,MSH impl
 ```
