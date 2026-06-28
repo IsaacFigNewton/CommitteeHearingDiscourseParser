@@ -3,12 +3,13 @@ from nltk.tree import Tree
 
 from dataclasses import dataclass
 from typing import Any, List, Optional
+from enum import Enum
 
 
 @dataclass
 class ParseNode:
     """Represents a node in the parse tree."""
-    symbol: Any  # Can be ROOT, TOP, SectionEnum, or Terminal
+    symbol: Enum  # Can be ROOT, TOP, SectionEnum, or Terminal
     children: Optional[List['ParseNode']] = None
     utterance_indices: Optional[List[int]] = None  # Track which utterances this node covers
 

@@ -1,8 +1,11 @@
-from src.enums.SectionEnum import SectionEnum
-
-
 from collections import defaultdict, deque
-from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Tuple
+
+from src.grammar.Grammar import Rule
+from src.grammar.Tokenizer import Tokenizer
+from src.enums.SectionEnum import SectionEnum
+from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from src.dataclasses.Hearing import TaggedHearing
 
 
 class MaskedSoftmaxHelper:
@@ -23,20 +26,26 @@ class MaskedSoftmaxHelper:
     @classmethod
     def allowed_sections_for_hearing(
         cls,
-        hearing: Any,
-        tokenizer: Any,
-        grammar: Any = None,
-        speaker_positions: Optional[Sequence[Any]] = None,
-        can_file_motions: Optional[Sequence[Any]] = None,
-        is_presenters: Optional[Sequence[Any]] = None,
+        hearing: TaggedHearing,
+        tokenizer: Tokenizer,
+        grammar: Optional[List[Rule]] = None,
+        speaker_positions: Optional[Sequence[SpeakerPositionEnum|None]] = None,
+        can_file_motions: Optional[Sequence[bool|None]] = None,
+        is_presenters: Optional[Sequence[bool|None]] = None,
         max_parses: int = 2,
-    ) -> List[List[Any]]:
+    ) -> Tuple[List[List[Any]], bool]:
         """Build allowed SectionEnums for each utterance in a hearing.
 
         1. Prefer all parse trees returned by
            Tokenizer.get_all_parses_as_nltk_trees(hearing, max_parses=2).
         2. If no parse trees are returned, infer the allowed sections from the
            speaker type plus SectionEnums reachable from GRAMMAR terminal rules.
+        
+        params:
+            see code
+        returns:
+            masks:              list of lists of valid section tags associated with each utterance
+            parse_successful:   whether >=1 parse tree was generated with the grammar
         """
         utterances = list(getattr(hearing, "utterances", []) or [])
         n = len(utterances)
@@ -49,8 +58,9 @@ class MaskedSoftmaxHelper:
             )
         except Exception:
             parse_trees = []
-
-        if parse_trees:
+        
+        # if there was at least 1 successful parse
+        if len(parse_trees) > 0:
             masks: List[Set[Any]] = [set() for _ in range(n)]
             for tree in parse_trees:
                 for idx, section in cls._sections_by_utterance_from_tree(tree, utterances).items():
@@ -59,7 +69,7 @@ class MaskedSoftmaxHelper:
 
             # Only use parser-derived masks if at least one utterance was aligned.
             if any(masks):
-                return [list(s) for s in masks]
+                return [list(s) for s in masks], True
 
         return cls._allowed_sections_from_grammar_fallback(
             grammar=grammar,
@@ -67,7 +77,7 @@ class MaskedSoftmaxHelper:
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
             is_presenters=is_presenters,
-        )
+        ), False
 
     @classmethod
     def _sections_by_utterance_from_tree(

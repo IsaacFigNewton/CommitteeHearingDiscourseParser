@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Tuple
 
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
+from src.grammar.Grammar import Rule
+from src.grammar.Tokenizer import Tokenizer
+from src.enums.SectionEnum import SectionEnum
+from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from src.dataclasses.Hearing import TaggedHearing
 from src.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
 
 
@@ -106,10 +111,15 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         Returns:
             Predicted class labels
         """
-        probs = self.predict_proba(X)
-        return self.classes_[np.argmax(probs, axis=1)]
+        probs, parse_successful = self.predict_proba(X)
+        return np.concatenate([
+            self.classes_[np.argmax(probs, axis=1)],
+            # cast parse success flag to int
+            #   broadcast to same shape as utterance input array
+            np.array([int(parse_successful)]*probs.shape[0])
+        ], axis=1)
 
-    def predict_proba(self, X: Any) -> np.ndarray:
+    def predict_proba(self, X: Any) -> Tuple[np.ndarray, bool]:
         """Return class probabilities after masking and renormalizing.
 
         Args:
@@ -123,10 +133,10 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
 
         # If no masking context, return unmasked probabilities
         if self.hearing is None or self.tokenizer is None:
-            return probs
+            return probs, False
 
         # Build allowed sections for this hearing
-        allowed_sections = self.helper_class.allowed_sections_for_hearing(
+        allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
             hearing=self.hearing,
             tokenizer=self.tokenizer,
             grammar=self.grammar,
@@ -137,7 +147,7 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         )
 
         # Apply masking
-        return self._apply_masking(probs, allowed_sections)
+        return self._apply_masking(probs, allowed_sections), parse_successful
 
     def _apply_masking(
         self,
@@ -194,14 +204,14 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
     @classmethod
     def allowed_sections_for_hearing(
         cls,
-        hearing: Any,
-        tokenizer: Any,
-        grammar: Any = None,
-        speaker_positions: Optional[Sequence[Any]] = None,
-        can_file_motions: Optional[Sequence[Any]] = None,
-        is_presenters: Optional[Sequence[Any]] = None,
+        hearing: TaggedHearing,
+        tokenizer: Tokenizer,
+        grammar: Optional[List[Rule]] = None,
+        speaker_positions: Optional[Sequence[SpeakerPositionEnum|None]] = None,
+        can_file_motions: Optional[Sequence[bool|None]] = None,
+        is_presenters: Optional[Sequence[bool|None]] = None,
         max_parses: int = 2,
-    ) -> List[List[Any]]:
+    ) -> Tuple[List[List[Any]], bool]:
         """Delegate hearing-mask construction to MaskedSoftmaxHelper."""
         return cls.helper_class.allowed_sections_for_hearing(
             hearing=hearing,
