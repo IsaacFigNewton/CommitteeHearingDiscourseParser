@@ -117,7 +117,7 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
             # cast parse success flag to int
             #   broadcast to same shape as utterance input array
             np.array([int(parse_successful)]*probs.shape[0])
-        ], axis=1)
+        ], axis=0)
 
     def predict_proba(self, X: Any) -> Tuple[np.ndarray, bool]:
         """Return class probabilities after masking and renormalizing.

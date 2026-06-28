@@ -1,13 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/**)",
-      "Bash(python -c \"from src.constants.bill_ref_normalization import BILL_ID_PATTERN; print(''Pattern:'', BILL_ID_PATTERN.pattern)\")",
-      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\MaskedClassifier.py\")",
-      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\classifier\\SoftmaxMaskingTransformer.py\")",
-      "Bash(python -m py_compile \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\src\\HearingParser.py\")",
-      "Bash(python test_refactoring.py)",
-      "Bash(python -c \"from src.HearingParser import HearingParser; hp = HearingParser(); print(''HearingParser methods:'', [m for m in dir(hp) if ''build'' in m.lower()])\")"
+      "Bash(python -m jupyter nbconvert --to notebook --execute evaluate_model.ipynb --output evaluate_model_executed.ipynb)",
+      "Bash(python -c \"import nbformat; from nbconvert.preprocessors import ExecutePreprocessor; nb = nbformat.read(''evaluate_model.ipynb'', as_version=4); ep = ExecutePreprocessor(timeout=600, kernel_name=''python3''); ep.preprocess(nb, {''metadata'': {''path'': ''.''}}); nbformat.write(nb, ''evaluate_model_executed.ipynb'')\")",
+      "Bash(python -c \"import json; nb = json.load(open(''evaluate_model_executed.ipynb'')); cell = nb[''cells''][19]; print(''CELL 19 OUTPUT:''); [print(out.get(''text'', out.get(''traceback'', [''NO OUTPUT'']))) for out in cell.get(''outputs'', [])]\")",
+      "Bash(python -c \"import json; nb = json.load(open(''evaluate_model_executed.ipynb'')); print(f''Total cells: {len(nb[\"\"cells\"\"])}''); errors = [i for i, c in enumerate(nb[''cells'']) if any(''traceback'' in o for o in c.get(''outputs'', []))]; print(f''Cells with errors: {errors if errors else \"\"None\"\"}'')\")",
+      "Bash(python -c \"import json; nb = json.load(open(''evaluate_model_executed.ipynb'')); cell = nb[''cells''][20]; print(''CELL 20 (Confusion Matrices):''); print(''Executed:'', ''execution_count'' in cell and cell[''execution_count''] is not None); print(''Has outputs:'', len(cell.get(''outputs'', [])) > 0)\")"
     ],
     "deny": [],
     "ask": []

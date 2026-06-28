@@ -168,7 +168,9 @@ class HearingParser:
         )
 
         # Predict with masking applied
-        labels = list(self.model.predict(X))
+        # model.predict returns concatenated array: [labels, parse_success_flags]
+        output = self.model.predict(X)
+        labels = list(output[:len(X)])
 
         return self.smooth_label_list(labels) if smooth else labels
 
