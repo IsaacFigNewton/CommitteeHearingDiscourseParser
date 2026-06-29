@@ -78,20 +78,10 @@ flowchart TD
     %% External entity / source
     CSV[/"CSV Files<br/>Digital Democracy Corpus"/]
 
-    %% Main processes
-    P1(("Load<br/>Hearings"))
-    P6(("Smooth<br/>Predictions"))
-
-    %% Data stores
-    D1[(Hearing + OralContributions)]
-    D5[(CNF Grammar Productions)]
-    MASKED[(Masked Probability Store)]
-
-    %% Outputs
-    OUT[/"Final Section Labels<br/>per utterance"/]
-
     CSV -->|raw hearing rows| P1
     P1 -->|hearing objects| D1
+    D1 -->|oral contributions| P2
+
     subgraph PIPELINE [Pipeline]
         direction TD
 
@@ -102,6 +92,8 @@ flowchart TD
             direction TD
             
             HT["HearingTagger"]
+            P1(("Load<br/>Hearings"))
+            D1[(Hearing + OralContributions)]
             UT["UtteranceTagger"]
             HT -. coordinates .- P2
             UT -. tags .- P2
@@ -110,6 +102,7 @@ flowchart TD
             P2(("Tag<br/>Utterance Features"))
             D2[(TaggedHearing + TaggedOralContributions)]
             P2 -->|tagged oral contributions| D2
+            D2 -->|tagged hearing data| P3
         end
 
         %% Feature processing + classification + masking grouped TD
@@ -135,13 +128,14 @@ flowchart TD
                 T3 -->|numeric features<br/>dense array| D4
             end
 
-            HP["HearingParser"]
-            HP -. runs .- P4
-            HP -. runs .- P6
-
             %% Classification subgraph: TD inside
             subgraph CLASSIFICATION [Classification]
                 direction TD
+                
+                HP["HearingParser"]
+                HP -. runs .- P4
+                HP -. runs .- P6
+
                 P4(("Predict<br/>Section Labels"))
                 RAW[(Raw Probability Store)]
                 MC["MaskedClassifier"]
@@ -159,31 +153,36 @@ flowchart TD
                 MSH["MaskedSoftmaxHelper"]
                 MSH -. implements .- P5
 
+                D5[(CNF Grammar Productions)]
                 TOK(("Tokenize / CYK Parse"))
                 PN[(Parse Tree<br/>ParseNode)]
                 P5(("Apply<br/>Grammar Mask"))
 
+                D5 -->|production rules| TOK
+                D5 -->|valid section transitions| P5
                 TOK -->|parse tree| PN
                 PN -->|valid masks| P5
+
+                
+                P5 -->|grammar-constrained probabilities| MASKED
+    
+                MASKED[(Masked Probability Store)]
             end
 
             D4 -->|combined features| P4
             RAW -->|unmasked probabilities| P5
+            
+            MASKED -->|noisy SectionEnum predictions| P6
+            P6(("Smooth<br/>Predictions"))
         end
 
-        %% Main data flow: LR outside
-
-        D1 -->|oral contributions| P2
-        D2 -->|tagged hearing data| P3
-
-        D5 -->|production rules| TOK
-        D5 -->|valid section transitions| P5
-
-        P5 -->|grammar-constrained probabilities| MASKED
-        MASKED -->|noisy SectionEnum predictions| P6
-        
     end
+    
+    %% Main processes
+
+    %% Outputs
     P6 -->|smoothed SectionEnum predictions| OUT
+    OUT[/"Final Section Labels<br/>per utterance"/]
 
     %% Implementation annotations
     HL["HearingLoader"]
@@ -192,12 +191,11 @@ flowchart TD
     classDef external fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef process fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
     classDef datastore fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
-    classDef output fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
+    classDef external fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
     classDef impl fill:#f4f4f4,stroke:#777,stroke-width:1px,color:#000,stroke-dasharray:4 4
 
-    class CSV external
+    class CSV,OUT external
     class P1,P2,P3,P4,P5,P6,T1,T2,T3,TOK process
     class D1,D2,D3,D4,D5,RAW,MASKED,PN datastore
-    class OUT output
     class HL,HT,UT,HP,BE,MC,MSH impl
 ```
