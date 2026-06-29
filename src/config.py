@@ -4,6 +4,7 @@ Configuration constants for the TranscriptLoader
 
 # Valid state abbreviations in the corpus
 VALID_STATES = ["CA", "FL", "NY", "TX"]
+VALID_BILL_TYPES = ["AB", "SB"]
 
 # Available CSV filenames in the corpus
 CSV_FILENAMES = [

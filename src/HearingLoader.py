@@ -44,6 +44,11 @@ class HearingLoader:
         self.committeeRosters: pd.DataFrame =   self.load_csv("committeeRosters", method="pandas")[["pid", "cid", "position"]]
         self.people: pd.DataFrame =             self.load_csv("people", method="pandas")
         self.bills: pd.DataFrame =              self.load_csv("bills", method="pandas")[["bid", "pid"]]
+        # bids in format of f"{STATE_INITIALS}_{YEAR_START}{YEAR_END}{BILL_TYPE}{BILL_NUMBER}"
+        #   11th char onward corresponds to BILL_TYPE
+        bid_mask = self.bills["bid"].apply(lambda x: x[11:] in VALID_BILL_TYPES)
+        # only consider valid bill types
+        self.bills = self.bills[bid_mask]
         
         # get a set of all the cids
         self.cids = set(self.committeeRosters["cid"].unique().tolist())
