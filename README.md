@@ -78,90 +78,126 @@ flowchart TD
     %% External entity / source
     CSV[/"CSV Files<br/>Digital Democracy Corpus"/]
 
-    %% Processes
+    %% Main processes
     P1(("Load<br/>Hearings"))
-    P2(("Tag<br/>Utterance Features"))
-    P3(("Build<br/>Feature Matrix"))
-    P4(("Predict<br/>Section Labels"))
-    P5(("Apply<br/>Grammar Mask"))
     P6(("Smooth<br/>Predictions"))
 
     %% Data stores
     D1[(Hearing + OralContributions)]
-    D2[(TaggedHearing + TaggedOralContributions)]
-    D3[(Feature DataFrame)]
-    D4[(Transformed Feature Matrix)]
     D5[(CNF Grammar Productions)]
-    RAW[(Raw Probability Store)]
+    MASKED[(Masked Probability Store)]
 
     %% Outputs
     OUT[/"Final Section Labels<br/>per utterance"/]
 
-    %% Main data flow
     CSV -->|raw hearing rows| P1
     P1 -->|hearing objects| D1
+    subgraph PIPELINE [Pipeline]
+        direction TD
 
-    D1 -->|oral contributions| P2
-    P2 -->|tagged oral contributions| D2
+        HL -. implements .- P1
 
-    D2 -->|tagged hearing data| P3
-    P3 -->|feature dataframe| D3
+        %% Tagging subgraph: TD inside
+        subgraph TAGGING [Tagging]
+            direction TD
+            
+            HT["HearingTagger"]
+            UT["UtteranceTagger"]
+            HT -. coordinates .- P2
+            UT -. tags .- P2
+            HP -. runs .- P3
 
-    D3 -->|text column| T1["TfidfVectorizer"]
-    D3 -->|categorical columns| T2["OneHotEncoder"]
-    D3 -->|numeric columns| T3["StandardScaler"]
+            P2(("Tag<br/>Utterance Features"))
+            D2[(TaggedHearing + TaggedOralContributions)]
+            P2 -->|tagged oral contributions| D2
+        end
 
-    T1 -->|text features<br/>sparse matrix| D4
-    T2 -->|categorical features<br/>sparse matrix| D4
-    T3 -->|numeric features<br/>dense array| D4
+        %% Feature processing + classification + masking grouped TD
+        subgraph SECTION_MODEL [Feature Processing, Classification, and Masking]
+            direction TD
 
-    D4 -->|combined features| P4
-    P4 -->|raw SectionEnum class probabilities| RAW
+            %% Feature processing subgraph: TD inside
+            subgraph FEATURES [Feature Processing]
+                direction TD
+                P3(("Build<br/>Feature Matrix"))
+                D3[(Feature DataFrame)]
+                T1["TfidfVectorizer"]
+                T2["OneHotEncoder"]
+                T3["StandardScaler"]
+                D4[(Transformed Feature Matrix)]
 
-    RAW -->|unmasked probabilities| P5
-    D5 -->|valid section transitions| P5
+                P3 -->|feature dataframe| D3
+                D3 -->|text column| T1
+                D3 -->|categorical columns| T2
+                D3 -->|numeric columns| T3
+                T1 -->|text features<br/>sparse matrix| D4
+                T2 -->|categorical features<br/>sparse matrix| D4
+                T3 -->|numeric features<br/>dense array| D4
+            end
 
-    P5 -->|grammar-constrained probabilities| MASKED[(Masked Probability Store)]
-    MASKED -->|noisy SectionEnum predictions| P6
+            HP["HearingParser"]
+            HP -. runs .- P4
+            HP -. runs .- P6
 
+            %% Classification subgraph: TD inside
+            subgraph CLASSIFICATION [Classification]
+                direction TD
+                P4(("Predict<br/>Section Labels"))
+                RAW[(Raw Probability Store)]
+                MC["MaskedClassifier"]
+                MC -. wraps .- P4
+                BE["BaseEstimator"]
+                BE -. estimates .- P4
+
+                P4 -->|raw SectionEnum class probabilities| RAW
+            end
+
+            %% Masking subgraph: TD inside
+            subgraph MASKING [Grammar Masking]
+                direction TD
+                
+                MSH["MaskedSoftmaxHelper"]
+                MSH -. implements .- P5
+
+                TOK(("Tokenize / CYK Parse"))
+                PN[(Parse Tree<br/>ParseNode)]
+                P5(("Apply<br/>Grammar Mask"))
+
+                TOK -->|parse tree| PN
+                PN -->|valid masks| P5
+            end
+
+            D4 -->|combined features| P4
+            RAW -->|unmasked probabilities| P5
+        end
+
+        %% Main data flow: LR outside
+
+        D1 -->|oral contributions| P2
+        D2 -->|tagged hearing data| P3
+
+        D5 -->|production rules| TOK
+        D5 -->|valid section transitions| P5
+
+        P5 -->|grammar-constrained probabilities| MASKED
+        MASKED -->|noisy SectionEnum predictions| P6
+        
+    end
     P6 -->|smoothed SectionEnum predictions| OUT
-
-    %% Internal grammar parsing support
-    TOK(("Tokenize / CYK Parse"))
-    PN[(Parse Tree<br/>ParseNode)]
-    D5 -->|production rules| TOK
-    TOK -->|parse tree| PN
-    PN -->|valid masks| P5
 
     %% Implementation annotations
     HL["HearingLoader"]
-    HT["HearingTagger"]
-    UT["UtteranceTagger"]
-    HP["HearingParser"]
-    BE["BaseEstimator"]
-    MC["MaskedClassifier"]
-    MSH["MaskedSoftmaxHelper"]
-
-    HL -. implements .- P1
-    HT -. coordinates .- P2
-    UT -. tags .- P2
-    HP -. runs .- P3
-    HP -. runs .- P4
-    HP -. runs .- P6
-    MC -. wraps .- P4
-    BE -. estimates .- P4
-    MSH -. implements .- P5
 
     %% Styling
     classDef external fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef process fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
     classDef datastore fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
     classDef output fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
-    classDef impl fill:#f4f4f4,stroke:#777,stroke-width:1px,color:#000,stroke-dasharray: 4 4
+    classDef impl fill:#f4f4f4,stroke:#777,stroke-width:1px,color:#000,stroke-dasharray:4 4
 
     class CSV external
     class P1,P2,P3,P4,P5,P6,T1,T2,T3,TOK process
     class D1,D2,D3,D4,D5,RAW,MASKED,PN datastore
     class OUT output
-    class HL,HT,UT,HP,PIPE,BE,MC,MSH impl
+    class HL,HT,UT,HP,BE,MC,MSH impl
 ```
