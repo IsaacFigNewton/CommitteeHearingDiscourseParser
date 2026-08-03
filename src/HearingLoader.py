@@ -144,28 +144,32 @@ class HearingLoader:
         if speaker.pid in self.all_pids:
             # if it's a legislator
             if speaker.pid in self.pids:
-                speaker.speaker_position = SpeakerPositionEnum.LEGISLATOR
 
-                # check if they're the primary author on the bill
-                # TODO: Fix so that the presiding chair can also be a bill author
-                bill_author_match = self.bills[(self.bills["bid"] == bid) & (self.bills["pid"] == speaker.pid)]
-                if not bill_author_match.empty:
-                    speaker.speaker_position = SpeakerPositionEnum.BILL_AUTHOR
-                    speaker.is_presenter = True
-                    # if they're also on the committee, they can file motions
-                    if speaker.pid in self.cid_pid_pos.get(cid, {}):
-                        speaker.can_file_motions = True
-                    return speaker
-
-                # if they're a member of the committee
+                # if they're a member of the committee, they can file motions
                 pos = self.cid_pid_pos[cid].get(speaker.pid)
                 if pos:
                     speaker.can_file_motions = True
                     speaker.speaker_position = pos
+
+                # check if they're the primary author on the bill
+                # TODO: Fix so that the presiding chair can also be a bill author
+                bill_author_match = self.bills[
+                    (self.bills["bid"] == bid)\
+                        & (self.bills["pid"] == speaker.pid)
+                ]
+                if not bill_author_match.empty:
+                    speaker.speaker_position = SpeakerPositionEnum.BILL_AUTHOR
+                    speaker.is_presenter = True
+                    return speaker
+
+                # if they're just a committee member but not an author
+                if speaker.speaker_position is not None:
                     return speaker
 
                 # if they're a legislator that is not part of the committee
-                speaker.speaker_position = SpeakerPositionEnum.LEGISLATOR
+                #   fall back to bill author role
+                speaker.speaker_position = SpeakerPositionEnum.BILL_AUTHOR
+                speaker.is_presenter = True
                 return speaker
 
             # if it's just the committee secretary or staff
