@@ -199,3 +199,9 @@ flowchart TD
     class D1,D2,D3,D4,D5,RAW,MASKED,PN datastore
     class HL,HT,UT,HP,BE,MC,MSH impl
 ```
+
+## Annotation Notes
+`pid 21318` is used to indicate an unknown speaker. In cases of this ambiguity, the most relevant speaker role is annotated.
+- To handle this ambiguity, the `HearingTagger` class assigns a `SpeakerPositionEnum` of `None`.
+- While suboptimal, this is the best placeholder solution we were able to devise.
+

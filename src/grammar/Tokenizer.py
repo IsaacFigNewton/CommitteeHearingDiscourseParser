@@ -143,7 +143,7 @@ class Tokenizer:
             return True
         return False
 
-    def tokenize_utterances(self, hearing: TaggedHearing) -> List[Tuple[SpeakerPositionEnum, int]]:
+    def tokenize_utterances(self, hearing: TaggedHearing) -> List[Tuple[Optional[SpeakerPositionEnum], int]]:
         """
         Extract SpeakerPositionEnum tokens from hearing utterances.
 
@@ -160,7 +160,7 @@ class Tokenizer:
                 tokens.append((speaker.speaker_position, idx))
         return tokens
 
-    def _matches_terminal(self, terminal: Terminal, token: Tuple[SpeakerPositionEnum, int]) -> bool:
+    def _matches_terminal(self, terminal: Terminal, token: Tuple[Optional[SpeakerPositionEnum], int]) -> bool:
         """
         Check if a token matches a terminal symbol.
 
@@ -177,7 +177,12 @@ class Tokenizer:
         # Terminal is now just a SpeakerPositionEnum
         if isinstance(terminal, SpeakerPositionEnum):
             token_speaker_position, _ = token
-            return terminal == token_speaker_position
+            return (
+                terminal == token_speaker_position
+                # if the token speaker position is None
+                #   then the speaker was unidentified and may thus have any role
+                or token_speaker_position is None
+            )
 
         return False
 
@@ -207,7 +212,7 @@ class Tokenizer:
 
         return None
 
-    def _cyk_parse(self, tokens: List[Tuple[SpeakerPositionEnum, int]]) -> Tuple[List[List[Set[Any]]], Dict]:
+    def _cyk_parse(self, tokens: List[Tuple[Optional[SpeakerPositionEnum], int]]) -> Tuple[List[List[Set[Any]]], Dict]:
         """
         CYK parsing algorithm.
 
@@ -298,7 +303,7 @@ class Tokenizer:
         i: int,
         j: int,
         symbol: Any,
-        tokens: List[Tuple[SpeakerPositionEnum, int]]
+        tokens: List[Tuple[Optional[SpeakerPositionEnum], int]]
     ) -> Optional[ParseNode]:
         """
         Reconstruct parse tree from CYK table and backpointers.

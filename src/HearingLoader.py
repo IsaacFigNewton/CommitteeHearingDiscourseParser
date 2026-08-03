@@ -136,6 +136,10 @@ class HearingLoader:
         speaker.can_file_motions = False
         speaker.is_presenter = False
 
+        if speaker.pid == 21318:
+            speaker.can_file_motions = True
+            return speaker
+
         # if its someone tracked in the dataset
         if speaker.pid in self.all_pids:
             # if it's a legislator
