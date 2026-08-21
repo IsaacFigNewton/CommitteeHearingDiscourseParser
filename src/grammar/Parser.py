@@ -266,6 +266,6 @@ class Parser:
         parse_node = self.parse(hearing)
         return parse_node.to_nltk_tree() if parse_node else None
 
-    def get_all_parses_as_nltk_trees(self, hearing: TaggedHearing, max_parses: int = 10) -> List[Tree]:
+    def get_all_parses_as_nltk_trees(self, hearing: TaggedHearing, max_parses: int = 3) -> List[Tree]:
         """Get all possible parse trees as NLTK Trees."""
         return [node.to_nltk_tree() for node in self.get_all_parses(hearing, max_parses)]

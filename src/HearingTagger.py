@@ -115,18 +115,20 @@ class HearingTagger(ITagger):
         # if the first utterance by a nonlegislator labelled as an EXPERT
         #   follows one by a member of the PUBLIC,
         #   reassign the speaker labelled as EXPERT to PUBLIC
-        earliest_public_uid = min([
+        public_speakers = [
             s.first_uid for s in raw_hearing.speakers.values()
             if s.speaker_position == SpeakerPositionEnum.PUBLIC
-        ])
-        for pid in speaker_names_pids.values():
-            s = raw_hearing.speakers[pid]
-            if (    
-                    s.speaker_position is not None\
-                    and s.speaker_position.value <= SpeakerPositionEnum.EXPERT.value\
-                    and earliest_public_uid < s.first_uid
-                ):
-                raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
+        ]
+        if len(public_speakers) > 0:
+            earliest_public_uid = min(public_speakers)
+            for pid in speaker_names_pids.values():
+                s = raw_hearing.speakers[pid]
+                if (    
+                        s.speaker_position is not None\
+                        and s.speaker_position.value <= SpeakerPositionEnum.EXPERT.value\
+                        and earliest_public_uid < s.first_uid
+                    ):
+                    raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
 
         return TaggedHearing(
             **{

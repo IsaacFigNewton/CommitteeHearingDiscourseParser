@@ -5,13 +5,15 @@
 2. evaluate speaker role tagging
 3. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
 4. replace RROO keyphrase mentions with the associated SpeechActEnum
+5. add section keyphrases and associate them with SpeechActEnums
+ - "others in support" indicates a possible transition to public comments
 5. add VoteSectionEnum grammar rules
 6. add VoteSectionEnum sub-parsing/sub-classification
 7. update labelled samples accordingly
 8. evaluate subsection classification
 
 ## Feature extraction
-1. . get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules
+1. get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules
  - terms are tokens
  - docs are loose requirement-based section spans
   - get initial bounds for section spans by taking earliest possible start, latest possible end

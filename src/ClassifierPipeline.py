@@ -12,7 +12,7 @@ from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.MaskedClassifier import MaskedClassifier
 from .enums.SectionEnum import SectionEnum
-from .grammar.Tokenizer import Tokenizer
+from .grammar.Parser import Parser
 from .grammar.Grammar import GRAMMAR
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -36,7 +36,7 @@ class ClassifierPipeline:
 
     def __init__(self, base_estimator=None) -> None:
         self.hearing_tagger = HearingTagger()
-        self.tokenizer = Tokenizer()
+        self.parser = Parser()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model(base_estimator)
@@ -159,7 +159,7 @@ class ClassifierPipeline:
         # Set masking parameters on the classifier stage
         self.model.set_params(
             classifier__hearing=hearing,
-            classifier__tokenizer=self.tokenizer,
+            classifier__parser=self.parser,
             classifier__grammar=GRAMMAR,
             classifier__speaker_positions=speaker_positions,
             classifier__can_file_motions=can_file_motions,
@@ -174,29 +174,6 @@ class ClassifierPipeline:
 
         return self.smooth_label_list(labels) if smooth else labels
 
-    def predict_hearings_batch(self, hearings: List[TaggedHearing], smooth: bool = True) -> dict:
-        """Predict section labels for multiple hearings.
-
-        Args:
-            hearings: List of tagged hearings to predict sections for
-            smooth: Whether to apply label smoothing
-
-        Returns:
-            Dictionary mapping (hid, bid) tuples to lists of predicted SectionEnum labels
-        """
-        # Build utterances dataframe for all hearings
-        utterances_df = self._build_utterance_rows(hearings)
-        results = {}
-
-        for hearing in hearings:
-            key = (hearing.hid, hearing.bid)
-            try:
-                results[key] = self.predict_hearing_sections(hearing, utterances_df, smooth)
-            except ValueError as e:
-                print(f"Warning: Could not predict sections for hearing {hearing.hid}/{hearing.bid}: {e}")
-                results[key] = []
-
-        return results
 
     def build_utterances_dataframe(self, hearings: List[TaggedHearing]) -> pd.DataFrame:
         """Build a DataFrame of utterance features from a list of tagged hearings.
