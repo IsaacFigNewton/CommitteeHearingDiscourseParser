@@ -30,6 +30,7 @@ SPEAKER_POSITION_CUES = {
     SpeakerPositionEnum.PUBLIC: {
         "on behalf of",
         "NONLEGISLATOR representing ORG",
-        "NONLEGISLATOR with ORG"
+        "NONLEGISLATOR with ORG",
+        "i'm with ORG"
     },
 }

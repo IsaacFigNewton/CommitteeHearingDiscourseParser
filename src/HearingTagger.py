@@ -57,9 +57,10 @@ class HearingTagger(ITagger):
             # if the utterance includes a public speaker keyphrase AND the speaker hasn't been
             # assigned a more specific role (e.g., BILL_AUTHOR, LEGISLATOR, COMMITTEE_MEMBER),
             # then mark them as PUBLIC
-            if (speaker.speaker_position == SpeakerPositionEnum.NONLEGISLATOR and
-                self.contains_any_phrase(tagged_u.text, SPEAKER_POSITION_CUES[SpeakerPositionEnum.PUBLIC])):
-                raw_hearing.speakers[tagged_u.pid].speaker_position = SpeakerPositionEnum.PUBLIC
+            if (speaker.speaker_position == SpeakerPositionEnum.NONLEGISLATOR):
+                for position, cues in SPEAKER_POSITION_CUES.items():
+                    if self.contains_any_phrase(tagged_u.text, cues):
+                        raw_hearing.speakers[tagged_u.pid].speaker_position = position
 
             # if the speaker was mentioned
             if tagged_u.pids_mentioned:
@@ -77,7 +78,7 @@ class HearingTagger(ITagger):
         def first_uid(s: Speaker):
             return tagged_utterances[s.first_uid]
 
-        # resolve ambiguous speakers' roles
+        # resolve ambiguous nonlegislator speakers' roles
         ambiguous_speakers = {
             pid: s for pid, s in raw_hearing.speakers.items()
             if s.speaker_position == SpeakerPositionEnum.NONLEGISLATOR
@@ -87,17 +88,14 @@ class HearingTagger(ITagger):
             #   before their first utterance,
             #   then they must be an expert
             if (
-                s.first_mention_uid and s.first_mention_uid < s.first_uid
-                or first_uid(s).token_count > 15
+                (s.first_mention_uid and s.first_mention_uid < s.first_uid)
+                or first_uid(s).sent_count > 5
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
             
-            # or if they're a nonlegislator who is first mentioned within a self-introduction
-            #   and their first utterance has <4 sentences
-            #   then they're probably a member of the public
             elif (
-                s.first_mention_uid and s.first_mention_uid == s.first_uid
-                or first_uid(s).token_count < 15
+                (s.first_mention_uid and s.first_mention_uid == s.first_uid)
+                or first_uid(s).sent_count < 5
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
             
@@ -113,6 +111,22 @@ class HearingTagger(ITagger):
                 ):
                     raw_hearing.speakers[u.pid].is_presenter = True
                     break
+
+        # if the first utterance by a nonlegislator labelled as an EXPERT
+        #   follows one by a member of the PUBLIC,
+        #   reassign the speaker labelled as EXPERT to PUBLIC
+        earliest_public_uid = min([
+            s.first_uid for s in raw_hearing.speakers.values()
+            if s.speaker_position == SpeakerPositionEnum.PUBLIC
+        ])
+        for pid in speaker_names_pids.values():
+            s = raw_hearing.speakers[pid]
+            if (    
+                    s.speaker_position is not None\
+                    and s.speaker_position.value <= SpeakerPositionEnum.EXPERT.value\
+                    and earliest_public_uid < s.first_uid
+                ):
+                raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
 
         return TaggedHearing(
             **{

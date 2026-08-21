@@ -110,16 +110,12 @@ GRAMMAR = [
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.PRESIDING_CHAIR),
 
 
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.NONLEGISLATOR)),
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.EXPERT)),
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.LEGISLATOR)),            # fallback for ambiguous SpeakerPositionEnum
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.NONLEGISLATOR)),
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.EXPERT)),
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.LEGISLATOR)),            # fallback for ambiguous SpeakerPositionEnum
-    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.BILL_AUTHOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.NONLEGISLATOR),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.EXPERT),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.EXPERT)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.EXPERT)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.NONLEGISLATOR),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.EXPERT),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.COMMITTEE_MEMBER),

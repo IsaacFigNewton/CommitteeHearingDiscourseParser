@@ -193,13 +193,46 @@ class UtteranceTagger(ITagger):
                 case "ORG":
                     # ORG (Organization) - replace with ORG
                     replacements.append((ent.start_char, ent.end_char, "ORG"))
-                
+
                 case _:
                     continue
 
+        # Fallback: Directly search for speaker names using fuzzy matching
+        # This catches names that spaCy NER misses (e.g., uncommon names)
+        text_lower = text.lower()
+        for speaker_name, pid in speaker_names_pids.items():
+            speaker = speakers[pid]
+
+            # Try matching full name, first name, and last name
+            candidates = []
+            if speaker.first_name and speaker.last_name:
+                candidates.append((f"{speaker.first_name} {speaker.last_name}", speaker.first_name, speaker.last_name))
+
+            for full_name, first_name, last_name in candidates:
+                # Search for the name in the text (case-insensitive)
+                search_pattern = full_name.lower()
+                start_idx = text_lower.find(search_pattern)
+
+                if start_idx != -1:
+                    end_idx = start_idx + len(full_name)
+
+                    # Check if this position already has a replacement
+                    already_replaced = any(
+                        start_char <= start_idx < end_char or start_char < end_idx <= end_char
+                        for start_char, end_char, _ in replacements
+                    )
+
+                    if not already_replaced:
+                        pids_mentioned.add(pid)
+
+                        # Get the position name if available
+                        if speaker.speaker_position:
+                            position_name = speaker.speaker_position.name
+                            replacements.append((start_idx, end_idx, position_name))
+
         # Apply replacements in reverse order to maintain character positions
         modified_text = text
-        for start_char, end_char, replacement in reversed(replacements):
+        for start_char, end_char, replacement in reversed(sorted(replacements)):
             modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
 
         # use spaces to delimit tokens
