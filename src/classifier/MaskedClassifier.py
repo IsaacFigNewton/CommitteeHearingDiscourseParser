@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 from src.grammar.Grammar import Rule
 from src.grammar.Tokenizer import Tokenizer
+from src.grammar.Parser import Parser
 from src.enums.SectionEnum import SectionEnum
 from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 from src.dataclasses.Hearing import TaggedHearing
@@ -33,10 +34,11 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
             )),
         ])
 
-    Then in HearingParser:
+    Then in ClassifierPipeline:
         self.model.set_params(
             classifier__hearing=hearing,
             classifier__tokenizer=self.tokenizer,
+            classifier__parser=self.parser,
             classifier__grammar=GRAMMAR,
             classifier__speaker_positions=speaker_positions,
             classifier__can_file_motions=can_file_motions,
@@ -51,7 +53,8 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         self,
         base_estimator: Any = None,
         hearing: Any = None,
-        tokenizer: Any = None,
+        tokenizer: Optional[Tokenizer] = None,
+        parser: Optional[Parser] = None,
         grammar: Any = None,
         speaker_positions: Optional[Sequence[Any]] = None,
         can_file_motions: Optional[Sequence[Any]] = None,
@@ -73,6 +76,7 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         self.base_estimator = base_estimator
         self.hearing = hearing
         self.tokenizer = tokenizer
+        self.parser = parser
         self.grammar = grammar
         self.speaker_positions = speaker_positions
         self.can_file_motions = can_file_motions
@@ -132,13 +136,14 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         probs = self.base_estimator_.predict_proba(X)
 
         # If no masking context, return unmasked probabilities
-        if self.hearing is None or self.tokenizer is None:
+        if self.hearing is None or self.tokenizer is None or self.parser is None:
             return probs, False
 
         # Build allowed sections for this hearing
         allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
             hearing=self.hearing,
             tokenizer=self.tokenizer,
+            parser=self.parser,
             grammar=self.grammar,
             speaker_positions=self.speaker_positions,
             can_file_motions=self.can_file_motions,

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Union, Tuple, get_args
 from enum import Enum
 
 import matplotlib.pyplot as plt
@@ -12,19 +12,18 @@ from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 class SectionSpeakerRulePlotter:
     def __init__(self,
             grammar: List[Rule],
-            left_arg_type: type = SectionEnum,
-            right_arg_type: type = SpeakerPositionEnum,
         ):
         self.grammar = grammar
-        self.ordered_sections = list(left_arg_type)
+        self.ordered_sections = list(SectionEnum)
         
         self.section_speaker_map = defaultdict(list)
         for rule in self.grammar:
-            if (
-                len(rule) == 2
-                and isinstance(rule[0], left_arg_type)
-                and isinstance(rule[1], right_arg_type)
-            ):
+            # if it's a binary terminal production rule
+            if type(rule[1]) == tuple and type(rule[1][0]) == SpeakerPositionEnum:
+                self.section_speaker_map[rule[0]].append(rule[1][0])
+                self.section_speaker_map[rule[0]].append(rule[1][1])
+            # if it's a unary terminal production rule
+            elif type(rule[1]) == SpeakerPositionEnum:
                 self.section_speaker_map[rule[0]].append(rule[1])
         
 

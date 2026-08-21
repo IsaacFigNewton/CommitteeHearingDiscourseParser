@@ -36,7 +36,7 @@ class Hearing:
                 role = speaker.speaker_position.name
             strings.append(f"{name} [{role}]:")
             strings.append(f"{u.text}")
-            strings.append("\n")
+            strings.append(f"\n")
         return "\n".join(strings)
 
 @dataclass

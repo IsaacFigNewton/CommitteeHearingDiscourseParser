@@ -1,0 +1,280 @@
+================================================================================
+Hearing 1: CA_201720180SCA22 (hid: 254831)
+================================================================================
+
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START
+      (INTRO
+        (INTRO
+          (OTHER
+            (OTHER
+              (OTHER
+                (OTHER (PRESIDING_CHAIR utt_0))
+                (OTHER (BILL_AUTHOR utt_1)))
+              (OTHER (PRESIDING_CHAIR utt_2)))
+            (OTHER (BILL_AUTHOR utt_3)))
+          (INTRO (PRESIDING_CHAIR utt_4)))
+        (OTHER (COMMITTEE_MEMBER utt_5)))
+      (PRESENTATION (PRESIDING_CHAIR utt_6)))
+    (MIDDLE
+      (LOWER_MIDDLE
+        (PUBLIC_COMMENTS
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS
+              (PUBLIC_COMMENTS
+                (PUBLIC_COMMENTS
+                  (PUBLIC_COMMENTS
+                    (PUBLIC_COMMENTS
+                      (PUBLIC_COMMENTS
+                        (PUBLIC_COMMENTS
+                          (PUBLIC_COMMENTS
+                            (PUBLIC_COMMENTS
+                              (PUBLIC_COMMENTS
+                                (PUBLIC_COMMENTS
+                                  (PUBLIC_COMMENTS
+                                    (PUBLIC_COMMENTS
+                                      (PUBLIC_COMMENTS
+                                        (PUBLIC_COMMENTS
+                                          (PUBLIC_COMMENTS
+                                            (PUBLIC_COMMENTS
+                                              (PUBLIC_COMMENTS
+                                                (PUBLIC_COMMENTS
+                                                  (PUBLIC_COMMENTS
+                                                    (PUBLIC_COMMENTS
+                                                      (PUBLIC_COMMENTS
+                                                        (PUBLIC_COMMENTS
+                                                          (PUBLIC_COMMENTS
+                                                            (PUBLIC_COMMENTS
+                                                              (PUBLIC_COMMENTS
+                                                                (PUBLIC_COMMENTS
+                                                                  (PUBLIC_COMMENTS
+                                                                    (PUBLIC_COMMENTS
+                                                                      (PUBLIC
+                                                                        utt_7))
+                                                                    (PUBLIC_COMMENTS
+                                                                      (PRESIDING_CHAIR
+                                                                        utt_8)))
+                                                                  (PUBLIC_COMMENTS
+                                                                    (PUBLIC
+                                                                      utt_9)))
+                                                                (PUBLIC_COMMENTS
+                                                                  (PRESIDING_CHAIR
+                                                                    utt_10)))
+                                                              (PUBLIC_COMMENTS
+                                                                (PUBLIC
+                                                                  utt_11)))
+                                                            (PUBLIC_COMMENTS
+                                                              (PRESIDING_CHAIR
+                                                                utt_12)))
+                                                          (PUBLIC_COMMENTS
+                                                            (PUBLIC
+                                                              utt_13)))
+                                                        (PUBLIC_COMMENTS
+                                                          (PRESIDING_CHAIR
+                                                            utt_14)))
+                                                      (PUBLIC_COMMENTS
+                                                        (PUBLIC
+                                                          utt_15)))
+                                                    (PUBLIC_COMMENTS
+                                                      (PRESIDING_CHAIR
+                                                        utt_16)))
+                                                  (PUBLIC_COMMENTS
+                                                    (PUBLIC utt_17)))
+                                                (PUBLIC_COMMENTS
+                                                  (PRESIDING_CHAIR
+                                                    utt_18)))
+                                              (PUBLIC_COMMENTS
+                                                (PUBLIC utt_19)))
+                                            (PUBLIC_COMMENTS
+                                              (PRESIDING_CHAIR
+                                                utt_20)))
+                                          (LEGISLATOR_DISCUSSION
+                                            (EXPERT utt_21)))
+                                        (PUBLIC_COMMENTS
+                                          (PRESIDING_CHAIR utt_22)))
+                                      (LEGISLATOR_DISCUSSION
+                                        (EXPERT utt_23)))
+                                    (PUBLIC_COMMENTS
+                                      (PRESIDING_CHAIR utt_24)))
+                                  (PUBLIC_COMMENTS
+                                    (COMMITTEE_MEMBER utt_25)))
+                                (OTHER (BILL_AUTHOR utt_26)))
+                              (PUBLIC_COMMENTS
+                                (COMMITTEE_MEMBER utt_27)))
+                            (OTHER (BILL_AUTHOR utt_28)))
+                          (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_29)))
+                        (OTHER (BILL_AUTHOR utt_30)))
+                      (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_31)))
+                    (OTHER (BILL_AUTHOR utt_32)))
+                  (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_33)))
+                (OTHER (BILL_AUTHOR utt_34)))
+              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_35)))
+            (OTHER (BILL_AUTHOR utt_36)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_37))))))
+  (END
+    (VOTE
+      (VOTE
+        (VOTE
+          (VOTE (SECRETARY utt_38))
+          (VOTE (PRESIDING_CHAIR utt_39)))
+        (VOTE (BILL_AUTHOR utt_40)))
+      (VOTE (PRESIDING_CHAIR utt_41)))))
+
+
+================================================================================
+Hearing 2: CA_201720180AB2601 (hid: 254161)
+================================================================================
+
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START
+      (INTRO
+        (OTHER (COMMITTEE_MEMBER utt_0))
+        (INTRO (PRESIDING_CHAIR utt_1))))
+    (MIDDLE
+      (LEGISLATOR_DISCUSSION
+        (LEGISLATOR_DISCUSSION
+          (LEGISLATOR_DISCUSSION
+            (LEGISLATOR_DISCUSSION (EXPERT utt_2))
+            (OTHER (PRESIDING_CHAIR utt_3)))
+          (LEGISLATOR_DISCUSSION (EXPERT utt_4)))
+        (OTHER (PRESIDING_CHAIR utt_5)))
+      (LOWER_MIDDLE
+        (PUBLIC_COMMENTS
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS
+              (PUBLIC_COMMENTS
+                (PUBLIC_COMMENTS
+                  (PUBLIC_COMMENTS
+                    (PUBLIC_COMMENTS
+                      (PUBLIC_COMMENTS
+                        (PUBLIC_COMMENTS
+                          (PUBLIC_COMMENTS
+                            (PUBLIC_COMMENTS (PUBLIC utt_6))
+                            (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                          (PUBLIC_COMMENTS (PUBLIC utt_8)))
+                        (PUBLIC_COMMENTS (PUBLIC utt_9)))
+                      (PUBLIC_COMMENTS (PUBLIC utt_10)))
+                    (PUBLIC_COMMENTS (PUBLIC utt_11)))
+                  (PUBLIC_COMMENTS (PUBLIC utt_12)))
+                (PUBLIC_COMMENTS (PUBLIC utt_13)))
+              (PUBLIC_COMMENTS (PUBLIC utt_14)))
+            (PUBLIC_COMMENTS (PUBLIC utt_15)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_16))))))
+  (END
+    (VOTE
+      (VOTE
+        (VOTE (SECRETARY utt_17))
+        (VOTE (PRESIDING_CHAIR utt_18)))
+      (VOTE (COMMITTEE_MEMBER utt_19)))))
+
+
+================================================================================
+Hearing 3: CA_201720180AB1062 (hid: 52583)
+================================================================================
+
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START
+      (INTRO
+        (INTRO (PRESIDING_CHAIR utt_0))
+        (OTHER (BILL_AUTHOR utt_1)))
+      (PRESENTATION (PRESIDING_CHAIR utt_2)))
+    (MIDDLE
+      (LOWER_MIDDLE
+        (PUBLIC_COMMENTS
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS
+              (PUBLIC_COMMENTS (PUBLIC utt_3))
+              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4)))
+            (OTHER (BILL_AUTHOR utt_5)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6))))))
+  (END (CLOSING_REMARKS (BILL_AUTHOR utt_7))))
+
+
+================================================================================
+Hearing 4: CA_20172018BUD3940 (hid: 52846)
+================================================================================
+
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START (PRESENTATION (PRESIDING_CHAIR utt_0)))
+    (MIDDLE
+      (LEGISLATOR_DISCUSSION
+        (LEGISLATOR_DISCUSSION
+          (LEGISLATOR_DISCUSSION
+            (LEGISLATOR_DISCUSSION
+              (LEGISLATOR_DISCUSSION
+                (LEGISLATOR_DISCUSSION
+                  (LEGISLATOR_DISCUSSION
+                    (LEGISLATOR_DISCUSSION
+                      (LEGISLATOR_DISCUSSION
+                        (LEGISLATOR_DISCUSSION
+                          (LEGISLATOR_DISCUSSION
+                            (LEGISLATOR_DISCUSSION
+                              (LEGISLATOR_DISCUSSION
+                                (LEGISLATOR_DISCUSSION
+                                  (LEGISLATOR_DISCUSSION
+                                    (LEGISLATOR_DISCUSSION
+                                      (LEGISLATOR_DISCUSSION
+                                        (EXPERT utt_1))
+                                      (OTHER (PRESIDING_CHAIR utt_2)))
+                                    (LEGISLATOR_DISCUSSION
+                                      (EXPERT utt_3)))
+                                  (OTHER (PRESIDING_CHAIR utt_4)))
+                                (LEGISLATOR_DISCUSSION
+                                  (EXPERT utt_5)))
+                              (OTHER (PRESIDING_CHAIR utt_6)))
+                            (LEGISLATOR_DISCUSSION (EXPERT utt_7)))
+                          (OTHER (PRESIDING_CHAIR utt_8)))
+                        (LEGISLATOR_DISCUSSION (EXPERT utt_9)))
+                      (OTHER (PRESIDING_CHAIR utt_10)))
+                    (LEGISLATOR_DISCUSSION (EXPERT utt_11)))
+                  (OTHER (PRESIDING_CHAIR utt_12)))
+                (OTHER (COMMITTEE_MEMBER utt_13)))
+              (LEGISLATOR_DISCUSSION (EXPERT utt_14)))
+            (OTHER (COMMITTEE_MEMBER utt_15)))
+          (LEGISLATOR_DISCUSSION (EXPERT utt_16)))
+        (OTHER (PRESIDING_CHAIR utt_17)))
+      (LOWER_MIDDLE (EXPERT_TESTIMONY (SECRETARY utt_18)))))
+  (END (CLOSING_REMARKS (PRESIDING_CHAIR utt_19))))
+
+
+================================================================================
+Hearing 5: CA_201720180AB546 (hid: 52118)
+================================================================================
+
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START
+      (PRESENTATION
+        (PRESENTATION (BILL_AUTHOR utt_0))
+        (OTHER (PRESIDING_CHAIR utt_1))))
+    (MIDDLE
+      (LEGISLATOR_DISCUSSION
+        (LEGISLATOR_DISCUSSION
+          (LEGISLATOR_DISCUSSION
+            (LEGISLATOR_DISCUSSION
+              (LEGISLATOR_DISCUSSION
+                (LEGISLATOR_DISCUSSION
+                  (LEGISLATOR_DISCUSSION
+                    (LEGISLATOR_DISCUSSION
+                      (LEGISLATOR_DISCUSSION (EXPERT utt_2))
+                      (OTHER (PRESIDING_CHAIR utt_3)))
+                    (LEGISLATOR_DISCUSSION (EXPERT utt_4)))
+                  (OTHER (PRESIDING_CHAIR utt_5)))
+                (LEGISLATOR_DISCUSSION (EXPERT utt_6)))
+              (OTHER (PRESIDING_CHAIR utt_7)))
+            (LEGISLATOR_DISCUSSION (EXPERT utt_8)))
+          (OTHER (PRESIDING_CHAIR utt_9)))
+        (OTHER (BILL_AUTHOR utt_10)))
+      (LOWER_MIDDLE (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_11)))))
+  (END (VOTE (COMMITTEE_MEMBER utt_12))))
+
+

@@ -7,6 +7,6 @@ from the Digital Democracy Corpus (2015-2018).
 
 from .HearingLoader import HearingLoader
 from .HearingTagger import HearingTagger
-from .HearingParser import HearingParser
+from .ClassifierPipeline import ClassifierPipeline
 
-__all__ = ['HearingLoader', 'HearingTagger', 'HearingParser']
+__all__ = ['HearingLoader', 'HearingTagger', 'ClassifierPipeline']

@@ -61,6 +61,7 @@ class HearingTagger(ITagger):
                 self.contains_any_phrase(tagged_u.text, SPEAKER_POSITION_CUES[SpeakerPositionEnum.PUBLIC])):
                 raw_hearing.speakers[tagged_u.pid].speaker_position = SpeakerPositionEnum.PUBLIC
 
+            # if the speaker was mentioned
             if tagged_u.pids_mentioned:
                 for matched_pid in tagged_u.pids_mentioned:
                     # update the associated speaker's mention metadata (as needed)
@@ -73,6 +74,8 @@ class HearingTagger(ITagger):
             # append to list of tagged utterances
             tagged_utterances.append(tagged_u)
 
+        def first_uid(s: Speaker):
+            return tagged_utterances[s.first_uid]
 
         # resolve ambiguous speakers' roles
         ambiguous_speakers = {
@@ -85,7 +88,7 @@ class HearingTagger(ITagger):
             #   then they must be an expert
             if (
                 s.first_mention_uid and s.first_mention_uid < s.first_uid
-                or tagged_utterances[s.first_uid].sent_count > 5
+                or first_uid(s).token_count > 15
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
             
@@ -94,12 +97,22 @@ class HearingTagger(ITagger):
             #   then they're probably a member of the public
             elif (
                 s.first_mention_uid and s.first_mention_uid == s.first_uid
-                or tagged_utterances[s.first_uid].sent_count < 4
+                or first_uid(s).token_count < 15
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
             
-
-            
+        # if there is not an assigned presenter
+        if not any([s.is_presenter for s in raw_hearing.speakers.values()]):
+            #   assign the first legislator with an utterance longer than 10 tokens that mentions the bill the role
+            for u in tagged_utterances:
+                if (
+                    u.speaker_position\
+                        and u.speaker_position.value >= 3\
+                        and u.token_count > 10\
+                        and u.bill_mentioned
+                ):
+                    raw_hearing.speakers[u.pid].is_presenter = True
+                    break
 
         return TaggedHearing(
             **{

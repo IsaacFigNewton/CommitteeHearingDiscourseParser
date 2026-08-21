@@ -28,12 +28,14 @@ class OralContribution:
 class TaggedOralContribution(OralContribution):
     # pids of any speakers (including the current one) that were mentioned
     pids_mentioned: Optional[Set[int]]
-    # bids of any bills (including the current one) that were mentioned
-    bids_mentioned: Optional[Set[str]]
+    # boolean indicating if a bill was mentioned
+    bill_mentioned: Optional[bool]
 
     # metadata features
     # relative position of the utterance within the hearing transcript
     relative_position: Optional[float]
+    # total # tokens in the utterance
+    token_count: Optional[int]
     # total # sentences in the utterance
     sent_count: Optional[int]
     

@@ -21,7 +21,7 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 """
 
 
-class HearingParser:
+class ClassifierPipeline:
     TEXT_COL = 'text'
     CAT_COLS = [
         'speaker.position',
@@ -229,7 +229,7 @@ class HearingParser:
                 'relative_position':    u.relative_position,
                 'sent_count':           u.sent_count,
                 'mentions_speaker':     int(bool(u.pids_mentioned)),
-                'mentions_bill':        int(bool(u.bids_mentioned)),
+                'mentions_bill':        int(bool(u.bill_mentioned)),
                 'speech_act_cues':      ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
                 'section_cues':         ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
 

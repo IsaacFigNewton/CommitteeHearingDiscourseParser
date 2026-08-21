@@ -8,9 +8,12 @@ BILL_ID_TERMS = "|".join([
     r"Senate\s+Bill",
     r"this\s+bill",
     r"this\s+measure",
+    r"this\s+proposal",
     r"the\s+bill",
     r"the\s+measure",
+    r"the\s+proposal",
     r"item\s+number",
+    r"issue\s+number",
 ])
 
 BILL_ID_REGEX = rf"""

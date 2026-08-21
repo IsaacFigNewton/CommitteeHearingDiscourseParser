@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, 
 
 from src.grammar.Grammar import Rule
 from src.grammar.Tokenizer import Tokenizer
+from src.grammar.Parser import Parser
 from src.enums.SectionEnum import SectionEnum
 from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 from src.dataclasses.Hearing import TaggedHearing
@@ -27,7 +28,7 @@ class MaskedSoftmaxHelper:
     def allowed_sections_for_hearing(
         cls,
         hearing: TaggedHearing,
-        tokenizer: Tokenizer,
+        parser: Parser,
         grammar: Optional[List[Rule]] = None,
         speaker_positions: Optional[Sequence[SpeakerPositionEnum|None]] = None,
         can_file_motions: Optional[Sequence[bool|None]] = None,
@@ -53,7 +54,7 @@ class MaskedSoftmaxHelper:
         parse_trees: List[Any] = []
         try:
             parse_trees = list(
-                tokenizer.get_all_parses_as_nltk_trees(hearing, max_parses=max_parses)
+                parser.get_all_parses_as_nltk_trees(hearing, max_parses=max_parses)
                 or []
             )
         except Exception:

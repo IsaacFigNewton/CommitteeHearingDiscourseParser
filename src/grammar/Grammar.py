@@ -8,6 +8,7 @@ from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 class TOP(Enum):
     ROOT=   "ROOT"
     START=          "START"
+    START_MIDDLE=   "START_MIDDLE"
     MIDDLE=         "MIDDLE"
     LOWER_MIDDLE=   "LOWER_MIDDLE"
     END=            "END"
@@ -16,17 +17,29 @@ class TOP(Enum):
 Terminal = Union[
     SpeakerPositionEnum
 ]
-Symbol = Union[
+Nonterminal = Union[
     TOP,
     SectionEnum,
-    VoteSectionEnum,
-    Terminal,
+    VoteSectionEnum
 ]
+Symbol = Union[
+    Terminal,
+    Nonterminal
+]
+
 # rule types
+Terminal_Rule = Union[
+    Tuple[Nonterminal, Tuple[Terminal, Terminal]],
+    Tuple[Nonterminal, Terminal],
+    Tuple[Nonterminal, None]
+]
+Nonterminal_Rule = Union[
+    Tuple[Nonterminal, Tuple[Nonterminal, Nonterminal]],
+    Tuple[Nonterminal, Nonterminal],
+]
 Rule = Union[
-    Tuple[Symbol, List[Symbol]],
-    Tuple[Symbol, Symbol],
-    Tuple[Symbol, None]
+    Terminal_Rule,
+    Nonterminal_Rule
 ]
 
 # SpeakerPositionEnum should be disambiguated by now
@@ -34,52 +47,55 @@ Rule = Union[
 #   such rules are marked
 GRAMMAR = [
     # broad hearing structures
-    (TOP.ROOT,                          [TOP.START, TOP.MIDDLE, TOP.END]),
-    (TOP.ROOT,                          [TOP.START, TOP.END]),     # Hearings without MIDDLE
+    (TOP.ROOT,                          (TOP.START_MIDDLE, TOP.END)),
+    (TOP.START_MIDDLE,                  (TOP.START, TOP.MIDDLE)),
 
     # fallback for OTHER sections
-    (SectionEnum.OTHER,                 [SectionEnum.OTHER, SectionEnum.OTHER]),
+    (SectionEnum.OTHER,                 (SectionEnum.OTHER, SectionEnum.OTHER)),
 
     # different discussion starts
-    (TOP.START,                         [SectionEnum.INTRO, SectionEnum.PRESENTATION]),
-    (TOP.START,                         [SectionEnum.INTRO]),
-    (TOP.START,                         [SectionEnum.PRESENTATION]),
+    (TOP.START,                         (SectionEnum.INTRO, SectionEnum.PRESENTATION)),
+    (TOP.START,                         (SectionEnum.INTRO)),
+    (TOP.START,                         (SectionEnum.PRESENTATION)),
 
     # different middles
-    (TOP.MIDDLE,                        [SectionEnum.LEGISLATOR_DISCUSSION, TOP.LOWER_MIDDLE]),
+    (TOP.MIDDLE,                        (SectionEnum.LEGISLATOR_DISCUSSION, TOP.LOWER_MIDDLE)),
     (TOP.MIDDLE,                        TOP.LOWER_MIDDLE),
-    (TOP.LOWER_MIDDLE,                  [SectionEnum.EXPERT_TESTIMONY, SectionEnum.PUBLIC_COMMENTS]),
-    (TOP.LOWER_MIDDLE,                  [SectionEnum.EXPERT_TESTIMONY]),
-    (TOP.LOWER_MIDDLE,                  [SectionEnum.PUBLIC_COMMENTS]),
+    (TOP.MIDDLE,                        None),
+
+    # different commentary sections
+    (TOP.LOWER_MIDDLE,                  (SectionEnum.EXPERT_TESTIMONY, SectionEnum.PUBLIC_COMMENTS)),
+    (TOP.LOWER_MIDDLE,                  SectionEnum.EXPERT_TESTIMONY),
+    (TOP.LOWER_MIDDLE,                  SectionEnum.PUBLIC_COMMENTS),
 
     # different ends
-    (TOP.END,                           [SectionEnum.CLOSING_REMARKS, SectionEnum.VOTE]),
-    (TOP.END,                           [SectionEnum.CLOSING_REMARKS]),
-    (TOP.END,                           [SectionEnum.VOTE]),
+    (TOP.END,                           (SectionEnum.CLOSING_REMARKS, SectionEnum.VOTE)),
+    (TOP.END,                           SectionEnum.CLOSING_REMARKS),
+    (TOP.END,                           SectionEnum.VOTE),
 
     # different SectionEnum expansions
     # TOP.START
-    (SectionEnum.INTRO,                 [SectionEnum.OTHER, SectionEnum.INTRO]),
-    (SectionEnum.INTRO,                 [SectionEnum.INTRO, SectionEnum.OTHER]),
-    (SectionEnum.INTRO,                 [SectionEnum.INTRO, SectionEnum.INTRO]),
-    (SectionEnum.PRESENTATION,          [SectionEnum.PRESENTATION, SectionEnum.OTHER]),
-    (SectionEnum.PRESENTATION,          [SectionEnum.PRESENTATION, SectionEnum.PRESENTATION]),
+    (SectionEnum.INTRO,                 (SectionEnum.OTHER, SectionEnum.INTRO)),
+    (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.OTHER)),
+    (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.INTRO)),
+    (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.OTHER)),
+    (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.PRESENTATION)),
 
     # TOP.MIDDLE
-    (SectionEnum.LEGISLATOR_DISCUSSION, [SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.OTHER]),
-    (SectionEnum.LEGISLATOR_DISCUSSION, [SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION]),
-    (SectionEnum.EXPERT_TESTIMONY,      [SectionEnum.EXPERT_TESTIMONY, SectionEnum.OTHER]),
-    (SectionEnum.EXPERT_TESTIMONY,      [SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY]),
-    (SectionEnum.EXPERT_TESTIMONY,      [SectionEnum.EXPERT_TESTIMONY, SectionEnum.LEGISLATOR_DISCUSSION]),
-    (SectionEnum.PUBLIC_COMMENTS,       [SectionEnum.PUBLIC_COMMENTS, SectionEnum.OTHER]),
-    (SectionEnum.PUBLIC_COMMENTS,       [SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS]),
-    (SectionEnum.PUBLIC_COMMENTS,       [SectionEnum.PUBLIC_COMMENTS, SectionEnum.LEGISLATOR_DISCUSSION]),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.OTHER)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION)),
+    (SectionEnum.EXPERT_TESTIMONY,      (SectionEnum.EXPERT_TESTIMONY, SectionEnum.OTHER)),
+    (SectionEnum.EXPERT_TESTIMONY,      (SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
+    (SectionEnum.EXPERT_TESTIMONY,      (SectionEnum.EXPERT_TESTIMONY, SectionEnum.LEGISLATOR_DISCUSSION)),
+    (SectionEnum.PUBLIC_COMMENTS,       (SectionEnum.PUBLIC_COMMENTS, SectionEnum.OTHER)),
+    (SectionEnum.PUBLIC_COMMENTS,       (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
+    (SectionEnum.PUBLIC_COMMENTS,       (SectionEnum.PUBLIC_COMMENTS, SectionEnum.LEGISLATOR_DISCUSSION)),
 
     # TOP.END
-    (SectionEnum.CLOSING_REMARKS,       [SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER]),
-    (SectionEnum.CLOSING_REMARKS,       [SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS]),
-    (SectionEnum.VOTE,                  [SectionEnum.VOTE, SectionEnum.OTHER]),
-    (SectionEnum.VOTE,                  [SectionEnum.VOTE, SectionEnum.VOTE]),
+    (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER)),
+    (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS)),
+    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.OTHER)),
+    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
 
     # valid role expansions - terminals are now just SpeakerPositionEnum
     (SectionEnum.OTHER,                 SpeakerPositionEnum.LEGISLATOR),
@@ -93,6 +109,15 @@ GRAMMAR = [
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.PRESENTATION,          SpeakerPositionEnum.PRESIDING_CHAIR),
 
+
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.NONLEGISLATOR)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.EXPERT)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.LEGISLATOR)),            # fallback for ambiguous SpeakerPositionEnum
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.NONLEGISLATOR)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.EXPERT)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.LEGISLATOR)),            # fallback for ambiguous SpeakerPositionEnum
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.BILL_AUTHOR)),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.NONLEGISLATOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.EXPERT),
     (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum

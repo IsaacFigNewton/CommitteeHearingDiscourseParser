@@ -40,7 +40,6 @@ class SectionEnum(Enum):
     #   that don't involve bill discussion or which do not pertain to the current bill
     OTHER=                  "OTHER"
 
-
 class VoteSectionEnum(Enum):
     MOTION=             "MOTION"
     SECOND=             "SECOND"

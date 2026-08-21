@@ -33,7 +33,7 @@ class UtteranceTagger(ITagger):
             text = ""
 
         # build a set of the pids of speakers mentioned
-        text, pids_mentioned, sent_count = self.substitute_named_entities(
+        text, pids_mentioned, token_count, sent_count = self.substitute_named_entities(
             text,
             speaker_names_pids,
             speakers,
@@ -57,10 +57,11 @@ class UtteranceTagger(ITagger):
             # mention features
             # metadata features
             relative_position=              None,
+            token_count=                    token_count,
             sent_count=                     sent_count,
             # match all capitalized bigrams that might be names
             pids_mentioned=                 pids_mentioned,
-            bids_mentioned=                 set(re.findall(NORMALIZED_BILL_REGEX, normalized)),
+            bill_mentioned=                 len(re.findall(NORMALIZED_BILL_REGEX, normalized)) > 0,
 
             # cues
             section_cues=                   section_cues,
@@ -144,7 +145,7 @@ class UtteranceTagger(ITagger):
         speaker_names_pids: Dict[str, int],
         speakers: Dict[int, Speaker],
         fuzzy_threshold: int = 85
-    ) -> Tuple[str, Set[int], int]:
+    ) -> Tuple[str, Set[int], int, int]:
         """
         Replace speaker name mentions with their position names using spaCy NER.
 
@@ -155,10 +156,10 @@ class UtteranceTagger(ITagger):
             fuzzy_threshold: Minimum fuzzy match score (0-100) to consider a match
 
         Returns:
-            Tuple of (modified_text, pids_mentioned)
+            Tuple of (modified_text, pids_mentioned, token_count, sentence_count)
         """
         if not text:
-            return text, set()
+            return text, set(), 0, 0
 
         # Tokenize and extract named entities
         doc = self.nlp(text)
@@ -201,7 +202,9 @@ class UtteranceTagger(ITagger):
         for start_char, end_char, replacement in reversed(replacements):
             modified_text = modified_text[:start_char] + replacement + modified_text[end_char:]
 
-        return modified_text, pids_mentioned, sent_count
+        # use spaces to delimit tokens
+        token_count = modified_text.count(" ") + 1
+        return modified_text, pids_mentioned, token_count, sent_count
     
 
     def _get_speech_act_cues(self, text: str) -> set:

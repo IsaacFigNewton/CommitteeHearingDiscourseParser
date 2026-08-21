@@ -1,6 +1,10 @@
 import re
 from .bill_ref_normalization import NORMALIZED_BILL_REGEX
 
+# minimum length of an utterance (in tokens) to assign a role in a fallback
+
+token_role_threshold = 10
+
 BILL_KEYPHRASES = {
     0: {
         "take up",

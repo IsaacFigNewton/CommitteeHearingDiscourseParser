@@ -54,8 +54,9 @@ Extends OralContribution with extracted features and tags for classification.
 | Field | Type | Description |
 |-------|------|-------------|
 | `pids_mentioned` | `Optional[Set[int]]` | PIDs of speakers mentioned in this utterance |
-| `bids_mentioned` | `Optional[Set[str]]` | Bill IDs mentioned in this utterance |
+| `bill_mentioned` | `Optional[bool]` | If a bill was mentioned in this utterance |
 | `relative_position` | `Optional[float]` | Relative position of utterance within hearing (0.0 to 1.0) |
+| `tok_count` | `Optional[int]` | Number of tokens in the utterance |
 | `sent_count` | `Optional[int]` | Number of sentences in the utterance |
 | `speech_act_cues` | `Optional[Set[SpeechActEnum]]` | Detected speech act cues (e.g., STATEMENT, ARGUMENT) |
 | `section_cues` | `Optional[Set[SectionEnum]]` | Detected section transition cues |
