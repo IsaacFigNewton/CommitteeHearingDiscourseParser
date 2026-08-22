@@ -1,0 +1,326 @@
+Failed Parse Analysis
+================================================================================
+
+Total failed hearings: 67
+Sample exported: 2
+
+================================================================================
+Failed Hearing 1
+================================================================================
+
+Bill: CA_201720180AB2101
+Hearing ID: 254741
+Committee: 538
+Token Sequence (17 tokens):
+  PRESIDING_CHAIR -> PRESIDING_CHAIR -> EXPERT -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> COMMITTEE_MEMBER -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> PRESIDING_CHAIR
+
+
+Full Transcript:
+State:		CA
+Committee:	Assembly Standing Committee on Aging and Long-Term Care
+Bill:		CA_201720180AB2101
+Date:		2018-04-17
+
+
+Transcript:
+Dante Acosta: [PRESIDING_CHAIR]:
+thank you mr chair and committee mr vice chair good afternoon thank you for allowing me the opportunity to present BILL before I begin I will be taking the clarifying ORG amendments for BILL as described in the analysis BILL will establish a workforce for the elderly working with the caregiver resource center to provide respite care to those in need of in home care from low and middle income families that are not eligible for IHSS currently there are more than 4 million unpaid family caregivers in GPE the ORG is estimated that by 2030 the number of seniors in need of in home care services will have doubled to over 900000 this number does not take into account those who will be in nursing homes something that most middle and low income families cannot afford the cost for assisted living facilities and nursing homes consume 697% and 161% respectively of the median annual income of californians something that ORG and medical are unable to cover effectively BILL will utilize the existing structure of the ORG and will add onto their capabilities by creating an incentive-based pilot program for young adults ideally the program will be gear for college students who are interested in pursuing a career in the healthcare field by providing educational benefits as well as a monthly stipend this program will act as a tunnel between school and the respite care field for students to gain real world experience and encourage them to go into a field that is extremely depleted and in need of caregivers additionally this is an optional pilot program which will provide us with the opportunity to figure out how to best serve those in need of care I have EXPERT I hope I got that right with me today -- even though we rehearsed it at least twice with me today representing the sponsor of ORG and I had another expert witness but got sick so ORG might cover a point or two of theirs mr chair and committee members thank you for your time and consideration I respectfully ask for your aye vote
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+thank you please ORG
+
+
+Nihal Satyadev: [EXPERT]:
+thank you thank you for the introduction and thank you to ORG member PRESIDING_CHAIR and ORG member garcia for their authorship of BILL ORG and esteemed member of the ORG my name is EXPERT I am the originator of BILL and aspiring physician and I serve as the CEO and ORG of ORG anonprofit that started right here in GPE and has grown to engaging 500 students and is now the nation's leader in youth advocacy for this disease we as students are concerned that the cost of care will outgrow ORG and ORG in the upcoming decades we are scared that are parents are retiring into a society that cannot guarantee them adequate housing and care and as millennials we are interested in voting for a long term solutions to our global challenges that if not addressed now will be universally impactful as we reach our 40s and 50s and today we're creating just such a solution ORG calls for the creation of a GPE care corps A $25 million allocation across five years to incentivize that incentives high school and college graduates to provide full-time care to a senior with cognitive impairment in just one bill we are able to add value to many different stakeholders for young individuals like myself this provides a unique life perspective and an opportunity to develop skills to work with our growing aging population for current family caregivers an overwhelming amount which are dealing with depression this offers a much needed break and for those with the disease this offers a young individual full of spirit and energy to improve quality of life for GPE and our healthcare system we are able to alleviate the need for mental health resources or lessen the need for mental health resources and allow caregivers to reenter the workforce if 50% of recipients of this program are able to go back to work at a median salary we will be able to pay back the cost of this pilot in 10% through taxes alone so how do we know that we will be able to benefit all these parties well because my non-profit operates an inter-generational social enterprise in partnership with ORG that was launched after a two year pilot at ORG we train college student volunteers to provide and partner them with older adults with early to mid-stage dementia in a community based setting for six hours a week during which time caregivers get a break we have quantifiable data to show benefits to all parties this program I think is really important to our state to show that once again we are leading by example just like GPE did in 1984 through the creation of the care giver resource centers and did again in 2002 through ORG we as a state have an opportunity to show that we know that gpe's caregivers are unsung heroes and that we as a state innovate with a foundation in compassion and one that is preparing for tomorrow's workforce I encourage the chair and the members of this ORG to see BILL through and join our organization's vision as we work together to create a future worth remembering thank you
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+thank you any other public witnesses in support or any other folks not in support
+
+
+Nicole Gutierrez: [PUBLIC]:
+good afternoon my name is PUBLIC on behalf of the alzheimer's association and i'm here is support of ORG
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+before we move forward i'd like to have a quorum established please
+
+
+Committee Secretary: [SECRETARY]:
+GPE here voepel yo allen caballero here gipson gloria here rubio
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+all right thank you we do have a quorum established is there anyone here in opposition
+
+
+Monica Miller: [PUBLIC]:
+i'm support I apologize I was outside and couldn't get into the room PUBLIC representing alzheimer's greater los angeles thank you
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+thank you anyone else in support if not anyone in opposition and we will bring it back to the ORG any questions or comments or motions sure
+
+
+Randy Voepel: [COMMITTEE_MEMBER]:
+I was a ORG sailor for almost nine years sailors check in when we're mustered on station with yo so that's a naval term
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+is that a clarifying amendment yeah okay second all right thank you there is a motion and a second and no further comment would you like to close
+
+
+Dante Acosta: [PRESIDING_CHAIR]:
+well respectfully ask for your aye vote thank you for the motion and a second by the ORG and I appreciate an aye vote
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+all right well there is an aye recommendation with the amendments and thank you for accepting the amendments we have a motion by gloria seconded by ORG please take roll on the vote
+
+
+Committee Secretary: [SECRETARY]:
+kalra aye kalra aye voepel aye aye voepel aye excuse me allen caballero aye caballero aye gipson gloria aye gloria aye rubio
+
+
+Ash Kalra: [PRESIDING_CHAIR]:
+all right so that bill does pass to ORG appropriations
+
+
+Dante Acosta: [PRESIDING_CHAIR]:
+thank you very much mr chair thank you ORG
+
+
+
+================================================================================
+Failed Hearing 2
+================================================================================
+
+Bill: CA_201720180SB574
+Hearing ID: 54113
+Committee: 537
+Token Sequence (53 tokens):
+  PRESIDING_CHAIR -> EXPERT -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> BILL_AUTHOR -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> BILL_AUTHOR -> SECRETARY -> BILL_AUTHOR -> PRESIDING_CHAIR -> BILL_AUTHOR -> PUBLIC -> BILL_AUTHOR -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PUBLIC -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> PRESIDING_CHAIR -> BILL_AUTHOR -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> SECRETARY -> PRESIDING_CHAIR -> BILL_AUTHOR -> SECRETARY -> BILL_AUTHOR
+
+
+Full Transcript:
+State:		CA
+Committee:	Assembly Standing Committee on Accountability and Administrative Review
+Bill:		CA_201720180SB574
+Date:		2017-07-05
+
+
+Transcript:
+Susan Eggman: [PRESIDING_CHAIR]:
+immigrant communities but that is precisely what is happening and that's why we're so grateful for this org's steadfast support for these modest reforms and why we request your aye vote on ORG thank you thank you next person speaking in support please keep it under two minutes please
+
+
+Michael Avant: [EXPERT]:
+yes hello chair and members thank you for having me here my name is EXPERT i've been at GPE GPE for 15 years as a patient transporter I want to commend senator BILL_AUTHOR I know he wants to stop the GPE systematic abuse of immigrant workers but today i'm here as a black man while only 2% of GPE facility and 5% of GPE students who are african american GPE has done a historically better job with people like me 13% of service jobs at GPE are held by people who look like me they're good job good benefits that I support my sick children on by unopposing senator bill_author's bill GPE estimates suggest the 7000 of service job are now subcontracted out if you ask GPE how many of those 7000 subcontractor jobs are held by african americans they'll tell you they don't know they don't ask it's not their responsibility do you know how many decades african americans have had to listen to this are you going to accept that I don't here's the ugly truth just about 100% of subcontractor service jobs defined in BILL are filled by immigrants there aren't more than a handful of african americans being hired by those contractors I work there we see it I will take each and every one of you and I will show you is it worth your time it is definitely worth mine the truth is those 7000 jobs are staffed by GPE employees 900 more african americans will have jobs kind of like the one that I do thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you
+
+
+Brian Allison: [PUBLIC]:
+madam chair members of the ORG PUBLIC on behalf of ORG ORG I won't belabor the point just to say that this is a very important measure i'm glad that we're continuing the conversation about contracting out and ensuring that GPE gpe's third largest employer here in this state is continuing to operate with the same contracting in due diligence standards that apply in other sectors of government whether we talked a little bit earlier about the state and other sectors of government we worked for many years to ensure that we could get those protections in place we need to ensure that ORG has similar protections in place and we're thankful for the author of BILL for continuing this conversation also grateful for this ORG who historically has been supportive of this concept so thank you for your time today we ask for your aye vote
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you other people speaking in support today
+
+
+Michael Young: [PUBLIC]:
+PUBLIC with ORG here in strong support thank you
+
+
+Kimberly Rosenberger: [PUBLIC]:
+PUBLIC with service employees international union in support
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much anybody speaking in opposition to BILL today
+
+
+Jason Murphy: [PUBLIC]:
+good afternoon madam chair and members senator PUBLIC on behalf of ORG here today in strong opposition to BILL this of course is the third year of this effort and the ORG has been opposed since the outset I want to start by noting that ORG cares very deeply for the appropriate conversation of all of our employees it was for that reason that jan napolitano announce about 18 or so months ago the university fair wage fair work plan the fair wage fair work plan provides the GPE minimum wage that will be rising to $1500 per hour this upcoming october 1 it's currently at $14 per hour it's been [ORG] up since the implementation which started at $13 and so as i'm aware in the state that's one of the highest municipal local regional minimum wages that's available right now and will go up again later this fall in addition the fair wage ORG calls for regular audits of those contracts that are done under the fair wage for work and of course all contracts going forward but they are being implemented as time goes by into all these contracts annual audits are being done on those contracts annually in addition there's spot audits being made available and ORG has established a hotline for workers who feel they have not been rewarded in the way that the fair wage program would require so for all those reasons and the significant fiscal impacts I know this isn't a fiscal committee but we are at about $88 million fiscal impact to BILL we remain opposed
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much next person
+
+
+Karen Sarkissian: [PUBLIC]:
+thank you madam chair and members PUBLIC with ORG here also in opposition BILL will turn competitive bidding on it's head and it will tie the hands of the GPE in their ability to acquire the lowest responsible bid for these short term special services or good contracts the concern with this is that it will lead to higher costs for the GPE and those higher costs will ultimately lead to higher costs for students at a time when we're asking the GPE and other GPE universities to produced a skilled workforce that meets the demands the industry including our members and so we believe BILL will discourage vendors from bidding on these GPE contracts all together which will further drive up cost for the GPE ORG analysis noted an $88 million annual cost for BILL we can't on the one hand expect the GPE to increase enrollment to graduate more students maintain the quality of education they provide maintain tuition rates or decrease them yet on the on the other hand increase their costs by restricting their ability to make important contracting decisions to acquire the lowest responsible bid for these temporary or special services for which they do not need full time staff BILL eliminates the flexibility that GPE has in making important contracting decisions which will likely undermine the quality and the cost of higher education in this state which affects students and ultimately and in turn affects employers thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much anybody else speaking in opposition of BILL today okay bill's been moved and seconded and I will say while that we are awaiting the results of the audit and the author has agreed that BILL won't continue on forward unless they put in what was in the audit because the governor has vetoed this twice and has said we want to see the results of the audit so we'll have actual data as we move forward but we want to keep it moving forward now so that we can actually put in the results of the audit to make sure it is a tight bill with equity for everybody go ahead
+
+
+Jose Medina: [PRESIDING_CHAIR]:
+I just want to respond to GPE because we have heard BILL before and because I chair higher education where I believe BILL will go to next i've supported BILL every time I will continue to support it but I want to say why as a school board member when we were facing budget cuts I voted against outsourcing our bus services because I always feel and I still feel that employees who work for the entity whether it be a school district the community college or a university are better employees if they are responsible for that entity and I agree with the witness in support when it came to outsource and privatize the book store at the community college I opposed it and the same arguments that are made in a school district who looks to save cost by laying off the maintainance workers and a library aids seems to me the same argument that's being made by GPE who talks about saving money at the expense of those employees who are at the bottom run of the wages and so if I am to be sympathetic when I hear GPE come to me and say that we need to pay our president top dollar to be competitive with other universities throughout GPE and I am sympathetic to that I cannot at the same time be unsympathetic to those workers who make the lowest wage and say that we are even going to give them even lower wages or that we cannot afford to educate our students because we're going to give these employees the wages that they deserve so i'll just state that and when you come back to higher ed I will make the same argument and you know I just can't see how GPE argues it both ways you know we're going to take care of all of the employees if we were going to give faculty and administrators competitive wages we have the same responsibility to give the lowest wage earners the same respect so i'm very happy to move this and look forward to coming to higher ed
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+and two bills on call for me in another room
+
+
+Ricardo Lara: [BILL_AUTHOR]:
+I respectfully ask for your aye vote
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much secretary please call the roll
+
+
+Committee Secretary: [SECRETARY]:
+the motion is do pass and re refer to ORG talamantes eggman aye talamantes eggman aye lackey burke flora no flora no GPE GPE aye medina aye BILL_AUTHOR aye cervantes aye
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+and senator I would say that we have hopefully a member on their way but just for the record to ask for reconsideration if that said member doesn't show up okay thank you okay meeting adjourned can you hand the gavel to [ORG] miss BILL_AUTHOR is going to keep this open while I go vote in another room
+
+
+Sabrina Cervantes: [BILL_AUTHOR]:
+[ORG] secretary please call the roll
+
+
+Committee Secretary: [SECRETARY]:
+ORG lara motion is do pass and refer to the ORG on higher education frazier aye frazier aye
+
+
+Sabrina Cervantes: [BILL_AUTHOR]:
+BILL is out ORG four nos one I was trying to say hearing is adjourned perfect hearing is adjourned okay thanks
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+okay good afternoon everybody we're to call this special meeting for the special member to order and we would note that ORG member quirk-silva could not be here today and so ORG member BILL_AUTHOR is filling in in her stead we are seeing one bill today BILL by mr BILL_AUTHOR
+
+
+Ricardo Lara: [BILL_AUTHOR]:
+thank you madam chairwoman again I just want to apologize for missing the last hearing I had a little mini emergency with my dad but everything's good again just want to thank you and no means wanted to disrespect the ORG members BILL is a bill it should look familiar to some of you like last year's legislation BILL simply requires that employers providing sub-contracted services must tell the GPE that the wages and benefits they provide their employees do not undercut the wages and benefits that GPE pays its own employees for doing the exact same job BILL also requires bidders for contracts to the GPE to certify that their compliance with the GPE labor laws including laws enacted to prevent wage theft and gender pay disparity members I would like to keep BILL moving while we wait on an important audit that my office requested with the ORG auditor about the gpe's contracting process the audit would very well prove that BILL is needed in its current form also if there are any additional recommendations that we would like to also incorporate in BILL we would still plan to amend and work with the legislative deadlines as required with that I respectfully ask for your aye vote
+
+
+Unidentified Speaker: [PUBLIC]:
+move BILL second
+
+
+Ricardo Lara: [BILL_AUTHOR]:
+thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+okay and before we go further if we can just establish a quorum secretary please call the roll
+
+
+Committee Secretary: [SECRETARY]:
+galamantez eggman here galamantez eggman present lackey burke BILL_AUTHOR here BILL_AUTHOR present flora here flora present GPE GPE here GPE present
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+we have a quorum okay first witness please
+
+
+Kathryn Lybarger: [PUBLIC]:
+thank you to the chair members of the ORG good afternoon my name is PUBLIC i'm the president of ORG that represents over 24000 patient care technical and service workers at ORG and i'm here to speak in support of ORG everyday our members work alongside thousands of low wage contingent workers who are employed by private firms on the contract with ORG by gpe's own estimates there are more than 7000 such workers who will be affected by BILL most of these workers are immigrants they do the same jobs as our members but for a fraction of the pay and no benefits ORG would not limit gpe's ability to contract for services in any way instead it would require the contractors that GPE hires to not undercut the total compensation of GPE employees as the senator spoke about this is not a radical idea contractors for the state our K-12 system and GPE community colleges are already held to these standards the ORG passed a similar measure BILL last year and while we wait for the audit that the senator spoke of there are several facts that we already know which underscore the importance of BILL as GPE has increased enrollment and brought hundreds of new facilities online it has increased its use of private contractors for front line service and patient care services by at least 50% since 2011 according to ucs own estimates of BILL the ORG now has more low wage contractors than directly employed service workers the GPE is one of our states largest economic engines its contracting standards should not be creating more poverty more reliance on ORG and more exploitation of immigrant communities but that is precisely what is happening and that's why we're so grateful for this org's steadfast support for these modest reforms and why we request your aye vote on ORG thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you next person speaking in support please keep it under two minutes please
+
+
+Michael Ovont: [PUBLIC]:
+yes hello chair and members thank you for having me here my name is PUBLIC i've been at GPE GPE for 15 years as a patient transporter I want to commend senator BILL_AUTHOR I know he wants to stop the GPE systematic abuse of immigrant workers but today i'm here as a black man while only 2% of GPE facility and 5% of GPE students are african-american GPE has done a historically better job with people like me 13% of service jobs at GPE are held by people who look like me there are good jobs good benefits that I support my sick children on by opposing senator bill_author's bill ORG may suggest that 7000 of service jobs are now subcontracted out if you ask GPE how many of those 7000 subcontract jobs are held by african americans they'll tell you they don't know they don't ask it's not their responsibility do you know how many decades african americans have had to listen to this are you going to accept that I don't here's the ugly truth just about 100% of sub-contracted service jobs defined in BILL are filled by immigrants there are more than a handful of african-americans being hired by those contractors I work there we see it I will take each and every one of you and I will show you is it worth your time it's definitely worth mine the truth is those 7000 jobs are staffed by GPE employees 900 more african americans will have jobs kind of like the ones that I do thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you
+
+
+Brian Allison: [PUBLIC]:
+madame chair and members of the ORG PUBLIC on behalf of ORG I won't belabor the point just to say that this is a very important measure i'm glad that we're continuing on the conversation about contracting out and ensuring that GPE gpe's third largest employer here in this state is continuing to operate with the same contracting and due diligence standards that apply in other sectors of government we talked a little bit earlier about the state and other sectors of government we worked at for many years to ensure that we can get those protections in place we need to ensure that ORG has similar protections in place and we're thankful for the author of BILL for continuing this conversation also grateful for this ORG who historically has been supportive of this concept so thank you for your time today we ask for your aye vote
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you other people speaking in support today
+
+
+Michael Young: [PUBLIC]:
+PUBLIC with ORG here in strong support
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you
+
+
+Kimberly Rosenberger: [PUBLIC]:
+PUBLIC with service employees international union in support
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much anybody speaking in opposition to BILL today
+
+
+Jason Murphy: [PUBLIC]:
+good afternoon madam chair and members senator PUBLIC on behalf of ORG here today in strong opposition to BILL this is of course the third year of this effort and the ORG has been opposed since the outset I want to start by noting that ORG cares very deeply for the appropriate compensation of all of our employees it was for that reason that janet napolitano announced about 18 or so months ago ORG work plan the fair wage fair work plan provides the GPE minimum wage that will be rising to $15 per hour this upcoming october 1 it's currently at $14 per hour it's been ratcheting up since the implementation which started at $13 and so as i'm aware in the state that's one of the highest municipal local regional minimal wages that's available right now and will go up again later this fall in addition the fair wage fair work program calls for regular audits of those contracts that are done under the fair wage fair work and of course all contracts going forward but they're being implemented as time goes by into all these contracts annual audits are being done on those contracts annually in addition there's spot audits being made available and ORG has established a hotline for workers who feel they have not been rewarded in a way that the fair wage fair work program will require so for all those reasons and the significant fiscal impact I know this isn't a fiscal committee but we are at about a $88 million fiscal impact to BILL we remain opposed
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much next person
+
+
+Karen Sarkissian: [PUBLIC]:
+thank you thank you madame chair and members PUBLIC with ORG here also in opposition BILL will turn competitive bidding on its head and it will tie the hands of the GPE in their ability to acquire the lowest responsible bid for these short-term special services or good contracts the concern with this is that it will lead to higher costs for the GPE and those higher costs will ultimately lead to higher costs for students at a time when we're asking the GPE and other GPE universities to produce a skilled workforce that meets the demands of industry including our members and so we believe BILL will discourage vendors from bidding on these GPE contracts altogether which will further drive up costs for the GPE ORG analysis noted an $88 million annual cost for BILL we can't on the one hand expect the GPE to increase enrollment to graduate more students maintain the quality of education they provide maintain tuition rates or decrease them yet on the other hand increase their costs by restricting their ability to make important contracting decisions to acquire the lowest responsible bid for these temporary or special services for which they do not need full time staff BILL eliminates the flexibility that GPE has in making important contracting decisions which will likely undermine the quality and the cost of higher education in this state which effects students and ultimately in turn effects employers thank you
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much anybody else speaking in opposition to BILL today okay bill's been moved and seconded and I will say that we are awaiting the results of the audit and the author has agreed that BILL won't continue on forward unless they put in what was in the audit because the governor has vetoed this twice and has said we want to see the results of the audit so we'll have actual data as we move forward but we want to keep it moving forward now so that we can actually put in the results of the audit to make sure it is a tight bill with equity for everybody and go ahead
+
+
+Jose Medina: [PRESIDING_CHAIR]:
+I just want to respond to GPE because we have heard BILL before and because I chair higher education where I believe BILL will go to next i've supported BILL every time I will continue to support it but I want to say why as a school board member when we were facing budget cuts I voted against outsourcing our bus services becausei always feel and I still feel that employees who work for the entity whether it be a school district a community college or a university are better employees if they are responsible for that entity and I agree with the witness in support when it came to outsource and privatize the bookstore at the community college I opposed it and the same arguments that are made in a school district who looks to save costs by laying off the maintenance workers and the library aids seems to me the same argument that is being made by GPE who talks about saving money at the expense at those employees who are at the bottom rung of the wages and so if I am to be sympathetic when I hear GPE come to me and say that we need to pay our presidents top dollar to be competitive with other universities throughout GPE and I am sympathetic to that I cannot at the same time be unsympathetic to those workers who make the lowest wage and say that we are going to even give them even lower wages or that we can not afford to educate our students because we're going to give these employees the wages that they deserve so i'll just state that and when you come back to higher ed I will make the same argument and I just can't see how GPE argues it both ways we're going to take care of all of employees if we are going to give faculty and administrators competitive wages we have the same responsibility to give the lowest wage earners the same respect so i'm very happy to move this and look forward to it coming to higher ed
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+two bills on call for me in another room
+
+
+Ricardo Lara: [BILL_AUTHOR]:
+I respectfully ask for your aye vote
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+thank you very much secretary please call the roll
+
+
+Committee Secretary: [SECRETARY]:
+the motion is do pass and rereferred to ORG talamantes eggman aye talamantes eggman aye lackey burke flora no flora no GPE GPE aye medina aye BILL_AUTHOR aye BILL_AUTHOR aye
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+and senator what's that and senator I would say that we have hopefully a member on their way but just for the record to ask for reconsideration if that said member doesn't show up thank you okay meeting adjourned what
+
+
+Committee Secretary: [SECRETARY]:
+you hand the gavel to
+
+
+Susan Eggman: [PRESIDING_CHAIR]:
+mrs BILL_AUTHOR is going to keep this open while I go vote in another room
+
+
+Sabrina Cervantes: [BILL_AUTHOR]:
+secretary please call the roll
+
+
+Committee Secretary: [SECRETARY]:
+ORG 574 lara motion is do pass and rereferred to ORG fraizer aye fraizer aye
+
+
+Sabrina Cervantes: [BILL_AUTHOR]:
+BILL is out ayes 4 nos 1 hearing is adjourned perfect hearing is adjourned
+
+
+

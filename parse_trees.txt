@@ -6,121 +6,150 @@ Parse Tree (bracket notation):
 (ROOT
   (START_MIDDLE
     (START
-      (INTRO
-        (INTRO
-          (OTHER
-            (OTHER
-              (OTHER
-                (OTHER (PRESIDING_CHAIR utt_0))
-                (OTHER (BILL_AUTHOR utt_1)))
-              (OTHER (PRESIDING_CHAIR utt_2)))
-            (OTHER (BILL_AUTHOR utt_3)))
-          (INTRO (PRESIDING_CHAIR utt_4)))
-        (OTHER (COMMITTEE_MEMBER utt_5)))
-      (PRESENTATION (PRESIDING_CHAIR utt_6)))
+      (INTRO (PRESIDING_CHAIR utt_0))
+      (PRESENTATION
+        (PRESENTATION
+          (PRESENTATION
+            (PRESENTATION
+              (PRESENTATION
+                (PRESENTATION (BILL_AUTHOR utt_1))
+                (PRESENTATION (PRESIDING_CHAIR utt_2)))
+              (PRESENTATION (BILL_AUTHOR utt_3)))
+            (PRESENTATION (PRESIDING_CHAIR utt_4)))
+          (OTHER (COMMITTEE_MEMBER utt_5)))
+        (PRESENTATION (PRESIDING_CHAIR utt_6))))
     (MIDDLE
       (LOWER_MIDDLE
-        (PUBLIC_COMMENTS
-          (PUBLIC_COMMENTS
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS
-                (PUBLIC_COMMENTS
-                  (PUBLIC_COMMENTS
-                    (PUBLIC_COMMENTS
-                      (PUBLIC_COMMENTS
-                        (PUBLIC_COMMENTS
-                          (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS
-                              (PUBLIC_COMMENTS
-                                (PUBLIC_COMMENTS
-                                  (PUBLIC_COMMENTS
-                                    (PUBLIC_COMMENTS
-                                      (PUBLIC_COMMENTS
-                                        (PUBLIC_COMMENTS
-                                          (PUBLIC_COMMENTS
-                                            (PUBLIC_COMMENTS
-                                              (PUBLIC_COMMENTS
-                                                (PUBLIC_COMMENTS
-                                                  (PUBLIC_COMMENTS
-                                                    (PUBLIC_COMMENTS
-                                                      (PUBLIC_COMMENTS
-                                                        (PUBLIC_COMMENTS
-                                                          (PUBLIC_COMMENTS
-                                                            (PUBLIC_COMMENTS
-                                                              (PUBLIC_COMMENTS
-                                                                (PUBLIC_COMMENTS
-                                                                  (PUBLIC_COMMENTS
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE
+              (LOWER_MIDDLE
+                (LOWER_MIDDLE
+                  (LOWER_MIDDLE
+                    (LOWER_MIDDLE
+                      (LOWER_MIDDLE
+                        (LOWER_MIDDLE
+                          (LOWER_MIDDLE
+                            (LOWER_MIDDLE
+                              (LOWER_MIDDLE
+                                (LOWER_MIDDLE
+                                  (LOWER_MIDDLE
+                                    (LOWER_MIDDLE
+                                      (LOWER_MIDDLE
+                                        (LOWER_MIDDLE
+                                          (LOWER_MIDDLE
+                                            (LOWER_MIDDLE
+                                              (LOWER_MIDDLE
+                                                (LOWER_MIDDLE
+                                                  (LOWER_MIDDLE
+                                                    (LOWER_MIDDLE
+                                                      (LOWER_MIDDLE
+                                                        (LOWER_MIDDLE
+                                                          (LOWER_MIDDLE
+                                                            (LOWER_MIDDLE
+                                                              (LOWER_MIDDLE
+                                                                (LOWER_MIDDLE
+                                                                  (LOWER_MIDDLE
                                                                     (PUBLIC_COMMENTS
                                                                       (PUBLIC
-                                                                        utt_7))
-                                                                    (LEGISLATOR_DISCUSSION
+                                                                        utt_7)))
+                                                                  (LOWER_MIDDLE
+                                                                    (PUBLIC_COMMENTS
                                                                       (PRESIDING_CHAIR
-                                                                        utt_8)))
+                                                                        utt_8))))
+                                                                (LOWER_MIDDLE
                                                                   (PUBLIC_COMMENTS
                                                                     (PUBLIC
-                                                                      utt_9)))
-                                                                (LEGISLATOR_DISCUSSION
+                                                                      utt_9))))
+                                                              (LOWER_MIDDLE
+                                                                (PUBLIC_COMMENTS
                                                                   (PRESIDING_CHAIR
-                                                                    utt_10)))
+                                                                    utt_10))))
+                                                            (LOWER_MIDDLE
                                                               (PUBLIC_COMMENTS
                                                                 (PUBLIC
-                                                                  utt_11)))
-                                                            (LEGISLATOR_DISCUSSION
+                                                                  utt_11))))
+                                                          (LOWER_MIDDLE
+                                                            (PUBLIC_COMMENTS
                                                               (PRESIDING_CHAIR
-                                                                utt_12)))
+                                                                utt_12))))
+                                                        (LOWER_MIDDLE
                                                           (PUBLIC_COMMENTS
                                                             (PUBLIC
-                                                              utt_13)))
-                                                        (LEGISLATOR_DISCUSSION
+                                                              utt_13))))
+                                                      (LOWER_MIDDLE
+                                                        (PUBLIC_COMMENTS
                                                           (PRESIDING_CHAIR
-                                                            utt_14)))
+                                                            utt_14))))
+                                                    (LOWER_MIDDLE
                                                       (PUBLIC_COMMENTS
                                                         (PUBLIC
-                                                          utt_15)))
-                                                    (LEGISLATOR_DISCUSSION
+                                                          utt_15))))
+                                                  (LOWER_MIDDLE
+                                                    (PUBLIC_COMMENTS
                                                       (PRESIDING_CHAIR
-                                                        utt_16)))
+                                                        utt_16))))
+                                                (LOWER_MIDDLE
                                                   (PUBLIC_COMMENTS
-                                                    (PUBLIC utt_17)))
-                                                (LEGISLATOR_DISCUSSION
+                                                    (PUBLIC utt_17))))
+                                              (LOWER_MIDDLE
+                                                (PUBLIC_COMMENTS
                                                   (PRESIDING_CHAIR
-                                                    utt_18)))
+                                                    utt_18))))
+                                            (LOWER_MIDDLE
                                               (PUBLIC_COMMENTS
-                                                (PUBLIC utt_19)))
-                                            (LEGISLATOR_DISCUSSION
+                                                (PUBLIC utt_19))))
+                                          (LOWER_MIDDLE
+                                            (PUBLIC_COMMENTS
                                               (PRESIDING_CHAIR
-                                                utt_20)))
+                                                utt_20))))
+                                        (LOWER_MIDDLE
                                           (PUBLIC_COMMENTS
-                                            (PUBLIC utt_21)))
-                                        (LEGISLATOR_DISCUSSION
-                                          (PRESIDING_CHAIR utt_22)))
+                                            (PUBLIC utt_21))))
+                                      (LOWER_MIDDLE
+                                        (PUBLIC_COMMENTS
+                                          (PRESIDING_CHAIR utt_22))))
+                                    (LOWER_MIDDLE
                                       (PUBLIC_COMMENTS
-                                        (PUBLIC utt_23)))
-                                    (LEGISLATOR_DISCUSSION
-                                      (PRESIDING_CHAIR utt_24)))
-                                  (OTHER (COMMITTEE_MEMBER utt_25)))
+                                        (PUBLIC utt_23))))
+                                  (LOWER_MIDDLE
+                                    (PUBLIC_COMMENTS
+                                      (PRESIDING_CHAIR utt_24))))
+                                (LOWER_MIDDLE
+                                  (PUBLIC_COMMENTS
+                                    (COMMITTEE_MEMBER utt_25))))
+                              (LOWER_MIDDLE
                                 (LEGISLATOR_DISCUSSION
-                                  (BILL_AUTHOR utt_26)))
-                              (OTHER (COMMITTEE_MEMBER utt_27)))
+                                  (BILL_AUTHOR utt_26))))
+                            (LOWER_MIDDLE
+                              (PUBLIC_COMMENTS
+                                (COMMITTEE_MEMBER utt_27))))
+                          (LOWER_MIDDLE
                             (LEGISLATOR_DISCUSSION
-                              (BILL_AUTHOR utt_28)))
-                          (OTHER (COMMITTEE_MEMBER utt_29)))
-                        (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_30)))
-                      (OTHER (COMMITTEE_MEMBER utt_31)))
-                    (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_32)))
-                  (OTHER (COMMITTEE_MEMBER utt_33)))
-                (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_34)))
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_35)))
-            (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_36)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_37))))))
+                              (BILL_AUTHOR utt_28))))
+                        (LOWER_MIDDLE
+                          (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_29))))
+                      (LOWER_MIDDLE
+                        (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_30))))
+                    (LOWER_MIDDLE
+                      (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_31))))
+                  (LOWER_MIDDLE
+                    (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_32))))
+                (LOWER_MIDDLE
+                  (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_33))))
+              (LOWER_MIDDLE
+                (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_34))))
+            (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_35))))
+          (LOWER_MIDDLE (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_36))))
+        (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_37))))))
   (END
     (VOTE
       (VOTE
         (VOTE
           (VOTE (SECRETARY utt_38))
-          (VOTE (PRESIDING_CHAIR utt_39)))
+          (OTHER (PRESIDING_CHAIR utt_39)))
         (VOTE (BILL_AUTHOR utt_40)))
-      (VOTE (PRESIDING_CHAIR utt_41)))))
+      (OTHER (PRESIDING_CHAIR utt_41)))))
 
 
 ================================================================================
@@ -135,41 +164,43 @@ Parse Tree (bracket notation):
         (OTHER (COMMITTEE_MEMBER utt_0))
         (INTRO (PRESIDING_CHAIR utt_1))))
     (MIDDLE
+      (UPPER_MIDDLE
+        (UPPER_MIDDLE
+          (UPPER_MIDDLE
+            (UPPER_MIDDLE (EXPERT_TESTIMONY (EXPERT utt_2)))
+            (UPPER_MIDDLE (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3))))
+          (UPPER_MIDDLE (EXPERT_TESTIMONY (EXPERT utt_4))))
+        (UPPER_MIDDLE (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5))))
       (LOWER_MIDDLE
-        (EXPERT_TESTIMONY
-          (EXPERT_TESTIMONY
-            (EXPERT_TESTIMONY
-              (EXPERT_TESTIMONY (EXPERT utt_2))
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
-            (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
-        (PUBLIC_COMMENTS
-          (PUBLIC_COMMENTS
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS
-                (PUBLIC_COMMENTS
-                  (PUBLIC_COMMENTS
-                    (PUBLIC_COMMENTS
-                      (PUBLIC_COMMENTS
-                        (PUBLIC_COMMENTS
-                          (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS (PUBLIC utt_6))
-                            (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                          (PUBLIC_COMMENTS (PUBLIC utt_8)))
-                        (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                      (PUBLIC_COMMENTS (PUBLIC utt_10)))
-                    (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                  (PUBLIC_COMMENTS (PUBLIC utt_12)))
-                (PUBLIC_COMMENTS (PUBLIC utt_13)))
-              (PUBLIC_COMMENTS (PUBLIC utt_14)))
-            (PUBLIC_COMMENTS (PUBLIC utt_15)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_16))))))
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE
+              (LOWER_MIDDLE
+                (LOWER_MIDDLE
+                  (LOWER_MIDDLE
+                    (LOWER_MIDDLE
+                      (LOWER_MIDDLE
+                        (LOWER_MIDDLE
+                          (LOWER_MIDDLE
+                            (PUBLIC_COMMENTS (PUBLIC utt_6)))
+                          (LOWER_MIDDLE
+                            (PUBLIC_COMMENTS (PUBLIC utt_7))))
+                        (LOWER_MIDDLE
+                          (PUBLIC_COMMENTS (PUBLIC utt_8))))
+                      (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_9))))
+                    (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_10))))
+                  (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_11))))
+                (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_12))))
+              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_13))))
+            (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_14))))
+          (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_15))))
+        (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_16))))))
   (END
     (VOTE
       (VOTE
         (VOTE (SECRETARY utt_17))
-        (VOTE (PRESIDING_CHAIR utt_18)))
-      (VOTE (COMMITTEE_MEMBER utt_19)))))
+        (OTHER (PRESIDING_CHAIR utt_18)))
+      (OTHER (COMMITTEE_MEMBER utt_19)))))
 
 
 ================================================================================
@@ -180,20 +211,19 @@ Parse Tree (bracket notation):
 (ROOT
   (START_MIDDLE
     (START
-      (INTRO
-        (INTRO (PRESIDING_CHAIR utt_0))
-        (OTHER (BILL_AUTHOR utt_1)))
-      (PRESENTATION (PRESIDING_CHAIR utt_2)))
+      (INTRO (PRESIDING_CHAIR utt_0))
+      (PRESENTATION
+        (PRESENTATION (BILL_AUTHOR utt_1))
+        (PRESENTATION (PRESIDING_CHAIR utt_2))))
     (MIDDLE
       (LOWER_MIDDLE
-        (PUBLIC_COMMENTS
-          (PUBLIC_COMMENTS
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS (PUBLIC utt_3))
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4)))
-            (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_6))))))
-  (END (CLOSING_REMARKS (BILL_AUTHOR utt_7))))
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_3)))
+            (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4))))
+          (LOWER_MIDDLE (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5))))
+        (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6))))))
+  (END (VOTE (BILL_AUTHOR utt_7))))
 
 
 ================================================================================
@@ -206,48 +236,58 @@ Parse Tree (bracket notation):
     (START (INTRO (PRESIDING_CHAIR utt_0)))
     (MIDDLE
       (LOWER_MIDDLE
-        (PUBLIC_COMMENTS
-          (PUBLIC_COMMENTS
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS
-                (PUBLIC_COMMENTS
-                  (PUBLIC_COMMENTS
-                    (PUBLIC_COMMENTS
-                      (PUBLIC_COMMENTS
-                        (PUBLIC_COMMENTS
-                          (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS
-                              (PUBLIC_COMMENTS
-                                (PUBLIC_COMMENTS
-                                  (PUBLIC_COMMENTS
-                                    (PUBLIC_COMMENTS
-                                      (PUBLIC_COMMENTS
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE
+              (LOWER_MIDDLE
+                (LOWER_MIDDLE
+                  (LOWER_MIDDLE
+                    (LOWER_MIDDLE
+                      (LOWER_MIDDLE
+                        (LOWER_MIDDLE
+                          (LOWER_MIDDLE
+                            (LOWER_MIDDLE
+                              (LOWER_MIDDLE
+                                (LOWER_MIDDLE
+                                  (LOWER_MIDDLE
+                                    (LOWER_MIDDLE
+                                      (LOWER_MIDDLE
                                         (PUBLIC_COMMENTS
-                                          (PUBLIC utt_1))
-                                        (LEGISLATOR_DISCUSSION
-                                          (PRESIDING_CHAIR utt_2)))
+                                          (PUBLIC utt_1)))
+                                      (LOWER_MIDDLE
+                                        (PUBLIC_COMMENTS
+                                          (PRESIDING_CHAIR utt_2))))
+                                    (LOWER_MIDDLE
                                       (PUBLIC_COMMENTS
-                                        (PUBLIC utt_3)))
-                                    (LEGISLATOR_DISCUSSION
-                                      (PRESIDING_CHAIR utt_4)))
-                                  (PUBLIC_COMMENTS (PUBLIC utt_5)))
-                                (LEGISLATOR_DISCUSSION
-                                  (PRESIDING_CHAIR utt_6)))
-                              (PUBLIC_COMMENTS (PUBLIC utt_7)))
-                            (LEGISLATOR_DISCUSSION
-                              (PRESIDING_CHAIR utt_8)))
-                          (PUBLIC_COMMENTS (PUBLIC utt_9)))
-                        (LEGISLATOR_DISCUSSION
-                          (PRESIDING_CHAIR utt_10)))
-                      (PUBLIC_COMMENTS (PUBLIC utt_11)))
-                    (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_12)))
-                  (OTHER (COMMITTEE_MEMBER utt_13)))
-                (PUBLIC_COMMENTS (PUBLIC utt_14)))
-              (OTHER (COMMITTEE_MEMBER utt_15)))
-            (PUBLIC_COMMENTS (PUBLIC utt_16)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_17))))))
+                                        (PUBLIC utt_3))))
+                                  (LOWER_MIDDLE
+                                    (PUBLIC_COMMENTS
+                                      (PRESIDING_CHAIR utt_4))))
+                                (LOWER_MIDDLE
+                                  (PUBLIC_COMMENTS (PUBLIC utt_5))))
+                              (LOWER_MIDDLE
+                                (PUBLIC_COMMENTS
+                                  (PRESIDING_CHAIR utt_6))))
+                            (LOWER_MIDDLE
+                              (PUBLIC_COMMENTS (PUBLIC utt_7))))
+                          (LOWER_MIDDLE
+                            (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_8))))
+                        (LOWER_MIDDLE
+                          (PUBLIC_COMMENTS (PUBLIC utt_9))))
+                      (LOWER_MIDDLE
+                        (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_10))))
+                    (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_11))))
+                  (LOWER_MIDDLE
+                    (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_12))))
+                (LOWER_MIDDLE
+                  (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_13))))
+              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_14))))
+            (LOWER_MIDDLE
+              (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_15))))
+          (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_16))))
+        (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_17))))))
   (END
-    (VOTE (VOTE (SECRETARY utt_18)) (VOTE (PRESIDING_CHAIR utt_19)))))
+    (VOTE (VOTE (SECRETARY utt_18)) (OTHER (PRESIDING_CHAIR utt_19)))))
 
 
 ================================================================================
@@ -258,29 +298,29 @@ Parse Tree (bracket notation):
 (ROOT
   (START_MIDDLE
     (START
-      (INTRO
-        (OTHER (BILL_AUTHOR utt_0))
-        (INTRO (PRESIDING_CHAIR utt_1))))
+      (PRESENTATION
+        (PRESENTATION (BILL_AUTHOR utt_0))
+        (PRESENTATION (PRESIDING_CHAIR utt_1))))
     (MIDDLE
+      (UPPER_MIDDLE
+        (UPPER_MIDDLE
+          (UPPER_MIDDLE
+            (EXPERT_TESTIMONY (NONLEGISLATOR utt_2))
+            (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+          (UPPER_MIDDLE (EXPERT_TESTIMONY (EXPERT utt_4))))
+        (UPPER_MIDDLE (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_5))))
       (LOWER_MIDDLE
-        (EXPERT_TESTIMONY
-          (EXPERT_TESTIMONY
-            (EXPERT_TESTIMONY
-              (EXPERT_TESTIMONY (NONLEGISLATOR utt_2))
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3)))
-            (EXPERT_TESTIMONY (EXPERT utt_4)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5)))
-        (PUBLIC_COMMENTS
-          (PUBLIC_COMMENTS
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS
-                (PUBLIC_COMMENTS
-                  (PUBLIC_COMMENTS (PUBLIC utt_6))
-                  (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_7)))
-                (PUBLIC_COMMENTS (PUBLIC utt_8)))
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_9)))
-            (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_10)))
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_11))))))
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE
+              (LOWER_MIDDLE
+                (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_6)))
+                (LOWER_MIDDLE
+                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_7))))
+              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_8))))
+            (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_9))))
+          (LOWER_MIDDLE (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_10))))
+        (LOWER_MIDDLE (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_11))))))
   (END (VOTE (COMMITTEE_MEMBER utt_12))))
 
 
