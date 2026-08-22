@@ -108,6 +108,7 @@ GRAMMAR = [
 
     # valid role expansions - terminals are now just SpeakerPositionEnum
     (SectionEnum.OTHER,                 SpeakerPositionEnum.LEGISLATOR),
+    (SectionEnum.OTHER,                 SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     
