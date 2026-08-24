@@ -111,6 +111,7 @@ GRAMMAR = [
     (SectionEnum.OTHER,                 SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.OTHER,                 SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.OTHER,                 SpeakerPositionEnum.SECRETARY),
     
     (SectionEnum.INTRO,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.INTRO,                 SpeakerPositionEnum.SECRETARY),
@@ -140,7 +141,6 @@ GRAMMAR = [
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.NONLEGISLATOR),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
-    # (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.SECRETARY),
 
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.BILL_AUTHOR),
