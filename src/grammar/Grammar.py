@@ -135,7 +135,7 @@ GRAMMAR = [
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.PRESIDING_CHAIR),
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.SECRETARY),
+    # (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.SECRETARY),
 
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PUBLIC),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.NONLEGISLATOR),
