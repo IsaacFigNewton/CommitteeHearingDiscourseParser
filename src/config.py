@@ -6,6 +6,10 @@ Configuration constants for the TranscriptLoader
 VALID_STATES = ["CA", "FL", "NY", "TX"]
 VALID_BILL_TYPES = ["AB", "SB"]
 
+INVALID_BID_HID = [
+    ("CA_201720180AB10", 52708)
+]
+
 # Available CSV filenames in the corpus
 CSV_FILENAMES = [
     'bills',

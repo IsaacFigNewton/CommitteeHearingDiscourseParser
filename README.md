@@ -206,8 +206,15 @@ flowchart TD
 ```
 
 ## Annotation Notes
-### TODO: Continue review from `CA_201720180AB2447`
+### TODO: Continue review from `CA_201720180AB2447` and `CA_201720180AB1013`
 `pid 21318` is used to indicate an unknown speaker. In cases of this ambiguity, the most relevant speaker role is annotated.
 - To handle this ambiguity, the `HearingLoader` class assigns a `SpeakerPositionEnum` of `None`.
 - While suboptimal, this is the best placeholder solution we were able to devise.
 
+### Transcription Errors
+There are numerous transcription errors throughout the dataset. These include (in order of observed prevalence):
+1. Speaker misattribution (attributing an utterance to the wrong PID)
+2. Utterance concatenation (combining multiple utterances into a single one)
+3. Utterance separation (splitting one utterance into multiple ones)
+
+In particular, utterance 4 for hearing `52708` on bill `CA_201720180AB10` has almost all utterances concatenated into it, rendering any interpretation inaccurate.
