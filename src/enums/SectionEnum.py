@@ -36,9 +36,16 @@ class SectionEnum(Enum):
     #   may include discussion by legislators
     VOTE=                   "VOTE"
 
-    # a fallback class used to tag ambiguous sections
-    #   that don't involve bill discussion or which do not pertain to the current bill
-    OTHER=                  "OTHER"
+    # a fallback class used to tag ambiguous PROCEDURAL utterances that DO pertain to the current bill
+    OTHER_PROCEDURAL=       "OTHER_PROCEDURAL"
+
+    # a fallback class used to tag ambiguous NON-PROCEDURAL utterances that DON'T pertain to the current bill
+    OTHER_NONPROCEDURAL=    "OTHER_NONPROCEDURAL"
+
+    # # a fallback class used to tag segmentation errors that contain utterances belonging to >2 distinct sections
+    # #   e.g. a segmentation error that includes a combination of EXPERT_TESTIMONY, LEGISLATOR_DISCUSSION, and OTHER_PROCEDURAL
+    # #   or a segmentation error that includes a combination of LEGISLATOR_DISCUSSION, OTHER_PROCEDURAL and OTHER_NONPROCEDURAL
+    # SEGMENTATION_ERROR=    "SEGMENTATION_ERROR"
 
 class VoteSectionEnum(Enum):
     MOTION=             "MOTION"

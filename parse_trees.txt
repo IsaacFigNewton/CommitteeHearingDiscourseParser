@@ -174,47 +174,39 @@ Parse Tree (bracket notation):
         (PRESENTATION (PRESIDING_CHAIR utt_1))))
     (MIDDLE
       (UPPER_MIDDLE
-        (UPPER_MIDDLE
-          (UPPER_MIDDLE
-            (UPPER_MIDDLE (EXPERT_TESTIMONY (NONLEGISLATOR utt_2)))
-            (UPPER_MIDDLE
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3))))
-          (UPPER_MIDDLE (EXPERT_TESTIMONY (NONLEGISLATOR utt_4))))
-        (UPPER_MIDDLE
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5))))
+        (EXPERT_TESTIMONY
+          (EXPERT_TESTIMONY (NONLEGISLATOR utt_2))
+          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
+        (EXPERT_TESTIMONY (NONLEGISLATOR utt_4)))
       (LOWER_MIDDLE
         (LOWER_MIDDLE
           (LOWER_MIDDLE
             (LOWER_MIDDLE
-              (LOWER_MIDDLE
-                (LOWER_MIDDLE
-                  (LOWER_MIDDLE
-                    (LOWER_MIDDLE
-                      (LOWER_MIDDLE
-                        (LOWER_MIDDLE
-                          (LOWER_MIDDLE
-                            (LOWER_MIDDLE
-                              (PUBLIC_COMMENTS (PUBLIC utt_6)))
-                            (LOWER_MIDDLE
-                              (PUBLIC_COMMENTS (PUBLIC utt_7))))
-                          (LOWER_MIDDLE
-                            (PUBLIC_COMMENTS (PUBLIC utt_8))))
-                        (LOWER_MIDDLE
-                          (PUBLIC_COMMENTS (PUBLIC utt_9))))
-                      (LOWER_MIDDLE
-                        (PUBLIC_COMMENTS (PUBLIC utt_10))))
-                    (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_11))))
-                  (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_12))))
-                (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_13))))
-              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_14))))
-            (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_15))))
+              (PUBLIC_COMMENTS
+                (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_5))
+                (PUBLIC_COMMENTS (PUBLIC utt_6)))
+              (PUBLIC_COMMENTS (PUBLIC utt_7)))
+            (LOWER_MIDDLE
+              (PUBLIC_COMMENTS
+                (PUBLIC_COMMENTS (PUBLIC utt_8))
+                (PUBLIC_COMMENTS (PUBLIC utt_9)))
+              (PUBLIC_COMMENTS (PUBLIC utt_10))))
           (LOWER_MIDDLE
-            (LEGISLATOR_DISCUSSION
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_16))
-              (OTHER (SECRETARY utt_17)))))
+            (PUBLIC_COMMENTS
+              (PUBLIC_COMMENTS (PUBLIC utt_11))
+              (PUBLIC_COMMENTS (PUBLIC utt_12)))
+            (PUBLIC_COMMENTS (PUBLIC utt_13))))
         (LOWER_MIDDLE
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_18))))))
-  (END (VOTE (COMMITTEE_MEMBER utt_19))))
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS (PUBLIC utt_14))
+            (PUBLIC_COMMENTS (PUBLIC utt_15)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_16))))))
+  (END
+    (VOTE
+      (VOTE
+        (VOTE (SECRETARY utt_17))
+        (VOTE (PRESIDING_CHAIR utt_18)))
+      (OTHER_NONPROCEDURAL (COMMITTEE_MEMBER utt_19)))))
 
 
 ================================================================================
@@ -230,82 +222,21 @@ Parse Tree (bracket notation):
         (PRESENTATION (BILL_AUTHOR utt_1))
         (PRESENTATION (PRESIDING_CHAIR utt_2))))
     (MIDDLE
-      (UPPER_MIDDLE
-        (UPPER_MIDDLE
-          (UPPER_MIDDLE (EXPERT_TESTIMONY (NONLEGISLATOR utt_3)))
-          (UPPER_MIDDLE
-            (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4))))
-        (UPPER_MIDDLE (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5))))
-      (LOWER_MIDDLE (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_6)))))
-  (END (VOTE (BILL_AUTHOR utt_7))))
+      (PUBLIC_COMMENTS (NONLEGISLATOR utt_3))
+      (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4))))
+  (END
+    (CLOSING_REMARKS
+      (CLOSING_REMARKS
+        (CLOSING_REMARKS (BILL_AUTHOR utt_5))
+        (CLOSING_REMARKS (PRESIDING_CHAIR utt_6)))
+      (CLOSING_REMARKS (BILL_AUTHOR utt_7)))))
 
 
 ================================================================================
 Hearing 4: CA_20172018BUD3940 (hid: 52846)
 ================================================================================
 
-Parse Tree (bracket notation):
-(ROOT
-  (START_MIDDLE
-    (START (PRESENTATION (PRESIDING_CHAIR utt_0)))
-    (MIDDLE
-      (LOWER_MIDDLE
-        (LOWER_MIDDLE
-          (LOWER_MIDDLE
-            (LOWER_MIDDLE
-              (LOWER_MIDDLE
-                (LOWER_MIDDLE
-                  (LOWER_MIDDLE
-                    (LOWER_MIDDLE
-                      (LOWER_MIDDLE
-                        (LOWER_MIDDLE
-                          (LOWER_MIDDLE
-                            (LOWER_MIDDLE
-                              (LOWER_MIDDLE
-                                (LOWER_MIDDLE
-                                  (LOWER_MIDDLE
-                                    (LOWER_MIDDLE
-                                      (LOWER_MIDDLE
-                                        (PUBLIC_COMMENTS
-                                          (PUBLIC utt_1)))
-                                      (LOWER_MIDDLE
-                                        (LEGISLATOR_DISCUSSION
-                                          (PRESIDING_CHAIR utt_2))))
-                                    (LOWER_MIDDLE
-                                      (PUBLIC_COMMENTS
-                                        (PUBLIC utt_3))))
-                                  (LOWER_MIDDLE
-                                    (LEGISLATOR_DISCUSSION
-                                      (PRESIDING_CHAIR utt_4))))
-                                (LOWER_MIDDLE
-                                  (PUBLIC_COMMENTS (PUBLIC utt_5))))
-                              (LOWER_MIDDLE
-                                (LEGISLATOR_DISCUSSION
-                                  (PRESIDING_CHAIR utt_6))))
-                            (LOWER_MIDDLE
-                              (PUBLIC_COMMENTS (PUBLIC utt_7))))
-                          (LOWER_MIDDLE
-                            (LEGISLATOR_DISCUSSION
-                              (PRESIDING_CHAIR utt_8))))
-                        (LOWER_MIDDLE
-                          (PUBLIC_COMMENTS (PUBLIC utt_9))))
-                      (LOWER_MIDDLE
-                        (LEGISLATOR_DISCUSSION
-                          (PRESIDING_CHAIR utt_10))))
-                    (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_11))))
-                  (LOWER_MIDDLE
-                    (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_12))))
-                (LOWER_MIDDLE
-                  (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_13))))
-              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_14))))
-            (LOWER_MIDDLE
-              (LEGISLATOR_DISCUSSION (COMMITTEE_MEMBER utt_15))))
-          (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_16))))
-        (LOWER_MIDDLE
-          (LEGISLATOR_DISCUSSION
-            (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_17))
-            (OTHER (SECRETARY utt_18)))))))
-  (END (VOTE (PRESIDING_CHAIR utt_19))))
+No valid parse found
 
 
 ================================================================================
@@ -315,34 +246,28 @@ Hearing 5: CA_201720180AB546 (hid: 52118)
 Parse Tree (bracket notation):
 (ROOT
   (START_MIDDLE
-    (START
-      (PRESENTATION
-        (PRESENTATION (BILL_AUTHOR utt_0))
-        (PRESENTATION (PRESIDING_CHAIR utt_1))))
+    (START (PRESENTATION (BILL_AUTHOR utt_0)))
     (MIDDLE
       (UPPER_MIDDLE
-        (UPPER_MIDDLE
-          (UPPER_MIDDLE
-            (UPPER_MIDDLE (EXPERT_TESTIMONY (NONLEGISLATOR utt_2)))
-            (UPPER_MIDDLE
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_3))))
-          (UPPER_MIDDLE (EXPERT_TESTIMONY (NONLEGISLATOR utt_4))))
-        (UPPER_MIDDLE
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_5))))
+        (EXPERT_TESTIMONY
+          (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_1))
+          (EXPERT_TESTIMONY (NONLEGISLATOR utt_2)))
+        (EXPERT_TESTIMONY (PRESIDING_CHAIR utt_3)))
       (LOWER_MIDDLE
         (LOWER_MIDDLE
-          (LOWER_MIDDLE
-            (LOWER_MIDDLE
-              (LOWER_MIDDLE
-                (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_6)))
-                (LOWER_MIDDLE
-                  (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_7))))
-              (LOWER_MIDDLE (PUBLIC_COMMENTS (PUBLIC utt_8))))
-            (LOWER_MIDDLE
-              (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_9))))
-          (LOWER_MIDDLE (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_10))))
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS (NONLEGISLATOR utt_4))
+            (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_5)))
+          (PUBLIC_COMMENTS (PUBLIC utt_6)))
         (LOWER_MIDDLE
-          (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_11))))))
-  (END (VOTE (COMMITTEE_MEMBER utt_12))))
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_7))
+            (PUBLIC_COMMENTS (PUBLIC utt_8)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_9))))))
+  (END
+    (CLOSING_REMARKS (BILL_AUTHOR utt_10))
+    (VOTE
+      (VOTE (PRESIDING_CHAIR utt_11))
+      (OTHER_NONPROCEDURAL (COMMITTEE_MEMBER utt_12)))))
 
 
