@@ -86,16 +86,18 @@ class HearingTagger(ITagger):
         for pid, s in ambiguous_speakers.items():
             # if they're a nonlegislator that was mentioned (introduced)
             #   before their first utterance,
+            #   or they have > 1 utterance and those utterances are nonconsecutive
             #   then they must be an expert
             if (
                 (s.first_mention_uid and s.first_mention_uid < s.first_uid)
-                or first_uid(s).sent_count > 5
+                # or first_uid(s).sent_count > 5
+                or s.last_uid - s.first_uid > 2
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
             
             elif (
                 (s.first_mention_uid and s.first_mention_uid == s.first_uid)
-                or first_uid(s).sent_count < 5
+                # or first_uid(s).sent_count < 5
             ):
                 raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.PUBLIC
             

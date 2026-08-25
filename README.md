@@ -2,6 +2,11 @@
 
 A parser for California legislative committee hearing transcripts, modeling the discourse structure of bill discussions.
 
+## Proposed Use Cases
+- Identify bills that were passed despite a large amount of public opposition
+ - Would require more granular `PUBLIC_COMMENTS` sectioning
+- Identify hearings where the `PRESIDING_CHAIR` cut off someone's testimony/comments
+
 ## Data Model Overview
 
 The project models committee hearings using several core dataclasses:
@@ -201,7 +206,7 @@ flowchart TD
 ```
 
 ## Annotation Notes
-### TODO: Continue review from `CA_201720180AB2164`
+### TODO: Continue review from `CA_201720180AB2447`
 `pid 21318` is used to indicate an unknown speaker. In cases of this ambiguity, the most relevant speaker role is annotated.
 - To handle this ambiguity, the `HearingLoader` class assigns a `SpeakerPositionEnum` of `None`.
 - While suboptimal, this is the best placeholder solution we were able to devise.
