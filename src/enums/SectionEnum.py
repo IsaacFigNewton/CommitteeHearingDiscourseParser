@@ -36,6 +36,9 @@ class SectionEnum(Enum):
     #   may include discussion by legislators
     VOTE=                   "VOTE"
 
+    # if another hearing starts after the voting section
+    OTHER_HEARING=          "OTHER_HEARING"
+
     # a fallback class used to tag ambiguous PROCEDURAL utterances that DO pertain to the current bill
     OTHER_PROCEDURAL=       "OTHER_PROCEDURAL"
 
