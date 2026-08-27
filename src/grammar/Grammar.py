@@ -183,6 +183,7 @@ GRAMMAR = [
     # PUBLIC_COMMENTS
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PUBLIC),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.NONLEGISLATOR),
+    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     # CLOSING_REMARKS
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum

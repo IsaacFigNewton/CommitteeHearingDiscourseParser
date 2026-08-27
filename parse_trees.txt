@@ -157,7 +157,7 @@ Parse Tree (bracket notation):
         (PRESENTATION (BILL_AUTHOR utt_1))
         (PRESENTATION (PRESIDING_CHAIR utt_2))))
     (MIDDLE
-      (PUBLIC_COMMENTS (NONLEGISLATOR utt_3))
+      (EXPERT_TESTIMONY (NONLEGISLATOR utt_3))
       (LEGISLATOR_DISCUSSION
         (LEGISLATOR_DISCUSSION (PRESIDING_CHAIR utt_4))
         (LEGISLATOR_DISCUSSION (BILL_AUTHOR utt_5)))))
@@ -170,7 +170,47 @@ Parse Tree (bracket notation):
 Hearing 4: CA_20172018BUD3940 (hid: 52846)
 ================================================================================
 
-No valid parse found
+Parse Tree (bracket notation):
+(ROOT
+  (START_MIDDLE
+    (START (INTRO (PRESIDING_CHAIR utt_0)))
+    (MIDDLE
+      (LOWER_MIDDLE
+        (LOWER_MIDDLE
+          (LOWER_MIDDLE
+            (LOWER_MIDDLE
+              (LOWER_MIDDLE
+                (PUBLIC_COMMENTS
+                  (PUBLIC_COMMENTS (PUBLIC utt_1))
+                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_2)))
+                (LOWER_MIDDLE
+                  (PUBLIC_COMMENTS
+                    (PUBLIC_COMMENTS (PUBLIC utt_3))
+                    (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_4)))
+                  (PUBLIC_COMMENTS (PUBLIC utt_5))))
+              (LOWER_MIDDLE
+                (PUBLIC_COMMENTS
+                  (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_6))
+                  (PUBLIC_COMMENTS (PUBLIC utt_7)))
+                (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_8))))
+            (LOWER_MIDDLE
+              (PUBLIC_COMMENTS
+                (PUBLIC_COMMENTS (PUBLIC utt_9))
+                (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_10)))
+              (PUBLIC_COMMENTS (PUBLIC utt_11))))
+          (LOWER_MIDDLE
+            (PUBLIC_COMMENTS
+              (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_12))
+              (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_13)))
+            (PUBLIC_COMMENTS (PUBLIC utt_14))))
+        (LOWER_MIDDLE
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS (COMMITTEE_MEMBER utt_15))
+            (PUBLIC_COMMENTS (PUBLIC utt_16)))
+          (PUBLIC_COMMENTS (PRESIDING_CHAIR utt_17))))))
+  (END
+    (END (VOTE (SECRETARY utt_18)))
+    (WRAPUP (OTHER_HEARING (PRESIDING_CHAIR utt_19)))))
 
 
 ================================================================================
