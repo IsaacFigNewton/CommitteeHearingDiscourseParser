@@ -65,7 +65,7 @@ GRAMMAR = [
 
     # TOP.START
     (TOP.START,                         (SectionEnum.INTRO, SectionEnum.PRESENTATION)),
-    (TOP.START,                         (SectionEnum.INTRO)),
+    # (TOP.START,                         (SectionEnum.INTRO)),
     (TOP.START,                         (SectionEnum.PRESENTATION)),
 
     # TOP.MIDDLE
@@ -91,15 +91,16 @@ GRAMMAR = [
     (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
 
     # TOP.END
-    (TOP.END,                           (SectionEnum.CLOSING_REMARKS, SectionEnum.VOTE)),
-    (TOP.END,                           SectionEnum.CLOSING_REMARKS),
+    (TOP.END,                           (SectionEnum.CLOSING_REMARKS, TOP.END)),
+    (TOP.END,                           (SectionEnum.VOTE, SectionEnum.OTHER_PROCEDURAL)),
     (TOP.END,                           SectionEnum.VOTE),
+    (TOP.END,                           None),
 
 
     # different SectionEnum expansions
     # TOP.START
     (SectionEnum.INTRO,                 (SectionEnum.OTHER_PROCEDURAL, SectionEnum.INTRO)),
-    # (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.OTHER_NONPROCEDURAL)),
+    (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.OTHER_PROCEDURAL)),
     (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.INTRO)),
     (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.PRESENTATION)),
@@ -118,7 +119,6 @@ GRAMMAR = [
     # TOP.END
     (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS)),
-    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
 
 
@@ -128,15 +128,18 @@ GRAMMAR = [
     (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.LEGISLATOR),
     # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.PUBLIC),
     # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.BILL_AUTHOR),
-    # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.COMMITTEE_MEMBER),
     # OTHER_PROCEDURAL
     (SectionEnum.OTHER_PROCEDURAL,      (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.SECRETARY)),
+    # (SectionEnum.OTHER_PROCEDURAL,      (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
+    (SectionEnum.OTHER_PROCEDURAL,      (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.COMMITTEE_MEMBER)),
     (SectionEnum.OTHER_PROCEDURAL,      SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.OTHER_PROCEDURAL,      SpeakerPositionEnum.SECRETARY),
 
 
     # TOP.START
     # INTRO
+    (SectionEnum.INTRO,                 (SpeakerPositionEnum.BILL_AUTHOR, SpeakerPositionEnum.PRESIDING_CHAIR)),
     (SectionEnum.INTRO,                 SpeakerPositionEnum.PRESIDING_CHAIR),
     (SectionEnum.INTRO,                 SpeakerPositionEnum.SECRETARY),
     # PRESENTATION
