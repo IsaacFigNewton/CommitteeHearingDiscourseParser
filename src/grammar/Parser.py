@@ -1,4 +1,5 @@
-from typing import List, Optional, Tuple, Dict, Any, Set
+import warnings
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 from collections import defaultdict
 from nltk.tree import Tree
 
@@ -19,6 +20,18 @@ class Parser:
         A -> epsilon
     where a unary RHS symbol that never appears on the left-hand side of a
     production is treated as a terminal.
+
+    Unlike the previous implementation, backpointers now store *every*
+    derivation of a (symbol, span) pair, so ambiguous grammars yield all
+    parse trees (lazily, up to a caller-supplied limit).
+
+    Binary rules may also mention terminals directly on their RHS, e.g.
+        CLOSING_REMARKS -> (PRESIDING_CHAIR, BILL_AUTHOR)
+    Matched terminals that appear in some binary RHS are placed into the
+    chart's diagonal cells alongside the nonterminals derived from them, so
+    these rules participate in parsing instead of being silently dead. A
+    UserWarning listing such rules is emitted at construction time so grammar
+    authors are aware of them.
     """
 
     def __init__(self,
@@ -75,6 +88,32 @@ class Parser:
                         f"Grammar is not in CNF: {lhs} -> {rhs} has {len(rhs)} RHS symbols"
                     )
 
+        # Terminals that appear directly inside a binary RHS. These must be
+        # placed into chart cells at match time (see _cyk_parse) or the rules
+        # referencing them can never fire, since chart cells otherwise contain
+        # only nonterminals.
+        self.binary_rhs_terminals: Set[Any] = {
+            sym
+            for (b, c) in self.binary_rules
+            for sym in (b, c)
+            if self._is_terminal(sym)
+        }
+        if self.binary_rhs_terminals:
+            mixed_rules = [
+                f"{lhs} -> ({b}, {c})"
+                for (b, c), lhss in self.binary_rules.items()
+                if self._is_terminal(b) or self._is_terminal(c)
+                for lhs in lhss
+            ]
+            warnings.warn(
+                "Grammar contains binary rules with terminal RHS symbols "
+                "(not strict CNF). They are supported by placing matched "
+                "terminals into the chart, but consider rewriting them "
+                "through preterminals:\n  " + "\n  ".join(mixed_rules),
+                UserWarning,
+                stacklevel=3,
+            )
+
     @staticmethod
     def _matches_terminal(terminal: Terminal, token: Token) -> bool:
         """
@@ -107,46 +146,66 @@ class Parser:
         return self.parse_tokens(tokens)
 
     def parse_tokens(self, tokens: List[Token]) -> Optional[ParseNode]:
-        """Parse an already-tokenized sequence."""
-        if not tokens:
-            return None
-
-        table, backpointers = self._cyk_parse(tokens)
-        n = len(tokens)
-
-        if TOP.ROOT in table[0][n - 1]:
-            return self._reconstruct_parse_tree(table, backpointers, 0, n - 1, TOP.ROOT, tokens)
-
+        """Parse an already-tokenized sequence, returning the first parse found."""
+        for tree in self.iter_parses_for_tokens(tokens, max_parses=1):
+            return tree
         return None
 
     def get_all_parses(self, hearing: TaggedHearing, max_parses: int = 10) -> List[ParseNode]:
         """
         Get all possible parse trees for a hearing (up to max_parses).
 
-        Note: this implementation currently returns at most one parse. It can be
-        extended to enumerate all trees by tracking every backpointer.
+        Ambiguous grammars can have exponentially many parses, so enumeration
+        is lazy and stops as soon as max_parses trees have been produced.
         """
-        result = self.parse(hearing)
-        return [result] if result else []
+        tokens = self.tokenizer.tokenize(hearing)
+        return list(self.iter_parses_for_tokens(tokens, max_parses=max_parses))
+
+    def iter_parses_for_tokens(
+        self, tokens: List[Token], max_parses: Optional[int] = None
+    ) -> Iterator[ParseNode]:
+        """
+        Lazily yield parse trees for a token sequence, up to max_parses
+        (or all of them if max_parses is None).
+        """
+        if not tokens:
+            return
+
+        table, backpointers = self._cyk_parse(tokens)
+        n = len(tokens)
+
+        if TOP.ROOT not in table[0][n - 1]:
+            return
+
+        count = 0
+        for tree in self._enumerate_trees(backpointers, 0, n - 1, TOP.ROOT, tokens, frozenset()):
+            yield tree
+            count += 1
+            if max_parses is not None and count >= max_parses:
+                return
 
     # ------------------------------------------------------------------ #
     # CYK
     # ------------------------------------------------------------------ #
 
-    def _cyk_parse(self, tokens: List[Token]) -> Tuple[List[List[Set[Any]]], Dict]:
+    def _cyk_parse(
+        self, tokens: List[Token]
+    ) -> Tuple[List[List[Set[Any]]], Dict[Tuple[Any, int, int], List[Tuple]]]:
         """
         CYK parsing algorithm.
 
         Returns:
-            Tuple of (CYK table, backpointers for tree reconstruction)
+            Tuple of (CYK table, backpointers for tree reconstruction).
+            Each backpointer entry maps (symbol, i, j) to a *list* of all
+            derivations of that symbol over that span.
         """
         n = len(tokens)
 
         # table[i][j] contains non-terminals that can derive tokens[i:j+1]
         table: List[List[Set[Any]]] = [[set() for _ in range(n)] for _ in range(n)]
 
-        # (symbol, i, j) -> (production_type, details...)
-        backpointers: Dict[Tuple[Any, int, int], Tuple] = {}
+        # (symbol, i, j) -> [(production_type, details...), ...]
+        backpointers: Dict[Tuple[Any, int, int], List[Tuple]] = defaultdict(list)
 
         # Fill diagonal (single tokens)
         for i in range(n):
@@ -155,7 +214,13 @@ class Parser:
                 if self._matches_terminal(terminal, token):
                     for nt in non_terminals:
                         table[i][i].add(nt)
-                        backpointers[(nt, i, i)] = ('terminal', terminal, i)
+                        self._add_backpointer(backpointers, nt, i, i, ('terminal', terminal, i))
+            # Terminals referenced directly by binary rules go into the cell
+            # themselves, so rules like A -> (TERMINAL_B, TERMINAL_C) can fire.
+            for terminal in self.binary_rhs_terminals:
+                if self._matches_terminal(terminal, token):
+                    table[i][i].add(terminal)
+                    self._add_backpointer(backpointers, terminal, i, i, ('token', i))
             self._apply_unary_rules(table[i][i], backpointers, i, i)
 
         # Fill table bottom-up for spans of increasing length
@@ -172,85 +237,131 @@ class Parser:
                             if (b, c) in self.binary_rules:
                                 for a in self.binary_rules[(b, c)]:
                                     table[i][j].add(a)
-                                    backpointers[(a, i, j)] = ('binary', b, c, k)
+                                    self._add_backpointer(
+                                        backpointers, a, i, j, ('binary', b, c, k)
+                                    )
 
                 self._apply_unary_rules(table[i][j], backpointers, i, j)
 
         return table, backpointers
 
-    def _apply_unary_rules(self, symbol_set: Set[Any], backpointers: Dict, i: int, j: int) -> None:
-        """Apply unary rules (A -> B) to a cell until no new symbols can be added."""
+    @staticmethod
+    def _add_backpointer(
+        backpointers: Dict[Tuple[Any, int, int], List[Tuple]],
+        symbol: Any,
+        i: int,
+        j: int,
+        derivation: Tuple,
+    ) -> None:
+        """Record a derivation for (symbol, i, j), skipping exact duplicates."""
+        derivations = backpointers[(symbol, i, j)]
+        if derivation not in derivations:
+            derivations.append(derivation)
+
+    def _apply_unary_rules(
+        self,
+        symbol_set: Set[Any],
+        backpointers: Dict[Tuple[Any, int, int], List[Tuple]],
+        i: int,
+        j: int,
+    ) -> None:
+        """
+        Apply unary rules (A -> B) to a cell.
+
+        First computes the unary closure of the cell's symbol set, then records
+        *every* applicable unary derivation as a backpointer — including ones
+        whose parent symbol was already in the cell via another route. This is
+        what preserves ambiguity across unary/binary derivations of the same
+        symbol.
+        """
+        # 1. Closure over symbols
         changed = True
         while changed:
             changed = False
             new_symbols: Set[Any] = set()
-
             for b in symbol_set:
                 for a in self.unary_rules.get(b, ()):
                     if a not in symbol_set and a not in new_symbols:
                         new_symbols.add(a)
-                        backpointers[(a, i, j)] = ('unary', b)
                         changed = True
-
             symbol_set.update(new_symbols)
 
+        # 2. Record all unary derivations among symbols now in the cell
+        for b in symbol_set:
+            for a in self.unary_rules.get(b, ()):
+                self._add_backpointer(backpointers, a, i, j, ('unary', b))
+
     # ------------------------------------------------------------------ #
-    # Tree reconstruction
+    # Tree enumeration
     # ------------------------------------------------------------------ #
 
-    def _reconstruct_parse_tree(
+    def _enumerate_trees(
         self,
-        table: List[List[Set[Any]]],
-        backpointers: Dict,
+        backpointers: Dict[Tuple[Any, int, int], List[Tuple]],
         i: int,
         j: int,
         symbol: Any,
         tokens: List[Token],
-    ) -> Optional[ParseNode]:
-        """Reconstruct a parse tree from the CYK table and backpointers."""
-        if (symbol, i, j) not in backpointers:
-            return None
+        unary_chain: frozenset,
+    ) -> Iterator[ParseNode]:
+        """
+        Lazily yield every parse tree rooted at `symbol` over tokens[i:j+1].
 
-        production_info = backpointers[(symbol, i, j)]
-        production_type = production_info[0]
+        `unary_chain` holds the symbols already visited through unary rules at
+        this same span; it guards against infinite loops when the grammar has
+        unary cycles (A -> B, B -> A). It is reset whenever we descend through
+        a terminal or binary derivation, since those change the span (or reach
+        a leaf) and therefore cannot cycle.
+        """
+        for derivation in backpointers.get((symbol, i, j), ()):
+            production_type = derivation[0]
 
-        if production_type == 'terminal':
-            _, terminal, token_idx_in_list = production_info
-            _, utterance_idx = tokens[token_idx_in_list]
+            if production_type == 'token':
+                # `symbol` is itself a terminal placed directly in the chart
+                # (it appears on the RHS of some binary rule); yield it as a leaf.
+                _, token_idx_in_list = derivation
+                _, utterance_idx = tokens[token_idx_in_list]
+                yield ParseNode(symbol=symbol, utterance_indices=[utterance_idx])
 
-            return ParseNode(
-                symbol=symbol,
-                children=[ParseNode(symbol=terminal, utterance_indices=[utterance_idx])],
-                utterance_indices=[utterance_idx],
-            )
-
-        if production_type == 'unary':
-            _, child_symbol = production_info
-            child_node = self._reconstruct_parse_tree(table, backpointers, i, j, child_symbol, tokens)
-            if child_node:
-                return ParseNode(
+            elif production_type == 'terminal':
+                _, terminal, token_idx_in_list = derivation
+                _, utterance_idx = tokens[token_idx_in_list]
+                yield ParseNode(
                     symbol=symbol,
-                    children=[child_node],
-                    utterance_indices=child_node.utterance_indices,
+                    children=[ParseNode(symbol=terminal, utterance_indices=[utterance_idx])],
+                    utterance_indices=[utterance_idx],
                 )
 
-        if production_type == 'binary':
-            _, left_symbol, right_symbol, k = production_info
-            left_node = self._reconstruct_parse_tree(table, backpointers, i, k, left_symbol, tokens)
-            right_node = self._reconstruct_parse_tree(table, backpointers, k + 1, j, right_symbol, tokens)
+            elif production_type == 'unary':
+                _, child_symbol = derivation
+                if child_symbol in unary_chain:
+                    continue  # unary cycle at this span; skip to avoid infinite recursion
+                for child_node in self._enumerate_trees(
+                    backpointers, i, j, child_symbol, tokens,
+                    unary_chain | {symbol},
+                ):
+                    yield ParseNode(
+                        symbol=symbol,
+                        children=[child_node],
+                        utterance_indices=child_node.utterance_indices,
+                    )
 
-            if left_node and right_node:
-                utterance_indices: List[int] = []
-                utterance_indices.extend(left_node.utterance_indices or [])
-                utterance_indices.extend(right_node.utterance_indices or [])
-
-                return ParseNode(
-                    symbol=symbol,
-                    children=[left_node, right_node],
-                    utterance_indices=utterance_indices or None,
-                )
-
-        return None
+            elif production_type == 'binary':
+                _, left_symbol, right_symbol, k = derivation
+                for left_node in self._enumerate_trees(
+                    backpointers, i, k, left_symbol, tokens, frozenset()
+                ):
+                    for right_node in self._enumerate_trees(
+                        backpointers, k + 1, j, right_symbol, tokens, frozenset()
+                    ):
+                        utterance_indices: List[int] = []
+                        utterance_indices.extend(left_node.utterance_indices or [])
+                        utterance_indices.extend(right_node.utterance_indices or [])
+                        yield ParseNode(
+                            symbol=symbol,
+                            children=[left_node, right_node],
+                            utterance_indices=utterance_indices or None,
+                        )
 
     # ------------------------------------------------------------------ #
     # NLTK helpers

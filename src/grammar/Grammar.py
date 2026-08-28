@@ -136,6 +136,7 @@ GRAMMAR = [
     # TOP.END
     (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS)),
+    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
     (SectionEnum.OTHER_HEARING,         (SectionEnum.OTHER_HEARING, SectionEnum.OTHER_HEARING)),
 
@@ -145,7 +146,7 @@ GRAMMAR = [
     # OTHER_NONPROCEDURAL
     (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.LEGISLATOR),
     # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.PUBLIC),
-    # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.BILL_AUTHOR),
+    (SectionEnum.OTHER_NONPROCEDURAL,   (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
     # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.COMMITTEE_MEMBER),
     # OTHER_PROCEDURAL
     (SectionEnum.OTHER_PROCEDURAL,      (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.SECRETARY)),
@@ -186,15 +187,20 @@ GRAMMAR = [
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.COMMITTEE_MEMBER),
     (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     # CLOSING_REMARKS
-    (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
+    (SectionEnum.CLOSING_REMARKS,       (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.LEGISLATOR)),
     (SectionEnum.CLOSING_REMARKS,       (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
     (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.PRESIDING_CHAIR),
     # VOTE
-    (SectionEnum.VOTE,                  SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.VOTE,                  (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.SECRETARY)),
     (SectionEnum.VOTE,                  SpeakerPositionEnum.SECRETARY),
     # OTHER_HEARING
+    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PUBLIC, SpeakerPositionEnum.PRESIDING_CHAIR)),
+    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PUBLIC, SpeakerPositionEnum.SECRETARY)),
+    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.SECRETARY, SpeakerPositionEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.SECRETARY, SpeakerPositionEnum.BILL_AUTHOR)),
     (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.BILL_AUTHOR),
+    # (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.BILL_AUTHOR),
     (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.PRESIDING_CHAIR),
     # (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.SECRETARY),   # a secretary utterance after the vote is still VOTE
 ]
