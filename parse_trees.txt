@@ -191,7 +191,7 @@ Parse Tree (bracket notation):
       (CLOSING_REMARKS
         (PRESIDING_CHAIR (PRESIDING_CHAIR utt_4))
         (BILL_AUTHOR (BILL_AUTHOR utt_5)))
-      (OTHER_NONPROCEDURAL
+      (CLOSING_REMARKS
         (PRESIDING_CHAIR (PRESIDING_CHAIR utt_6))
         (BILL_AUTHOR (BILL_AUTHOR utt_7))))))
 

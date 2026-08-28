@@ -135,7 +135,7 @@ GRAMMAR = [
     (SMOOTHING.PUBLIC_COMMENTS,         (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
     (SMOOTHING.LEGISLATOR_DISCUSSION,   (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION)),
     # Semi-terminals
-    (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.OTHER_NONPROCEDURAL)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION)),
     # (SectionEnum.EXPERT_TESTIMONY,      (SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
     # (SectionEnum.PUBLIC_COMMENTS,       (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
@@ -166,6 +166,7 @@ GRAMMAR = [
     (SectionEnum.INTRO,                 TerminalEnum.PRESIDING_CHAIR),
     (SectionEnum.INTRO,                 TerminalEnum.SECRETARY),
     # PRESENTATION
+    (SectionEnum.PRESENTATION,          (TerminalEnum.EXPERT, TerminalEnum.PRESIDING_CHAIR)),
     (SectionEnum.PRESENTATION,          TerminalEnum.BILL_AUTHOR),
     (SectionEnum.PRESENTATION,          TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.PRESENTATION,          TerminalEnum.PRESIDING_CHAIR),
