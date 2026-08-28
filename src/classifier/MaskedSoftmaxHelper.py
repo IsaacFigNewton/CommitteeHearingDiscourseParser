@@ -37,20 +37,50 @@ class MaskedSoftmaxHelper:
     ) -> Tuple[List[List[Any]], bool]:
         """Build allowed SectionEnums for each utterance in a hearing.
 
-        1. Prefer all parse trees returned by
-           Tokenizer.get_all_parses_as_nltk_trees(hearing, max_parses=2).
-        2. If no parse trees are returned, infer the allowed sections from the
-           speaker type plus SectionEnums reachable from GRAMMAR terminal rules.
-        
-        params:
-            see code
-        returns:
-            masks:              list of lists of valid section tags associated with each utterance
-            parse_successful:   whether >=1 parse tree was generated with the grammar
+        This method provides a multi-tier fallback strategy for constraining
+        predictions when full parsing fails:
+
+        Tier 1 (Preferred): Full parse tree constraint
+            - Use Parser to generate complete parse trees of the hearing
+            - Extract SectionEnum ancestors for each utterance from parse trees
+            - Most accurate but may fail on ambiguous/malformed hearings
+
+        Tier 2 (Fallback): Grammar-based constraint
+            - When parsing fails, use simpler Nonterminal -> TerminalEnum rules
+            - Match speaker attributes (position, can_file_motions, etc.) to
+              TerminalEnum values in the grammar
+            - Use _terminal_to_reachable_sections() to find valid SectionEnums
+            - Less accurate but more robust to parsing failures
+
+        Example:
+            Tier 1 succeeds:
+                Parse tree shows utterance 5 under SectionEnum.INTRO node
+                → masks[5] = [SectionEnum.INTRO]
+
+            Tier 1 fails, Tier 2 used:
+                Speaker is PRESIDING_CHAIR, grammar has rule
+                (SectionEnum.INTRO, TerminalEnum.PRESIDING_CHAIR)
+                → masks[5] = [SectionEnum.INTRO, SectionEnum.PRESENTATION, ...]
+                (all sections reachable from PRESIDING_CHAIR terminal)
+
+        Args:
+            hearing: TaggedHearing with utterances to constrain
+            parser: Parser for generating parse trees
+            grammar: Grammar rules for fallback (uses GRAMMAR if None)
+            speaker_positions: Per-utterance speaker position values
+            can_file_motions: Per-utterance motion filing flags
+            is_presenters: Per-utterance presenter flags
+            max_parses: Maximum parse trees to consider
+
+        Returns:
+            Tuple of:
+                - masks: List of allowed SectionEnums per utterance
+                - parse_successful: True if Tier 1 succeeded, False if using Tier 2
         """
         utterances = list(getattr(hearing, "utterances", []) or [])
         n = len(utterances)
 
+        # Tier 1: Attempt to generate full parse trees
         parse_trees: List[Any] = []
         try:
             parse_trees = list(
@@ -58,20 +88,28 @@ class MaskedSoftmaxHelper:
                 or []
             )
         except Exception:
+            # Parsing failed completely, will fall back to Tier 2
             parse_trees = []
-        
-        # if there was at least 1 successful parse
+
+        # If we got at least one valid parse tree, use it
         if len(parse_trees) > 0:
             masks: List[Set[Any]] = [set() for _ in range(n)]
+
+            # Collect allowed sections from all parse trees
+            # Multiple parses can provide different section possibilities
             for tree in parse_trees:
                 for idx, section in cls._sections_by_utterance_from_tree(tree, utterances).items():
                     if 0 <= idx < n:
                         masks[idx].update(section)
 
-            # Only use parser-derived masks if at least one utterance was aligned.
+            # Only use parser-derived masks if at least one utterance was aligned
+            # Empty masks mean the parse trees didn't help, so fall back
             if any(masks):
                 return [list(s) for s in masks], True
 
+        # Tier 2: Fallback to grammar-based constraints using simple rules
+        # This uses Nonterminal -> TerminalEnum rules to constrain predictions
+        # based on speaker attributes without requiring a full parse
         return cls._allowed_sections_from_grammar_fallback(
             grammar=grammar,
             hearing=hearing,
@@ -167,19 +205,63 @@ class MaskedSoftmaxHelper:
         can_file_motions: Optional[Sequence[Any]],
         is_presenters: Optional[Sequence[Any]],
     ) -> List[List[Any]]:
-        """Fallback masks using terminal grammar rules and speaker type."""
+        """Fallback masks using Nonterminal -> TerminalEnum grammar rules.
+
+        This is Tier 2 fallback used when full parse trees cannot be generated.
+        Instead of parsing the entire hearing structure, we use simpler direct
+        rules from the grammar that map speaker attributes to allowed sections.
+
+        Strategy:
+        1. Build a mapping of terminal tokens (speaker types) to SectionEnums
+           using _terminal_to_reachable_sections()
+        2. For each utterance, determine speaker terminal candidates based on:
+           - Speaker position (PRESIDING_CHAIR, COMMITTEE_MEMBER, etc.)
+           - Motion filing capability
+           - Presenter status
+        3. Look up allowed sections for those terminal candidates
+        4. Union all allowed sections across all applicable terminals
+
+        Example workflow:
+            Utterance speaker: SpeakerPositionEnum.PRESIDING_CHAIR
+            Terminal candidates: {PRESIDING_CHAIR, TerminalEnum.PRESIDING_CHAIR, ...}
+
+            Grammar has rules:
+                (SectionEnum.INTRO, TerminalEnum.PRESIDING_CHAIR)
+                (SectionEnum.PRESENTATION, TerminalEnum.PRESIDING_CHAIR)
+
+            Result: allowed sections = {SectionEnum.INTRO, SectionEnum.PRESENTATION}
+
+        This constrains predictions to only sections valid for the speaker type,
+        even without a complete parse tree of the hearing structure.
+
+        Args:
+            grammar: Grammar rules (uses GRAMMAR if None)
+            hearing: TaggedHearing with utterances
+            speaker_positions: Per-utterance speaker positions
+            can_file_motions: Per-utterance motion filing flags
+            is_presenters: Per-utterance presenter flags
+
+        Returns:
+            List of allowed SectionEnum lists, one per utterance
+        """
         utterances = list(getattr(hearing, "utterances", []) or [])
 
+        # Load default grammar if not provided
         if grammar is None:
             try:
                 from ..grammar.Grammar import GRAMMAR as grammar  # type: ignore
             except Exception:
                 grammar = None
 
+        # Build the mapping: terminal token → set of reachable SectionEnums
+        # This is computed once and reused for all utterances
         terminal_to_sections = cls._terminal_to_reachable_sections(grammar)
 
         masks: List[List[Any]] = []
         for i, utt in enumerate(utterances):
+            # Get all terminal candidates for this utterance's speaker
+            # Returns variations like: {PRESIDING_CHAIR, "PRESIDING_CHAIR",
+            #                           TerminalEnum.PRESIDING_CHAIR, ...}
             candidates = cls._speaker_terminal_candidates(
                 utterance=utt,
                 hearing=hearing,
@@ -188,8 +270,10 @@ class MaskedSoftmaxHelper:
                 is_presenter=(is_presenters[i] if is_presenters is not None and i < len(is_presenters) else None),
             )
 
+            # Collect all sections reachable from any candidate terminal
             allowed: Set[Any] = set()
             for candidate in candidates:
+                # Try multiple string formats to handle different terminal representations
                 allowed.update(terminal_to_sections.get(candidate, set()))
                 allowed.update(terminal_to_sections.get(str(candidate), set()))
                 allowed.update(terminal_to_sections.get(str(candidate).upper(), set()))
@@ -201,52 +285,116 @@ class MaskedSoftmaxHelper:
 
     @classmethod
     def _terminal_to_reachable_sections(cls, grammar: Any) -> Dict[Any, Set[Any]]:
-        """Map each terminal token in GRAMMAR to SectionEnums reachable from it."""
+        """Map each terminal token in GRAMMAR to SectionEnums reachable from it.
+
+        This method builds a comprehensive mapping used when full parse trees cannot
+        be generated. It provides a fallback by extracting simpler rules directly
+        from the grammar.
+
+        Strategy:
+        1. Build bidirectional grammar graph (forward/reverse edges between nonterminals)
+        2. Identify terminal rules (rules with no nonterminal children on RHS)
+        3. For each terminal, traverse the grammar graph to find all reachable SectionEnums
+        4. Also extract direct Nonterminal -> TerminalEnum rules as simple fallback
+
+        Example:
+            Grammar rule: (SectionEnum.INTRO, TerminalEnum.PRESIDING_CHAIR)
+            Result: Maps TerminalEnum.PRESIDING_CHAIR -> {SectionEnum.INTRO}
+
+            When full parsing fails, a PRESIDING_CHAIR speaker can still be
+            constrained to INTRO section predictions.
+
+        Args:
+            grammar: Grammar object with productions() method
+
+        Returns:
+            Dict mapping terminal tokens to sets of reachable SectionEnums
+        """
         if grammar is None or not hasattr(grammar, "productions"):
             return {}
 
         productions = list(grammar.productions())
+
+        # Build forward/reverse graph of nonterminal dependencies
+        # forward[A] = {B, C} means A can derive B or C
+        # reverse[B] = {A, D} means B can be derived from A or D
         forward: Dict[str, Set[str]] = defaultdict(set)
         reverse: Dict[str, Set[str]] = defaultdict(set)
+
+        # Maps terminal symbols to the nonterminals they directly appear under
+        # terminal_lhs[PRESIDING_CHAIR] = {INTRO, PRESENTATION, ...}
         terminal_lhs: Dict[Any, Set[str]] = defaultdict(set)
 
+        # Track direct SectionEnum -> TerminalEnum rules for simple fallback
+        # This provides a safety net when complex graph traversal doesn't find rules
+        # Example: direct_terminal_enum_rules[PRESIDING_CHAIR] = {INTRO, PRESENTATION}
+        direct_terminal_enum_rules: Dict[Any, Set[Any]] = defaultdict(set)
+
+        # First pass: analyze all grammar productions
         for prod in productions:
             lhs = cls._symbol_name(prod.lhs())
             rhs = list(prod.rhs())
 
+            # Check if this production has any nonterminal symbols on the RHS
             has_nonterminal_rhs = False
             for sym in rhs:
                 if cls._looks_like_nonterminal(sym):
                     rhs_name = cls._symbol_name(sym)
+                    # Build bidirectional graph for nonterminal derivations
                     forward[lhs].add(rhs_name)
                     reverse[rhs_name].add(lhs)
                     has_nonterminal_rhs = True
 
+            # This is a terminal rule (no nonterminals on RHS)
+            # Example: (SectionEnum.INTRO, TerminalEnum.PRESIDING_CHAIR)
             if not has_nonterminal_rhs:
                 for terminal in rhs:
+                    # Store all string variations to handle different terminal formats
                     terminal_lhs[terminal].add(lhs)
                     terminal_lhs[str(terminal)].add(lhs)
                     terminal_lhs[str(terminal).upper()].add(lhs)
                     terminal_lhs[str(terminal).lower()].add(lhs)
 
+                    # If LHS is a SectionEnum, store this as a direct fallback rule
+                    # This ensures we have simple Nonterminal -> TerminalEnum mappings
+                    # even if the full grammar graph traversal misses them
+                    lhs_section = cls._coerce_section(lhs)
+                    if lhs_section is not None:
+                        direct_terminal_enum_rules[terminal].add(lhs_section)
+                        direct_terminal_enum_rules[str(terminal)].add(lhs_section)
+                        direct_terminal_enum_rules[str(terminal).upper()].add(lhs_section)
+                        direct_terminal_enum_rules[str(terminal).lower()].add(lhs_section)
+
         out: Dict[Any, Set[Any]] = defaultdict(set)
+
+        # Merge forward and reverse graphs for bidirectional traversal
         graph = cls._merge_graphs(forward, reverse)
 
+        # Second pass: for each terminal, find all reachable SectionEnums
         for terminal, starts in terminal_lhs.items():
             seen: Set[str] = set()
             queue: deque[str] = deque(starts)
 
+            # BFS through the grammar graph to find all nonterminals reachable
+            # from this terminal, collecting any SectionEnums we encounter
             while queue:
                 symbol = queue.popleft()
                 if symbol in seen:
                     continue
                 seen.add(symbol)
 
+                # Check if this nonterminal is (or contains) a SectionEnum
                 section = cls._coerce_section(symbol)
                 if section is not None:
                     out[terminal].add(section)
 
+                # Continue traversing to connected nonterminals
                 queue.extend(graph.get(symbol, set()) - seen)
+
+            # Merge in direct rules as additional fallback options
+            # This ensures we don't miss simple direct mappings that might
+            # not be found through graph traversal (e.g., isolated rules)
+            out[terminal].update(direct_terminal_enum_rules.get(terminal, set()))
 
         return out
 
