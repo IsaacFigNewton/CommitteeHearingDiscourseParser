@@ -4,9 +4,8 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 
-from ..grammar.Grammar import Rule
+from ..grammar.Grammar import Rule, TerminalEnum
 from src.enums.SectionEnum import SectionEnum
-from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 
 class SectionSpeakerRulePlotter:
@@ -19,11 +18,11 @@ class SectionSpeakerRulePlotter:
         self.section_speaker_map = defaultdict(list)
         for rule in self.grammar:
             # if it's a binary terminal production rule
-            if type(rule[1]) == tuple and type(rule[1][0]) == SpeakerPositionEnum:
+            if type(rule[1]) == tuple and type(rule[1][0]) == TerminalEnum:
                 self.section_speaker_map[rule[0]].append(rule[1][0])
                 self.section_speaker_map[rule[0]].append(rule[1][1])
             # if it's a unary terminal production rule
-            elif type(rule[1]) == SpeakerPositionEnum:
+            elif type(rule[1]) == TerminalEnum:
                 self.section_speaker_map[rule[0]].append(rule[1])
         
 
@@ -117,7 +116,7 @@ class SectionSpeakerRulePlotter:
         ax.set_xlabel("Section", fontsize=axis_label_size)
         ax.set_ylabel("Speaker Position", fontsize=axis_label_size)
         ax.set_title(
-            "Grammar Rules: Valid SpeakerPositionEnum by SectionEnum",
+            "Grammar Rules: Valid TerminalEnum by SectionEnum",
             fontsize=title_size,
         )
 

@@ -1,12 +1,10 @@
-import warnings
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 from collections import defaultdict
 from nltk.tree import Tree
 
 from src.grammar.ParseNode import ParseNode
 from ..dataclasses.Hearing import TaggedHearing
-from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
-from .Grammar import GRAMMAR, Terminal, TOP
+from .Grammar import GRAMMAR, SpeakerPositionEnum, TOP
 from .Tokenizer import Tokenizer, Token
 
 
@@ -25,13 +23,13 @@ class Parser:
     derivation of a (symbol, span) pair, so ambiguous grammars yield all
     parse trees (lazily, up to a caller-supplied limit).
 
-    Binary rules may also mention terminals directly on their RHS, e.g.
+    Binary rules must be strictly over nonterminals: terminals may only
+    appear as the sole RHS of a unary rule (A -> terminal). A binary rule
+    mentioning a terminal directly, e.g.
         CLOSING_REMARKS -> (PRESIDING_CHAIR, BILL_AUTHOR)
-    Matched terminals that appear in some binary RHS are placed into the
-    chart's diagonal cells alongside the nonterminals derived from them, so
-    these rules participate in parsing instead of being silently dead. A
-    UserWarning listing such rules is emitted at construction time so grammar
-    authors are aware of them.
+    would silently never fire in CYK (chart cells only ever contain
+    nonterminals), so _index_rules raises a ValueError on such rules instead
+    of letting them go dead. Route them through a preterminal instead.
     """
 
     def __init__(self,
@@ -88,34 +86,25 @@ class Parser:
                         f"Grammar is not in CNF: {lhs} -> {rhs} has {len(rhs)} RHS symbols"
                     )
 
-        # Terminals that appear directly inside a binary RHS. These must be
-        # placed into chart cells at match time (see _cyk_parse) or the rules
-        # referencing them can never fire, since chart cells otherwise contain
-        # only nonterminals.
-        self.binary_rhs_terminals: Set[Any] = {
-            sym
-            for (b, c) in self.binary_rules
-            for sym in (b, c)
-            if self._is_terminal(sym)
-        }
-        if self.binary_rhs_terminals:
-            mixed_rules = [
-                f"{lhs} -> ({b}, {c})"
-                for (b, c), lhss in self.binary_rules.items()
-                if self._is_terminal(b) or self._is_terminal(c)
-                for lhs in lhss
-            ]
-            warnings.warn(
-                "Grammar contains binary rules with terminal RHS symbols "
-                "(not strict CNF). They are supported by placing matched "
-                "terminals into the chart, but consider rewriting them "
-                "through preterminals:\n  " + "\n  ".join(mixed_rules),
-                UserWarning,
-                stacklevel=3,
+        # Strict CNF check: terminals may only appear as the sole RHS of a
+        # unary rule. A terminal inside a binary RHS would silently never
+        # fire (chart cells only ever contain nonterminals), so fail fast.
+        bad_rules = [
+            f"{lhs} -> ({b}, {c})"
+            for (b, c), lhss in self.binary_rules.items()
+            if self._is_terminal(b) or self._is_terminal(c)
+            for lhs in lhss
+        ]
+        if bad_rules:
+            raise ValueError(
+                "Grammar is not in CNF: binary rules may not contain terminal "
+                "RHS symbols (symbols that never appear on a LHS). Route them "
+                "through a preterminal instead. Offending rules:\n  "
+                + "\n  ".join(bad_rules)
             )
 
     @staticmethod
-    def _matches_terminal(terminal: Terminal, token: Token) -> bool:
+    def _matches_terminal(terminal: SpeakerPositionEnum, token: Token) -> bool:
         """
         Check if a token matches a terminal symbol.
 
@@ -215,12 +204,6 @@ class Parser:
                     for nt in non_terminals:
                         table[i][i].add(nt)
                         self._add_backpointer(backpointers, nt, i, i, ('terminal', terminal, i))
-            # Terminals referenced directly by binary rules go into the cell
-            # themselves, so rules like A -> (TERMINAL_B, TERMINAL_C) can fire.
-            for terminal in self.binary_rhs_terminals:
-                if self._matches_terminal(terminal, token):
-                    table[i][i].add(terminal)
-                    self._add_backpointer(backpointers, terminal, i, i, ('token', i))
             self._apply_unary_rules(table[i][i], backpointers, i, i)
 
         # Fill table bottom-up for spans of increasing length
@@ -316,14 +299,7 @@ class Parser:
         for derivation in backpointers.get((symbol, i, j), ()):
             production_type = derivation[0]
 
-            if production_type == 'token':
-                # `symbol` is itself a terminal placed directly in the chart
-                # (it appears on the RHS of some binary rule); yield it as a leaf.
-                _, token_idx_in_list = derivation
-                _, utterance_idx = tokens[token_idx_in_list]
-                yield ParseNode(symbol=symbol, utterance_indices=[utterance_idx])
-
-            elif production_type == 'terminal':
+            if production_type == 'terminal':
                 _, terminal, token_idx_in_list = derivation
                 _, utterance_idx = tokens[token_idx_in_list]
                 yield ParseNode(

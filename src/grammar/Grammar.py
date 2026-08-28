@@ -17,30 +17,37 @@ class TOP(Enum):
 
 # if thee UPPER_MIDDLE or LOWER_MIDDLE has >= 2 SectionEnums of different types,
 #   and the legislator discussion is >= 2 utterances long,
-#   then split the EXPERT_TESTIMONY or PUBLIC_COMMENTS into >=2 consecutive SpeakerPositionEnum tokens 
+#   then split the EXPERT_TESTIMONY or PUBLIC_COMMENTS into >=2 consecutive TerminalEnum tokens 
 class SMOOTHING(Enum):
     EXPERT_TESTIMONY=       "SMOOTH_EXPERT_TESTIMONY"
     PUBLIC_COMMENTS=        "SMOOTH_PUBLIC_COMMENTS"
     LEGISLATOR_DISCUSSION=  "SMOOTH_LEGISLATOR_DISCUSSION"
 
+
+class TerminalEnum(Enum):
+    SECRETARY=          9
+    PRESIDING_CHAIR=    8
+    CHAIRMAN=           7
+    VICE_CHAIRMAN=      6
+    COMMITTEE_MEMBER=   5
+    BILL_AUTHOR=        4   # subdivided by can_file_motions, determines is_presenter
+    LEGISLATOR=         3
+    EXPERT=             2
+    NONLEGISLATOR=      1
+    PUBLIC=             0
+
 # base types
-Terminal = Union[
-    SpeakerPositionEnum
-]
 Nonterminal = Union[
     TOP,
+    SMOOTHING,
     SectionEnum,
-    VoteSectionEnum
-]
-Symbol = Union[
-    Terminal,
-    Nonterminal
+    VoteSectionEnum,
+    TerminalEnum
 ]
 
 # rule types
 Terminal_Rule = Union[
-    Tuple[Nonterminal, Tuple[Terminal, Terminal]],
-    Tuple[Nonterminal, Terminal],
+    Tuple[Nonterminal, SpeakerPositionEnum],
     Tuple[Nonterminal, None]
 ]
 Nonterminal_Rule = Union[
@@ -52,7 +59,7 @@ Rule = Union[
     Nonterminal_Rule
 ]
 
-# SpeakerPositionEnum should be disambiguated by now
+# TerminalEnum should be disambiguated by now
 #   some rules included below for ambiguous positions in case they were missed
 GRAMMAR = [
     # broad hearing structures
@@ -141,66 +148,80 @@ GRAMMAR = [
     (SectionEnum.OTHER_HEARING,         (SectionEnum.OTHER_HEARING, SectionEnum.OTHER_HEARING)),
 
 
-    # Terminal rule expansions (terminals are just SpeakerPositionEnum instances)
+    # Leaf rule expansions
     # OTHER
     # OTHER_NONPROCEDURAL
-    (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.LEGISLATOR),
-    # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.PUBLIC),
-    (SectionEnum.OTHER_NONPROCEDURAL,   (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
-    # (SectionEnum.OTHER_NONPROCEDURAL,   SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.LEGISLATOR),
+    # (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.PUBLIC),
+    (SectionEnum.OTHER_NONPROCEDURAL,   (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.BILL_AUTHOR)),
+    # (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.COMMITTEE_MEMBER),
     # OTHER_PROCEDURAL
-    (SectionEnum.OTHER_PROCEDURAL,      (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.SECRETARY)),
-    (SectionEnum.OTHER_PROCEDURAL,      SpeakerPositionEnum.PRESIDING_CHAIR),
-    (SectionEnum.OTHER_PROCEDURAL,      SpeakerPositionEnum.SECRETARY),
+    (SectionEnum.OTHER_PROCEDURAL,      (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.SECRETARY)),
+    (SectionEnum.OTHER_PROCEDURAL,      TerminalEnum.PRESIDING_CHAIR),
+    (SectionEnum.OTHER_PROCEDURAL,      TerminalEnum.SECRETARY),
 
 
     # TOP.START
     # INTRO
-    (SectionEnum.INTRO,                 SpeakerPositionEnum.PRESIDING_CHAIR),
-    (SectionEnum.INTRO,                 SpeakerPositionEnum.SECRETARY),
+    (SectionEnum.INTRO,                 TerminalEnum.PRESIDING_CHAIR),
+    (SectionEnum.INTRO,                 TerminalEnum.SECRETARY),
     # PRESENTATION
-    (SectionEnum.PRESENTATION,          SpeakerPositionEnum.BILL_AUTHOR),
-    (SectionEnum.PRESENTATION,          SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.PRESENTATION,          SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.PRESENTATION,          TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.PRESENTATION,          TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.PRESENTATION,          TerminalEnum.PRESIDING_CHAIR),
 
     # TOP.MIDDLE
     # LEGISLATOR_DISCUSSION
-    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.NONLEGISLATOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.COMMITTEE_MEMBER, SpeakerPositionEnum.PUBLIC)),        # member questions a PUBLIC-tagged witness
-    (SectionEnum.LEGISLATOR_DISCUSSION, (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.NONLEGISLATOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.EXPERT),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.BILL_AUTHOR),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.LEGISLATOR_DISCUSSION, SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PUBLIC)),        # member questions a PUBLIC-tagged witness
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.EXPERT),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PRESIDING_CHAIR),
     # EXPERT_TESTIMONY
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.NONLEGISLATOR),
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.EXPERT),
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.LEGISLATOR),            # fallback for ambiguous SpeakerPositionEnum
-    # (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.BILL_AUTHOR),
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.PRESIDING_CHAIR),
-    # (SectionEnum.EXPERT_TESTIMONY,      SpeakerPositionEnum.SECRETARY),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.NONLEGISLATOR),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.EXPERT),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
+    # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.PRESIDING_CHAIR),
+    # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.SECRETARY),
     # PUBLIC_COMMENTS
-    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PUBLIC),
-    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.NONLEGISLATOR),
-    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.COMMITTEE_MEMBER),
-    (SectionEnum.PUBLIC_COMMENTS,       SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PUBLIC),
+    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.NONLEGISLATOR),
+    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PRESIDING_CHAIR),
     # CLOSING_REMARKS
-    (SectionEnum.CLOSING_REMARKS,       (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.LEGISLATOR)),
-    (SectionEnum.CLOSING_REMARKS,       (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.BILL_AUTHOR)),
-    (SectionEnum.CLOSING_REMARKS,       SpeakerPositionEnum.PRESIDING_CHAIR),
+    (SectionEnum.CLOSING_REMARKS,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.LEGISLATOR)),
+    (SectionEnum.CLOSING_REMARKS,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.BILL_AUTHOR)),
+    (SectionEnum.CLOSING_REMARKS,       TerminalEnum.PRESIDING_CHAIR),
     # VOTE
-    (SectionEnum.VOTE,                  (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.SECRETARY)),
-    (SectionEnum.VOTE,                  SpeakerPositionEnum.SECRETARY),
+    (SectionEnum.VOTE,                  (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.SECRETARY)),
+    (SectionEnum.VOTE,                  TerminalEnum.SECRETARY),
     # OTHER_HEARING
-    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PUBLIC, SpeakerPositionEnum.PRESIDING_CHAIR)),
-    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PUBLIC, SpeakerPositionEnum.SECRETARY)),
-    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.PRESIDING_CHAIR, SpeakerPositionEnum.PUBLIC)),
-    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.SECRETARY, SpeakerPositionEnum.PUBLIC)),
-    (SectionEnum.OTHER_HEARING,         (SpeakerPositionEnum.SECRETARY, SpeakerPositionEnum.BILL_AUTHOR)),
-    (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.COMMITTEE_MEMBER),
-    # (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.BILL_AUTHOR),
-    (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.PRESIDING_CHAIR),
-    # (SectionEnum.OTHER_HEARING,         SpeakerPositionEnum.SECRETARY),   # a secretary utterance after the vote is still VOTE
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.SECRETARY)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.SECRETARY, TerminalEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.SECRETARY, TerminalEnum.BILL_AUTHOR)),
+    (SectionEnum.OTHER_HEARING,         TerminalEnum.COMMITTEE_MEMBER),
+    # (SectionEnum.OTHER_HEARING,         TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.OTHER_HEARING,         TerminalEnum.PRESIDING_CHAIR),
+    # (SectionEnum.OTHER_HEARING,         TerminalEnum.SECRETARY),   # a secretary utterance after the vote is still VOTE
+
+
+    # Terminal expansions
+    (TerminalEnum.PUBLIC,               SpeakerPositionEnum.PUBLIC),
+    (TerminalEnum.NONLEGISLATOR,        SpeakerPositionEnum.NONLEGISLATOR),
+    (TerminalEnum.EXPERT,               SpeakerPositionEnum.EXPERT),
+    (TerminalEnum.LEGISLATOR,           SpeakerPositionEnum.LEGISLATOR),
+    (TerminalEnum.BILL_AUTHOR,          SpeakerPositionEnum.BILL_AUTHOR),
+    (TerminalEnum.COMMITTEE_MEMBER,     SpeakerPositionEnum.COMMITTEE_MEMBER),
+    (TerminalEnum.VICE_CHAIRMAN,        SpeakerPositionEnum.VICE_CHAIRMAN),
+    (TerminalEnum.CHAIRMAN,             SpeakerPositionEnum.CHAIRMAN),
+    (TerminalEnum.PRESIDING_CHAIR,      SpeakerPositionEnum.PRESIDING_CHAIR),
+    (TerminalEnum.SECRETARY,            SpeakerPositionEnum.SECRETARY),
+
 ]
