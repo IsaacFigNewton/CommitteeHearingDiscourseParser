@@ -33,10 +33,11 @@ class ClassifierPipeline:
         'mentions_speaker', 'mentions_bill',
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
+    
+    parser = Parser()
 
     def __init__(self, base_estimator=None) -> None:
         self.hearing_tagger = HearingTagger()
-        self.parser = Parser()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model(base_estimator)
@@ -76,6 +77,7 @@ class ClassifierPipeline:
             ])),
             ('classifier', MaskedClassifier(
                 base_estimator=base_estimator,
+                parser=cls.parser
             )),
         ])
 

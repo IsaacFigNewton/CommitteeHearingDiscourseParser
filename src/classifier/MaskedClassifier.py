@@ -51,10 +51,9 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
 
     def __init__(
         self,
-        base_estimator: Any = None,
-        hearing: Any = None,
-        tokenizer: Optional[Tokenizer] = None,
-        parser: Optional[Parser] = None,
+        base_estimator: Any,
+        parser: Parser,
+        hearing: Optional[TaggedHearing] = None,
         grammar: Any = None,
         speaker_positions: Optional[Sequence[Any]] = None,
         can_file_motions: Optional[Sequence[Any]] = None,
@@ -75,7 +74,6 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         """
         self.base_estimator = base_estimator
         self.hearing = hearing
-        self.tokenizer = tokenizer
         self.parser = parser
         self.grammar = grammar
         self.speaker_positions = speaker_positions
@@ -136,13 +134,12 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         probs = self.base_estimator_.predict_proba(X)
 
         # If no masking context, return unmasked probabilities
-        if self.hearing is None or self.tokenizer is None or self.parser is None:
-            return probs, False
+        if self.hearing is None:
+            raise ValueError(f"Failed to predict unmasked probabilities; no hearing provided")
 
         # Build allowed sections for this hearing
         allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
             hearing=self.hearing,
-            tokenizer=self.tokenizer,
             parser=self.parser,
             grammar=self.grammar,
             speaker_positions=self.speaker_positions,
@@ -206,11 +203,10 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
 
         return masked
 
-    @classmethod
+
     def allowed_sections_for_hearing(
-        cls,
+        self,
         hearing: TaggedHearing,
-        tokenizer: Tokenizer,
         grammar: Optional[List[Rule]] = None,
         speaker_positions: Optional[Sequence[SpeakerPositionEnum|None]] = None,
         can_file_motions: Optional[Sequence[bool|None]] = None,
@@ -218,9 +214,9 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         max_parses: int = 2,
     ) -> Tuple[List[List[Any]], bool]:
         """Delegate hearing-mask construction to MaskedSoftmaxHelper."""
-        return cls.helper_class.allowed_sections_for_hearing(
+        return self.helper_class.allowed_sections_for_hearing(
             hearing=hearing,
-            tokenizer=tokenizer,
+            parser=self.parser,
             grammar=grammar,
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
