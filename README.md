@@ -206,7 +206,6 @@ flowchart TD
 ```
 
 ## Annotation Notes
-### TODO: Continue review from `CA_201720180AJR1`
 `pid 21318` is used to indicate an unknown speaker. In cases of this ambiguity, the most relevant speaker role is annotated.
 - To handle this ambiguity, the `HearingLoader` class assigns a `SpeakerPositionEnum` of `None`.
 - While suboptimal, this is the best placeholder solution we were able to devise.
