@@ -141,7 +141,6 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
             hearing=self.hearing,
             parser=self.parser,
-            grammar=self.grammar,
             speaker_positions=self.speaker_positions,
             can_file_motions=self.can_file_motions,
             is_presenters=self.is_presenters,
