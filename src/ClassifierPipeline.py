@@ -22,9 +22,9 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 
 class ClassifierPipeline:
+    TOKEN_COL = 'speaker.position'
     TEXT_COL = 'text'
     CAT_COLS = [
-        'speaker.position',
         'section_cues',
         'speech_act_cues'
     ]
@@ -32,7 +32,7 @@ class ClassifierPipeline:
         'relative_position', 'sent_count', 'token_count',
         'mentions_speaker', 'mentions_bill',
     ]
-    FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
+    FEATURE_COLS = [TOKEN_COL, TEXT_COL, *CAT_COLS, *NUM_COLS]
     
     parser = Parser()
 
@@ -73,7 +73,7 @@ class ClassifierPipeline:
                 ), cls.TEXT_COL),
                 ('categorical', OneHotEncoder(
                     handle_unknown='ignore'
-                ), cls.CAT_COLS),
+                ), cls.CAT_COLS + [cls.TOKEN_COL]),
                 ('numeric', StandardScaler(), cls.NUM_COLS),
             ])),
             ('classifier', MaskedClassifier(
@@ -83,14 +83,70 @@ class ClassifierPipeline:
         ])
 
     @classmethod
+    def _build_utterances_dataframe(cls, hearings: List[TaggedHearing]) -> pd.DataFrame:
+        """Build a DataFrame of utterance features from a list of tagged hearings.
+
+        Builds raw utterance rows without filling missing values.
+        Missing values are automatically filled.
+
+        Args:
+            hearings: List of TaggedHearing instances to convert to DataFrame
+
+        Returns:
+            DataFrame with utterance features, sorted by state, bid, hid, uid
+        """
+        df = pd.DataFrame([
+            {
+                # metadata
+                'state':                    h.state,
+                'bid':                      h.bid,
+                'hid':                      h.hid,
+                'uid':                      u.uid,
+                'pid':                      u.pid,
+
+                # speaker features
+                'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
+                'speaker.position.value':   s.speaker_position.value if s and s.speaker_position else None,
+                'can_file_motions':         s.can_file_motions if s else None,
+                'is_presenter':             s.is_presenter if s else None,
+
+                # metadata features
+                'relative_position':        u.relative_position,
+                'token_count':              u.token_count,
+                'sent_count':               u.sent_count,
+                'mentions_speaker':         int(bool(u.pids_mentioned)),
+                'mentions_bill':            int(bool(u.bill_mentioned)),
+                'speech_act_cues':          ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
+                'section_cues':             ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
+
+                # output label
+                'section':                  None,
+
+                # text
+                'text':                     u.text,
+            }
+            for h in hearings or []
+            for u in h.utterances
+            for s in [h.speakers[u.pid]]
+        ])
+
+        # Sort by state, bid, hid, uid for consistent ordering
+        df = df.sort_values(by=['state', 'bid', 'hid', 'uid']).reset_index(drop=True)
+
+        # Fill missing values
+        df = cls._fill_missing(df)
+
+        return df
+    
+    @classmethod
     def _fill_missing(cls, df: pd.DataFrame, label_col: Optional[str] = None) -> pd.DataFrame:
         """Fill missing feature values before training or prediction."""
         df = df.copy()
         df[cls.TEXT_COL] = df[cls.TEXT_COL].fillna('')
-        df[cls.CAT_COLS] = df[cls.CAT_COLS].fillna('unknown')
+        df[cls.CAT_COLS] = df[cls.CAT_COLS].fillna(UNKNOWN)
         df[cls.NUM_COLS] = df[cls.NUM_COLS].fillna(0)
         if label_col:
-            df[label_col] = df[label_col].fillna('unknown')
+            df[label_col] = df[label_col].fillna(UNKNOWN)
         return df
 
     def train_model(self, train_df: pd.DataFrame, label_col: str = 'stage_label'):
@@ -155,7 +211,7 @@ class ClassifierPipeline:
         X = filled_df[self.feature_cols]
 
         # Extract masking information for the classifier
-        speaker_positions = filled_df['speaker.position_value'].values
+        speaker_positions = filled_df['speaker.position.value'].values
         can_file_motions = filled_df['can_file_motions'].values
         is_presenters = filled_df['is_presenter'].values
 
@@ -176,59 +232,3 @@ class ClassifierPipeline:
         labels = list(output[:len(X)])
 
         return self.smooth_label_list(labels) if smooth else labels
-
-
-    def build_utterances_dataframe(self, hearings: List[TaggedHearing]) -> pd.DataFrame:
-        """Build a DataFrame of utterance features from a list of tagged hearings.
-
-        Builds raw utterance rows without filling missing values.
-        Missing values are automatically filled.
-
-        Args:
-            hearings: List of TaggedHearing instances to convert to DataFrame
-
-        Returns:
-            DataFrame with utterance features, sorted by state, bid, hid, uid
-        """
-        df = pd.DataFrame([
-            {
-                # metadata
-                'state':                    h.state,
-                'bid':                      h.bid,
-                'hid':                      h.hid,
-                'uid':                      u.uid,
-                'pid':                      u.pid,
-
-                # speaker features
-                'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
-                'speaker.position_value':   s.speaker_position.value if s and s.speaker_position else None,
-                'can_file_motions':         s.can_file_motions if s else None,
-                'is_presenter':             s.is_presenter if s else None,
-
-                # metadata features
-                'relative_position':        u.relative_position,
-                'token_count':              u.token_count,
-                'sent_count':               u.sent_count,
-                'mentions_speaker':         int(bool(u.pids_mentioned)),
-                'mentions_bill':            int(bool(u.bill_mentioned)),
-                'speech_act_cues':          ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
-                'section_cues':             ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
-
-                # output label
-                'section':                  None,
-
-                # text
-                'text':                     u.text,
-            }
-            for h in hearings or []
-            for u in h.utterances
-            for s in [h.speakers[u.pid]]
-        ])
-
-        # Sort by state, bid, hid, uid for consistent ordering
-        df = df.sort_values(by=['state', 'bid', 'hid', 'uid']).reset_index(drop=True)
-
-        # Fill missing values
-        df = self._fill_missing(df)
-
-        return df

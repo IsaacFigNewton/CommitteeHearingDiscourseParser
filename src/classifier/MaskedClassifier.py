@@ -133,10 +133,14 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         # Get base probabilities
         probs = self.base_estimator_.predict_proba(X)
 
-        # If no masking context, return unmasked probabilities
-        if self.hearing is None:
-            raise ValueError(f"Failed to predict unmasked probabilities; no hearing provided")
+        # # If no masking context, return unmasked probabilities
+        # if self.hearing is None:
+        #     raise ValueError(f"Failed to predict unmasked probabilities; no hearing provided")
 
+        # If no masking context, return unmasked probabilities
+        if self.hearing is None:# or self.tokenizer is None or self.parser is None:
+            return probs, False
+        
         # Build allowed sections for this hearing
         allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
             hearing=self.hearing,
@@ -216,7 +220,6 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         return self.helper_class.allowed_sections_for_hearing(
             hearing=hearing,
             parser=self.parser,
-            grammar=grammar,
             speaker_positions=speaker_positions,
             can_file_motions=can_file_motions,
             is_presenters=is_presenters,
