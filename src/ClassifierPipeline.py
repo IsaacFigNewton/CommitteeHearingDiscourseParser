@@ -10,7 +10,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from .constants.constants import *
 from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
-from .classifier.MaskedClassifier import MaskedClassifier
+from .classifier.Classifier import Classifier
+from .classifier.Masker import Masker
 from .enums.SectionEnum import SectionEnum
 from .grammar.Parser import Parser
 from .grammar.Grammar import GRAMMAR
@@ -76,8 +77,10 @@ class ClassifierPipeline:
                 ), cls.CAT_COLS + [cls.TOKEN_COL]),
                 ('numeric', StandardScaler(), cls.NUM_COLS),
             ])),
-            ('classifier', MaskedClassifier(
+            ('classifier', Classifier(
                 base_estimator=base_estimator,
+            )),
+            ('masker', Masker(
                 parser=cls.parser
             )),
         ])
@@ -183,6 +186,7 @@ class ClassifierPipeline:
 
     def predict_hearing_sections(
         self,
+        hearing: TaggedHearing,
         hearing_df: pd.DataFrame,
         smooth: bool = True,
     ) -> List[SectionEnum]:
@@ -208,24 +212,28 @@ class ClassifierPipeline:
         # Extract features for the pipeline
         X = filled_df[self.feature_cols]
 
-        # Extract masking information for the classifier
+        # Extract masking information for the masker stage
         speaker_positions = filled_df['speaker.position.value'].values
         can_file_motions = filled_df['can_file_motions'].values
         is_presenters = filled_df['is_presenter'].values
 
-        # Set masking parameters on the classifier stage
+        # Get classifier classes and set them on the masker
+        classifier = self.model.named_steps['classifier']
+        classes_ = classifier.classes_
+
+        # Set masking parameters on the masker stage
         self.model.set_params(
-            classifier__hearing=hearing,
-            classifier__parser=self.parser,
-            classifier__grammar=GRAMMAR,
-            classifier__speaker_positions=speaker_positions,
-            classifier__can_file_motions=can_file_motions,
-            classifier__is_presenters=is_presenters,
-            classifier__max_parses=self.max_parses,
+            masker__hearing=hearing,
+            masker__parser=self.parser,
+            masker__grammar=GRAMMAR,
+            masker__speaker_positions=speaker_positions,
+            masker__can_file_motions=can_file_motions,
+            masker__is_presenters=is_presenters,
+            masker__max_parses=self.max_parses,
+            masker__classes_=classes_,
         )
 
-        # Predict with masking applied
-        # model.predict now returns tuple: (labels, parse_success_flag)
+        # Predict using the full pipeline (features -> classifier -> masker)
         labels, parse_success = self.model.predict(X)
         labels = list(labels)
 
