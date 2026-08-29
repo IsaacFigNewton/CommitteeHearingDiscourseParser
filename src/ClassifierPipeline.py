@@ -29,18 +29,19 @@ class ClassifierPipeline:
         'speech_act_cues'
     ]
     NUM_COLS = [
-        'relative_position', 'sent_count',
+        'relative_position', 'sent_count', 'token_count',
         'mentions_speaker', 'mentions_bill',
     ]
     FEATURE_COLS = [TEXT_COL, *CAT_COLS, *NUM_COLS]
     
     parser = Parser()
 
-    def __init__(self, base_estimator=None) -> None:
+    def __init__(self, base_estimator=None, max_parses:int=2) -> None:
         self.hearing_tagger = HearingTagger()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model(base_estimator)
+        self.max_parses = max_parses
 
     @classmethod
     def _make_model(cls, base_estimator=None):
@@ -166,7 +167,7 @@ class ClassifierPipeline:
             classifier__speaker_positions=speaker_positions,
             classifier__can_file_motions=can_file_motions,
             classifier__is_presenters=is_presenters,
-            classifier__max_parses=2,
+            classifier__max_parses=self.max_parses,
         )
 
         # Predict with masking applied
@@ -192,11 +193,11 @@ class ClassifierPipeline:
         df = pd.DataFrame([
             {
                 # metadata
-                'state':                h.state,
-                'bid':                  h.bid,
-                'hid':                  h.hid,
-                'uid':                  u.uid,
-                'pid':                  u.pid,
+                'state':                    h.state,
+                'bid':                      h.bid,
+                'hid':                      h.hid,
+                'uid':                      u.uid,
+                'pid':                      u.pid,
 
                 # speaker features
                 'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
@@ -205,18 +206,19 @@ class ClassifierPipeline:
                 'is_presenter':             s.is_presenter if s else None,
 
                 # metadata features
-                'relative_position':    u.relative_position,
-                'sent_count':           u.sent_count,
-                'mentions_speaker':     int(bool(u.pids_mentioned)),
-                'mentions_bill':        int(bool(u.bill_mentioned)),
-                'speech_act_cues':      ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
-                'section_cues':         ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
+                'relative_position':        u.relative_position,
+                'token_count':              u.token_count,
+                'sent_count':               u.sent_count,
+                'mentions_speaker':         int(bool(u.pids_mentioned)),
+                'mentions_bill':            int(bool(u.bill_mentioned)),
+                'speech_act_cues':          ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
+                'section_cues':             ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
 
                 # output label
-                'section':              None,
+                'section':                  None,
 
                 # text
-                'text':                 u.text,
+                'text':                     u.text,
             }
             for h in hearings or []
             for u in h.utterances

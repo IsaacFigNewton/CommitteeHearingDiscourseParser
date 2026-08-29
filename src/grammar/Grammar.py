@@ -13,7 +13,6 @@ class TOP(Enum):
     MIDDLE=                 "MIDDLE"
     LOWER_MIDDLE=           "LOWER_MIDDLE"
     END=                    "END"
-    CLOSING=                "CLOSING"
     WRAPUP=                 "WRAPUP"
 
 # if thee UPPER_MIDDLE or LOWER_MIDDLE has >= 2 SectionEnums of different types,
@@ -65,7 +64,7 @@ Rule = Union[
 GRAMMAR = [
     # broad hearing structures
     (TOP.ROOT,                          (TOP.START_MIDDLE, TOP.END)),
-    (TOP.START_MIDDLE,                  (TOP.START, TOP.END)),
+    (TOP.START_MIDDLE,                  (TOP.START, TOP.MIDDLE)),
 
     # fallback for OTHER sections
     (SectionEnum.OTHER_PROCEDURAL,      (SectionEnum.OTHER_PROCEDURAL, SectionEnum.OTHER_PROCEDURAL)),
@@ -75,10 +74,7 @@ GRAMMAR = [
     # TOP.START
     (TOP.START,                         (SectionEnum.INTRO, SectionEnum.PRESENTATION)),
     (TOP.START,                         (SectionEnum.INTRO)),
-    # 1-line presentation
-    (TOP.START,                         (TerminalEnum.BILL_AUTHOR)),
-    (TOP.START,                         (TerminalEnum.COMMITTEE_MEMBER)),
-    (TOP.START,                         (TerminalEnum.PRESIDING_CHAIR)),
+    (TOP.START,                         (SectionEnum.PRESENTATION)),
 
     # TOP.MIDDLE
     (TOP.MIDDLE,                        (TOP.UPPER_MIDDLE, TOP.LOWER_MIDDLE)),
@@ -98,27 +94,27 @@ GRAMMAR = [
     (SMOOTHING.LEGISLATOR_DISCUSSION,   (SMOOTHING.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION)),
 
     # TOP.UPPER_MIDDLE
-    # a testimony run of any length may be followed by a discussion
     (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, TOP.UPPER_MIDDLE)),
-    # a comment run of any length may be followed by a discussion
-    (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, SMOOTHING.LEGISLATOR_DISCUSSION)),
-    (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, TOP.UPPER_MIDDLE)),
     (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, SMOOTHING.LEGISLATOR_DISCUSSION)),
-    (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, SMOOTHING.EXPERT_TESTIMONY)),
     (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
+    # allow testimony runs of any length >= 3
+    (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, SMOOTHING.EXPERT_TESTIMONY)),
+    (TOP.UPPER_MIDDLE,                  (SMOOTHING.EXPERT_TESTIMONY, TOP.UPPER_MIDDLE)),
+    # a testimony run of any length may be followed by a discussion
+    (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, SMOOTHING.LEGISLATOR_DISCUSSION)),
     # TOP.LOWER_MIDDLE
-    # allow public comment runs of any length >= 3 (previously only multiples of 3 parsed)
     (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, TOP.LOWER_MIDDLE)),
-    # a comment run of any length may be followed by a discussion
-    (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, SMOOTHING.LEGISLATOR_DISCUSSION)),
-    (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, TOP.LOWER_MIDDLE)),
     (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, SMOOTHING.LEGISLATOR_DISCUSSION)),
-    (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, SMOOTHING.PUBLIC_COMMENTS)),
     (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
+    # allow public comment runs of any length >= 3 (previously only multiples of 3 parsed)
+    (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, SMOOTHING.PUBLIC_COMMENTS)),
+    (TOP.LOWER_MIDDLE,                  (SMOOTHING.PUBLIC_COMMENTS, TOP.LOWER_MIDDLE)),
+    # a comment run of any length may be followed by a discussion (not just exactly 2 utterances)
+    (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, SMOOTHING.LEGISLATOR_DISCUSSION)),
 
     # TOP.END
-    (TOP.END,                           (TOP.CLOSING, SectionEnum.VOTE)),
-    (TOP.END,                           TOP.CLOSING),
+    (TOP.END,                           (SectionEnum.CLOSING_REMARKS, SectionEnum.VOTE)),
+    (TOP.END,                           SectionEnum.CLOSING_REMARKS),
     (TOP.END,                           SectionEnum.VOTE),
     # post-vote / post-close wrap-up; WRAPUP deliberately excludes SECRETARY so it can never reach past a vote
     (TOP.END,                           (TOP.END, TOP.WRAPUP)),
@@ -127,18 +123,16 @@ GRAMMAR = [
 
     # different SectionEnum expansions
     # TOP.START
-    (SectionEnum.INTRO,                 (SectionEnum.OTHER_HEARING, SectionEnum.INTRO)),
+    (SectionEnum.INTRO,                 (SectionEnum.OTHER_PROCEDURAL, SectionEnum.INTRO)),
     # (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.OTHER_NONPROCEDURAL)),
-    # (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.INTRO)),
+    (SectionEnum.INTRO,                 (SectionEnum.INTRO, SectionEnum.INTRO)),
     (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.PRESENTATION,          (SectionEnum.PRESENTATION, SectionEnum.PRESENTATION)),
 
     # TOP.MIDDLE
     # Smoothing
     (SMOOTHING.EXPERT_TESTIMONY,        (SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
-    (SMOOTHING.EXPERT_TESTIMONY,        (SectionEnum.EXPERT_TESTIMONY, SectionEnum.OTHER_PROCEDURAL)),
     (SMOOTHING.PUBLIC_COMMENTS,         (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
-    (SMOOTHING.PUBLIC_COMMENTS,         (SectionEnum.PUBLIC_COMMENTS, SectionEnum.OTHER_PROCEDURAL)),
     (SMOOTHING.LEGISLATOR_DISCUSSION,   (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.LEGISLATOR_DISCUSSION)),
     # Semi-terminals
     # (SectionEnum.LEGISLATOR_DISCUSSION, (SectionEnum.LEGISLATOR_DISCUSSION, SectionEnum.OTHER_NONPROCEDURAL)),
@@ -147,87 +141,78 @@ GRAMMAR = [
     # (SectionEnum.PUBLIC_COMMENTS,       (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
 
     # TOP.END
-    # (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER_NONPROCEDURAL)),
-    # max 4 closing remarks
-    (TOP.CLOSING,                       (SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS)),
     (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.OTHER_NONPROCEDURAL)),
-    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
+    (SectionEnum.CLOSING_REMARKS,       (SectionEnum.CLOSING_REMARKS, SectionEnum.CLOSING_REMARKS)),
     (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.OTHER_NONPROCEDURAL)),
+    (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
     (SectionEnum.OTHER_HEARING,         (SectionEnum.OTHER_HEARING, SectionEnum.OTHER_HEARING)),
 
 
     # Leaf rule expansions
     # OTHER
     # OTHER_NONPROCEDURAL
-    # (SectionEnum.OTHER_NONPROCEDURAL,   (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.BILL_AUTHOR)),
     (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.LEGISLATOR),
     # (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.PUBLIC),
-    (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.OTHER_NONPROCEDURAL,   (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.BILL_AUTHOR)),
     # (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.COMMITTEE_MEMBER),
     # OTHER_PROCEDURAL
     (SectionEnum.OTHER_PROCEDURAL,      (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.SECRETARY)),
-    (SectionEnum.OTHER_PROCEDURAL,      (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.SECRETARY)),
+    (SectionEnum.OTHER_PROCEDURAL,      TerminalEnum.PRESIDING_CHAIR),
     (SectionEnum.OTHER_PROCEDURAL,      TerminalEnum.SECRETARY),
 
 
     # TOP.START
     # INTRO
     (SectionEnum.INTRO,                 TerminalEnum.PRESIDING_CHAIR),
-    (SectionEnum.INTRO,                 (TerminalEnum.SECRETARY, TerminalEnum.PRESIDING_CHAIR)),
+    (SectionEnum.INTRO,                 TerminalEnum.SECRETARY),
     # PRESENTATION
     (SectionEnum.PRESENTATION,          (TerminalEnum.EXPERT, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.PRESENTATION,          (TerminalEnum.BILL_AUTHOR, TerminalEnum.BILL_AUTHOR)),
-    (SectionEnum.PRESENTATION,          (TerminalEnum.BILL_AUTHOR, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.PRESENTATION,          (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PRESIDING_CHAIR)),
+    (SectionEnum.PRESENTATION,          TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.PRESENTATION,          TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.PRESENTATION,          TerminalEnum.PRESIDING_CHAIR),
 
     # TOP.MIDDLE
     # LEGISLATOR_DISCUSSION
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.NONLEGISLATOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.EXPERT)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.BILL_AUTHOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PRESIDING_CHAIR)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.NONLEGISLATOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.EXPERT)),
-    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PUBLIC),
-    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.EXPERT),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PUBLIC),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.EXPERT),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PRESIDING_CHAIR),
     # EXPERT_TESTIMONY
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.NONLEGISLATOR, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.NONLEGISLATOR, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.PUBLIC, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.EXPERT, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.EXPERT, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.EXPERT_TESTIMONY,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.EXPERT)),
-    (SectionEnum.EXPERT_TESTIMONY,       TerminalEnum.EXPERT),
-    (SectionEnum.EXPERT_TESTIMONY,       TerminalEnum.PRESIDING_CHAIR),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.NONLEGISLATOR),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.EXPERT),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
+    # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.COMMITTEE_MEMBER),
+    (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.PRESIDING_CHAIR),
+    # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.SECRETARY),
     # PUBLIC_COMMENTS
-    # (SectionEnum.PUBLIC_COMMENTS,       (TerminalEnum.NONLEGISLATOR, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.PUBLIC_COMMENTS,       (TerminalEnum.PUBLIC, TerminalEnum.COMMITTEE_MEMBER)),
-    # (SectionEnum.PUBLIC_COMMENTS,       (TerminalEnum.NONLEGISLATOR, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.PUBLIC_COMMENTS,       (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
     (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PUBLIC),
+    # (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.NONLEGISLATOR),
+    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PRESIDING_CHAIR),
     # CLOSING_REMARKS
     (SectionEnum.CLOSING_REMARKS,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.LEGISLATOR)),
-    (SectionEnum.CLOSING_REMARKS,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.COMMITTEE_MEMBER)),
     (SectionEnum.CLOSING_REMARKS,       (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.BILL_AUTHOR)),
     (SectionEnum.CLOSING_REMARKS,       TerminalEnum.PRESIDING_CHAIR),
     # VOTE
     (SectionEnum.VOTE,                  (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.SECRETARY)),
-    (SectionEnum.VOTE,                  (TerminalEnum.SECRETARY, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.VOTE,                  (TerminalEnum.SECRETARY, TerminalEnum.COMMITTEE_MEMBER)),
     (SectionEnum.VOTE,                  TerminalEnum.SECRETARY),
     # OTHER_HEARING
-    # (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
-    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.SECRETARY)),
-    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.COMMITTEE_MEMBER)),
-    (SectionEnum.OTHER_HEARING,         TerminalEnum.PUBLIC),
-    (SectionEnum.OTHER_HEARING,         TerminalEnum.EXPERT),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.SECRETARY)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.SECRETARY, TerminalEnum.PUBLIC)),
+    (SectionEnum.OTHER_HEARING,         (TerminalEnum.SECRETARY, TerminalEnum.BILL_AUTHOR)),
+    (SectionEnum.OTHER_HEARING,         TerminalEnum.COMMITTEE_MEMBER),
+    # (SectionEnum.OTHER_HEARING,         TerminalEnum.BILL_AUTHOR),
+    (SectionEnum.OTHER_HEARING,         TerminalEnum.PRESIDING_CHAIR),
+    # (SectionEnum.OTHER_HEARING,         TerminalEnum.SECRETARY),   # a secretary utterance after the vote is still VOTE
 
 
     # Terminal expansions
