@@ -1,4 +1,5 @@
 import re
+from ..enums.SectionEnum import *
 
 BILL_ID_TERMS = "|".join([
     r"AB",
@@ -34,3 +35,9 @@ NORMALIZED_BILL_REGEX = re.compile(
     r"\bBILL\b",
     re.IGNORECASE
 )
+
+SECTION_END_FLAGS = {
+    SectionEnum.EXPERT_TESTIMONY: {
+        "other witnesses"
+    }
+}

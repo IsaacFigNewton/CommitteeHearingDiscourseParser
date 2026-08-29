@@ -7,6 +7,7 @@ from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum, SPEAKER_POS
 from .speakers.Speaker import Speaker
 
 from .constants.constants import *
+from .constants.bill_ref_normalization import SECTION_END_FLAGS
 from .UtteranceTagger import UtteranceTagger
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -71,12 +72,30 @@ class HearingTagger(ITagger):
             
             # add hearing contextual features
             tagged_u.relative_position = i / len(raw_hearing.utterances)
-            
+
             # append to list of tagged utterances
             tagged_utterances.append(tagged_u)
 
         def first_uid(s: Speaker):
             return tagged_utterances[s.first_uid]
+
+        # detect section end flags and re-tag speakers accordingly
+        expert_testimony_end_uid = None
+        if SectionEnum.EXPERT_TESTIMONY in SECTION_END_FLAGS:
+            end_flags = SECTION_END_FLAGS[SectionEnum.EXPERT_TESTIMONY]
+            for i, u in enumerate(tagged_utterances):
+                normalized_text = self.normalize_text(u.text)
+                if self.contains_any_phrase(normalized_text, end_flags):
+                    expert_testimony_end_uid = u.uid
+                    break
+
+        # re-tag PUBLIC/NONLEGISLATOR speakers that precede the expert testimony section end as EXPERT
+        if expert_testimony_end_uid is not None:
+            for pid, s in raw_hearing.speakers.items():
+                if s.speaker_position in [SpeakerPositionEnum.PUBLIC, SpeakerPositionEnum.NONLEGISLATOR]:
+                    # if all their utterances are before the section end flag
+                    if s.last_uid < expert_testimony_end_uid:
+                        raw_hearing.speakers[pid].speaker_position = SpeakerPositionEnum.EXPERT
 
         # resolve ambiguous nonlegislator speakers' roles
         ambiguous_speakers = {
