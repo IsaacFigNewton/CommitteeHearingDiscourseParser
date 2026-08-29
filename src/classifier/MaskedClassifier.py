@@ -104,22 +104,20 @@ class MaskedClassifier(BaseEstimator, ClassifierMixin):
         self.classes_ = self.base_estimator_.classes_
         return self
 
-    def predict(self, X: Any) -> np.ndarray:
+    def predict(self, X: Any) -> Tuple[np.ndarray, bool]:
         """Predict labels after applying grammar-constrained masking.
 
         Args:
-            X: Input data
+            X: Input data of shape (n_utterances, n_features)
 
         Returns:
-            Predicted class labels
+            Tuple of (labels, parse_success) where:
+            - labels: np.ndarray of shape (n_utterances,) containing predicted class labels
+            - parse_success: bool indicating if CYK parsing succeeded
         """
         probs, parse_successful = self.predict_proba(X)
-        return np.concatenate([
-            self.classes_[np.argmax(probs, axis=1)],
-            # cast parse success flag to int
-            #   broadcast to same shape as utterance input array
-            np.array([int(parse_successful)]*probs.shape[0])
-        ], axis=0)
+        labels = self.classes_[np.argmax(probs, axis=1)]
+        return labels, parse_successful
 
     def predict_proba(self, X: Any) -> Tuple[np.ndarray, bool]:
         """Return class probabilities after masking and renormalizing.

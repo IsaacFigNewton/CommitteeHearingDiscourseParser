@@ -183,30 +183,28 @@ class ClassifierPipeline:
 
     def predict_hearing_sections(
         self,
-        hearing: TaggedHearing,
-        utterances_df: pd.DataFrame,
+        hearing_df: pd.DataFrame,
         smooth: bool = True,
     ) -> List[SectionEnum]:
         """Predict section labels for a single hearing.
 
         Args:
             hearing: Tagged hearing to predict sections for
-            utterances_df: DataFrame containing utterance features for all hearings
+            hearing_df: Optional DataFrame with pre-extracted features for this hearing only,
+                       sorted by uid. Should contain feature columns and metadata columns:
+                       'speaker.position.value', 'can_file_motions', 'is_presenter'.
+                       If provided, utterances_df is ignored.
+            utterances_df: Optional DataFrame containing utterance features for all hearings.
+                          Used for backward compatibility. Will be filtered by hid/bid.
             smooth: Whether to apply label smoothing
 
         Returns:
             List of predicted SectionEnum labels, one per utterance
         """
-        hearing_df = utterances_df[
-            (utterances_df['hid'] == hearing.hid)
-            & (utterances_df['bid'].astype(str) == str(hearing.bid))
-        ].sort_values('uid')
-
         if hearing_df.empty:
-            raise ValueError(f'No rows found for hid={hearing.hid}, bid={hearing.bid}')
-
+            raise ValueError(f'Empty hearing_df provided for hid={hearing.hid}, bid={hearing.bid}')
         filled_df = self._fill_missing(hearing_df)
-
+        
         # Extract features for the pipeline
         X = filled_df[self.feature_cols]
 
@@ -227,8 +225,8 @@ class ClassifierPipeline:
         )
 
         # Predict with masking applied
-        # model.predict returns concatenated array: [labels, parse_success_flags]
-        output = self.model.predict(X)
-        labels = list(output[:len(X)])
+        # model.predict now returns tuple: (labels, parse_success_flag)
+        labels, parse_success = self.model.predict(X)
+        labels = list(labels)
 
         return self.smooth_label_list(labels) if smooth else labels
