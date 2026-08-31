@@ -12,9 +12,9 @@ from .dataclasses.Hearing import TaggedHearing
 from .HearingTagger import HearingTagger
 from .classifier.Classifier import Classifier
 from .classifier.Masker import Masker
+from .classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
 from .enums.SectionEnum import SectionEnum
 from .grammar.Parser import Parser
-from .grammar.Grammar import GRAMMAR
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -229,17 +229,21 @@ class ClassifierPipeline:
         except Exception:
             parse_trees = []
 
+        # Generate class mask using MaskedSoftmaxHelper directly
+        class_mask = MaskedSoftmaxHelper.allowed_sections_for_hearing(
+            hearing=hearing,
+            parser=self.parser,
+            speaker_positions=speaker_positions,
+            can_file_motions=can_file_motions,
+            is_presenters=is_presenters,
+            max_parses=self.max_parses,
+            parse_trees=parse_trees,
+        )
+
         # Set masking parameters on the masker stage
         self.model.set_params(
-            masker__hearing=hearing,
-            masker__parser=self.parser,
-            masker__grammar=GRAMMAR,
-            masker__speaker_positions=speaker_positions,
-            masker__can_file_motions=can_file_motions,
-            masker__is_presenters=is_presenters,
-            masker__max_parses=self.max_parses,
             masker__classes_=classes_,
-            masker__parse_trees=parse_trees,
+            masker__class_mask=class_mask,
         )
 
         # Predict using the full pipeline (features -> classifier -> masker)

@@ -54,6 +54,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         max_parses: int = 2,
         classes_: Optional[np.ndarray] = None,
         parse_trees: Optional[list] = None,
+        class_mask: Optional[Tuple[list, bool]] = None,
     ) -> None:
         """Initialize the masker.
 
@@ -67,6 +68,8 @@ class Masker(BaseEstimator, ClassifierMixin):
             max_parses: Maximum number of parses to consider
             classes_: Array of class labels (set automatically by pipeline)
             parse_trees: Pre-generated parse trees from parser (passed via set_params)
+            class_mask: Optional pre-built class mask tuple (allowed_sections, parse_successful).
+                       If provided, overrides allowed_sections_for_hearing() call.
         """
         self.parser = parser
         self.hearing = hearing
@@ -77,6 +80,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         self.max_parses = max_parses
         self.classes_ = classes_
         self.parse_trees = parse_trees
+        self.class_mask = class_mask
 
     def fit(self, X: Any, y: Any = None, **fit_params: Any) -> "Masker":
         """Fit method (no-op for masker, just for sklearn compatibility).
@@ -138,21 +142,14 @@ class Masker(BaseEstimator, ClassifierMixin):
         # If no masking context, return unmasked probabilities
         if self.hearing is None:
             return probs, False
+        
+        # If class_mask is provided, use it directly
+        if self.class_mask is not None:
+            allowed_sections, parse_successful = self.class_mask
+            masked_probs = self._apply_masking(probs, allowed_sections)
+            return masked_probs, parse_successful
 
-        # Build allowed sections for this hearing
-        allowed_sections, parse_successful = self.helper_class.allowed_sections_for_hearing(
-            hearing=self.hearing,
-            parser=self.parser,
-            speaker_positions=self.speaker_positions,
-            can_file_motions=self.can_file_motions,
-            is_presenters=self.is_presenters,
-            max_parses=self.max_parses,
-            parse_trees=self.parse_trees,
-        )
-
-        # Apply masking
-        masked_probs = self._apply_masking(probs, allowed_sections)
-        return masked_probs, parse_successful
+        raise ValueError("self.class_mask was not provided to Masker for _get_masked_probs")
 
     def _apply_masking(
         self,
