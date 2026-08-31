@@ -53,11 +53,12 @@ class Masker(BaseEstimator, ClassifierMixin):
         is_presenters: Optional[Sequence[Any]] = None,
         max_parses: int = 2,
         classes_: Optional[np.ndarray] = None,
+        parse_trees: Optional[list] = None,
     ) -> None:
         """Initialize the masker.
 
         Args:
-            parser: Parser for generating parse trees
+            parser: Parser for generating parse trees (kept for backwards compatibility)
             hearing: TaggedHearing object for context
             grammar: Grammar for fallback masking
             speaker_positions: Array of speaker position values per row
@@ -65,6 +66,7 @@ class Masker(BaseEstimator, ClassifierMixin):
             is_presenters: Array of is_presenter flags per row
             max_parses: Maximum number of parses to consider
             classes_: Array of class labels (set automatically by pipeline)
+            parse_trees: Pre-generated parse trees from parser (passed via set_params)
         """
         self.parser = parser
         self.hearing = hearing
@@ -74,6 +76,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         self.is_presenters = is_presenters
         self.max_parses = max_parses
         self.classes_ = classes_
+        self.parse_trees = parse_trees
 
     def fit(self, X: Any, y: Any = None, **fit_params: Any) -> "Masker":
         """Fit method (no-op for masker, just for sklearn compatibility).
@@ -144,6 +147,7 @@ class Masker(BaseEstimator, ClassifierMixin):
             can_file_motions=self.can_file_motions,
             is_presenters=self.is_presenters,
             max_parses=self.max_parses,
+            parse_trees=self.parse_trees,
         )
 
         # Apply masking

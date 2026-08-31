@@ -198,8 +198,6 @@ class ClassifierPipeline:
                        sorted by uid. Should contain feature columns and metadata columns:
                        'speaker.position.value', 'can_file_motions', 'is_presenter'.
                        If provided, utterances_df is ignored.
-            utterances_df: Optional DataFrame containing utterance features for all hearings.
-                          Used for backward compatibility. Will be filtered by hid/bid.
             smooth: Whether to apply label smoothing
 
         Returns:
@@ -208,7 +206,7 @@ class ClassifierPipeline:
         if hearing_df.empty:
             raise ValueError(f'Empty hearing_df provided for hid={hearing.hid}, bid={hearing.bid}')
         filled_df = self._fill_missing(hearing_df)
-        
+
         # Extract features for the pipeline
         X = filled_df[self.feature_cols]
 
@@ -221,6 +219,16 @@ class ClassifierPipeline:
         classifier = self.model.named_steps['classifier']
         classes_ = classifier.classes_
 
+        # Generate parse trees for masking
+        parse_trees = []
+        try:
+            parse_trees = list(
+                self.parser.get_all_parses_as_nltk_trees(hearing, max_parses=self.max_parses)
+                or []
+            )
+        except Exception:
+            parse_trees = []
+
         # Set masking parameters on the masker stage
         self.model.set_params(
             masker__hearing=hearing,
@@ -231,6 +239,7 @@ class ClassifierPipeline:
             masker__is_presenters=is_presenters,
             masker__max_parses=self.max_parses,
             masker__classes_=classes_,
+            masker__parse_trees=parse_trees,
         )
 
         # Predict using the full pipeline (features -> classifier -> masker)

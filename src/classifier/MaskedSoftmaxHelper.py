@@ -33,16 +33,22 @@ class MaskedSoftmaxHelper:
         can_file_motions: Optional[Sequence[bool|None]] = None,
         is_presenters: Optional[Sequence[bool|None]] = None,
         max_parses: int = 2,
+        parse_trees: Optional[List[Any]] = None,
     ) -> Tuple[List[List[Any]], bool]:
         """Build allowed SectionEnums for each utterance in a hearing.
 
-        1. Prefer all parse trees returned by
-           Tokenizer.get_all_parses_as_nltk_trees(hearing, max_parses=2).
-        2. If no parse trees are returned, infer the allowed sections from the
+        1. Prefer all parse trees provided via parse_trees parameter.
+        2. If no parse trees are provided, infer the allowed sections from the
            speaker type plus SectionEnums reachable from GRAMMAR terminal rules.
-        
+
         params:
-            see code
+            hearing: TaggedHearing object
+            parser: Parser instance (kept for backwards compatibility but not used for parsing here)
+            speaker_positions: Sequence of speaker positions
+            can_file_motions: Sequence of can_file_motions flags
+            is_presenters: Sequence of is_presenter flags
+            max_parses: Maximum number of parses (kept for backwards compatibility)
+            parse_trees: Pre-generated parse trees from parser.get_all_parses_as_nltk_trees()
         returns:
             masks:              list of lists of valid section tags associated with each utterance
             parse_successful:   whether >=1 parse tree was generated with the grammar
@@ -50,15 +56,10 @@ class MaskedSoftmaxHelper:
         utterances = list(getattr(hearing, "utterances", []) or [])
         n = len(utterances)
 
-        parse_trees: List[Any] = []
-        try:
-            parse_trees = list(
-                parser.get_all_parses_as_nltk_trees(hearing, max_parses=max_parses)
-                or []
-            )
-        except Exception:
+        # Use provided parse trees if available
+        if parse_trees is None:
             parse_trees = []
-        
+
         # If we got at least one valid parse tree, use it
         if len(parse_trees) > 0:
             masks: List[Set[Any]] = [set() for _ in range(n)]
