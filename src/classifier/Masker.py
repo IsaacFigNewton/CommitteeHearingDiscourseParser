@@ -45,13 +45,6 @@ class Masker(BaseEstimator, ClassifierMixin):
 
     def __init__(
         self,
-        parser: Parser,
-        hearing: Optional[TaggedHearing] = None,
-        grammar: Any = None,
-        speaker_positions: Optional[Sequence[Any]] = None,
-        can_file_motions: Optional[Sequence[Any]] = None,
-        is_presenters: Optional[Sequence[Any]] = None,
-        max_parses: int = 2,
         classes_: Optional[np.ndarray] = None,
         parse_trees: Optional[list] = None,
         class_mask: Optional[Tuple[list, bool]] = None,
@@ -71,13 +64,6 @@ class Masker(BaseEstimator, ClassifierMixin):
             class_mask: Optional pre-built class mask tuple (allowed_sections, parse_successful).
                        If provided, overrides allowed_sections_for_hearing() call.
         """
-        self.parser = parser
-        self.hearing = hearing
-        self.grammar = grammar
-        self.speaker_positions = speaker_positions
-        self.can_file_motions = can_file_motions
-        self.is_presenters = is_presenters
-        self.max_parses = max_parses
         self.classes_ = classes_
         self.parse_trees = parse_trees
         self.class_mask = class_mask
@@ -140,7 +126,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         probs = X
 
         # If no masking context, return unmasked probabilities
-        if self.hearing is None:
+        if self.class_mask is None:
             return probs, False
         
         # If class_mask is provided, use it directly

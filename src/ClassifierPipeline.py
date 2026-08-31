@@ -37,12 +37,17 @@ class ClassifierPipeline:
     
     parser = Parser()
 
-    def __init__(self, base_estimator=None, max_parses:int=2) -> None:
+    def __init__(self,
+            base_estimator=None,
+            max_parses:int=2,
+            do_grammar_masking:bool=True
+        ) -> None:
         self.hearing_tagger = HearingTagger()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model(base_estimator)
         self.max_parses = max_parses
+        self.do_grammar_masking = do_grammar_masking
 
     @classmethod
     def _make_model(cls, base_estimator=None):
@@ -80,9 +85,7 @@ class ClassifierPipeline:
             ('classifier', Classifier(
                 base_estimator=base_estimator,
             )),
-            ('masker', Masker(
-                parser=cls.parser
-            )),
+            ('masker', Masker()),
         ])
 
     @classmethod
@@ -243,8 +246,11 @@ class ClassifierPipeline:
         # Set masking parameters on the masker stage
         self.model.set_params(
             masker__classes_=classes_,
-            masker__class_mask=class_mask,
         )
+        if self.do_grammar_masking:
+            self.model.set_params(
+                masker__class_mask=class_mask,
+            )
 
         # Predict using the full pipeline (features -> classifier -> masker)
         labels, parse_success = self.model.predict(X)
