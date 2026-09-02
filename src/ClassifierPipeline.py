@@ -233,7 +233,7 @@ class ClassifierPipeline:
             parse_trees = []
 
         # Generate class mask using MaskedSoftmaxHelper directly
-        class_mask = MaskedSoftmaxHelper.allowed_sections_for_hearing(
+        class_mask, parse_success = MaskedSoftmaxHelper.allowed_sections_for_hearing(
             hearing=hearing,
             parser=self.parser,
             speaker_positions=speaker_positions,
@@ -249,7 +249,7 @@ class ClassifierPipeline:
         )
         if self.do_grammar_masking:
             self.model.set_params(
-                masker__class_mask=class_mask,
+                masker__class_mask=class_mask if parse_success else None,
             )
 
         # Predict using the full pipeline (features -> classifier -> masker)
