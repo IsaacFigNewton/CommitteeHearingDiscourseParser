@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Tuple
 from nltk.tree import Tree
+import numpy as np
 
 from src.grammar.Grammar import Rule, GRAMMAR, SPEAKER_REACHABLE_SECTIONS
 from src.enums.SectionEnum import SectionEnum
@@ -23,6 +24,9 @@ class MaskedSoftmaxHelper:
     - SoftmaxMaskingTransformer (alternative transformer-based approach)
     - MaskedSoftmaxClassifier (deprecated, backward compatibility only)
     """
+
+    def __init__(self, classes_: np.ndarray):
+        self.classes_ = classes_
 
     @classmethod
     def allowed_sections_for_hearing(

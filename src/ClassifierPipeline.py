@@ -51,6 +51,11 @@ class ClassifierPipeline:
         self.masking = masking
         self.smoothing = smoothing,
 
+        # Get classifier classes and set them on the masker
+        self.classifier = None
+        self.classes_ = None
+        self.masking_helper = None
+
     @classmethod
     def _make_model(cls, base_estimator=None):
         """Initialize the section prediction model pipeline.
@@ -170,6 +175,15 @@ class ClassifierPipeline:
         labels = train_df[label_col].copy()
 
         self.model.fit(train_df[self.feature_cols], labels)
+        
+        # Get classifier classes and set them on the masker
+        self.classifier = self.model.named_steps['classifier']
+        self.classes_ = self.classifier.classes_
+        self.masking_helper = MaskedSoftmaxHelper(self.classes_)
+        # Set masking parameters on the masker stage
+        self.model.set_params(
+            masker__classes_=self.classes_,
+        )
 
     @staticmethod
     def smooth_label_list(labels: List[SectionEnum]) -> List[SectionEnum]:
@@ -214,10 +228,6 @@ class ClassifierPipeline:
         # Extract features for the pipeline
         X = filled_df[self.feature_cols]
 
-        # Get classifier classes and set them on the masker
-        classifier = self.model.named_steps['classifier']
-        classes_ = classifier.classes_
-
         # Generate parse trees for masking
         parse_trees = []
         try:
@@ -229,15 +239,11 @@ class ClassifierPipeline:
             parse_trees = []
 
         # Generate class mask using MaskedSoftmaxHelper directly
-        class_mask = MaskedSoftmaxHelper.allowed_sections_for_hearing(
+        class_mask = self.masking_helper.allowed_sections_for_hearing(
             hearing=hearing,
             parse_trees=parse_trees,
         )
 
-        # Set masking parameters on the masker stage
-        self.model.set_params(
-            masker__classes_=classes_,
-        )
         if self.masking:
             self.model.set_params(
                 masker__class_mask=class_mask,
