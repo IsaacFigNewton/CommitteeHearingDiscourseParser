@@ -83,13 +83,13 @@ GRAMMAR_TOP_EXPANSIONS = [
     (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, TOP.UPPER_MIDDLE)),
     (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, SectionEnum.EXPERT_TESTIMONY)),
     (TOP.UPPER_MIDDLE,                  (TOP.UPPER_MIDDLE, SectionEnum.LEGISLATOR_DISCUSSION)),
-    (TOP.UPPER_MIDDLE,                  (SectionEnum.EXPERT_TESTIMONY, SectionEnum.LEGISLATOR_DISCUSSION)),
+    # (TOP.UPPER_MIDDLE,                  (SectionEnum.EXPERT_TESTIMONY, SectionEnum.LEGISLATOR_DISCUSSION)),
     (TOP.UPPER_MIDDLE,                  (SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
     # TOP.LOWER_MIDDLE
     (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, TOP.LOWER_MIDDLE)),
     (TOP.UPPER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.PUBLIC_COMMENTS)),
     (TOP.UPPER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.LEGISLATOR_DISCUSSION)),
-    (TOP.UPPER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.LEGISLATOR_DISCUSSION)),
+    # (TOP.UPPER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.LEGISLATOR_DISCUSSION)),
     (TOP.UPPER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
 
     # TOP.END
@@ -179,6 +179,7 @@ GRAMMAR_LEAF_EXPANSIONS = [
     (SectionEnum.CLOSING_REMARKS,       TerminalEnum.PRESIDING_CHAIR),
     # VOTE
     (SectionEnum.VOTE,                  (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.SECRETARY)),
+    (SectionEnum.VOTE,                  (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.SECRETARY)),
     (SectionEnum.VOTE,                  TerminalEnum.SECRETARY),
     # OTHER_HEARING
     (SectionEnum.OTHER_HEARING,         (TerminalEnum.PUBLIC, TerminalEnum.PRESIDING_CHAIR)),
