@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Optional, Sequence, Tuple
+from typing import Any, Iterable, Optional, Sequence, Tuple, List
 
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
+from src.enums.SectionEnum import SectionEnum
 from src.dataclasses.Hearing import TaggedHearing
 from src.grammar.Parser import Parser
 from src.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
@@ -47,7 +48,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         self,
         classes_: Optional[np.ndarray] = None,
         parse_trees: Optional[list] = None,
-        class_mask: Optional[Tuple[list, bool]] = None,
+        class_mask: Optional[List[Optional[List[SectionEnum]]]] = None,
     ) -> None:
         """Initialize the masker.
 
@@ -100,7 +101,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         labels = self.classes_[np.argmax(masked_probs, axis=1)]
         return labels, parse_successful
 
-    def predict_proba(self, X: np.ndarray) -> Tuple[np.ndarray, bool]:
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Return masked probabilities.
 
         Args:
@@ -111,7 +112,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         """
         return self._get_masked_probs(X)
 
-    def _get_masked_probs(self, X: np.ndarray) -> Tuple[np.ndarray, bool]:
+    def _get_masked_probs(self, X: np.ndarray) -> np.ndarray:
         """Apply masking to probability matrix.
 
         Args:
@@ -127,20 +128,17 @@ class Masker(BaseEstimator, ClassifierMixin):
 
         # If no masking context, return unmasked probabilities
         if self.class_mask is None:
-            return probs, False
+            return probs
         
         # If class_mask is provided, use it directly
-        if self.class_mask is not None:
-            allowed_sections, parse_successful = self.class_mask
-            masked_probs = self._apply_masking(probs, allowed_sections)
-            return masked_probs, parse_successful
-
-        raise ValueError("self.class_mask was not provided to Masker for _get_masked_probs")
+        else:
+            masked_probs = self._apply_masking(probs, self.class_mask)
+            return masked_probs
 
     def _apply_masking(
         self,
         probs: np.ndarray,
-        allowed_sections: Optional[Sequence[Iterable[Any]]] = None,
+        allowed_sections: List[Optional[List[SectionEnum]]],
     ) -> np.ndarray:
         """Apply masking and renormalization to probabilities.
 
@@ -151,9 +149,6 @@ class Masker(BaseEstimator, ClassifierMixin):
         Returns:
             Masked and renormalized probability matrix
         """
-        if allowed_sections is None:
-            return probs
-
         if len(allowed_sections) != probs.shape[0]:
             raise ValueError(
                 f"allowed_sections length ({len(allowed_sections)}) must match "
@@ -164,30 +159,23 @@ class Masker(BaseEstimator, ClassifierMixin):
             raise ValueError("classes_ not set on Masker. Cannot apply masking without class labels.")
 
         masked = probs.copy()
-        class_keys = [self.helper_class._section_key(c) for c in self.classes_]
-
+        # for each utterance and its allowed sections
         for row_idx, allowed in enumerate(allowed_sections):
-            allowed_keys = {self.helper_class._section_key(s) for s in allowed if s is not None}
-
-            # Empty/unknown mask means "do not constrain this row".
-            if not allowed_keys:
+            # if no mask was available for this utterance
+            #   skip masking for this utterance
+            if allowed is None or not any({s for s in allowed if s is not None}):
                 continue
 
-            keep = np.array([key in allowed_keys for key in class_keys], dtype=bool)
-
-            # If the grammar/parser produced labels that are not in the trained
-            # classifier classes, keep the unmasked classifier distribution.
+            keep = np.array([key in allowed for key in self.classes_], dtype=bool)
             if not keep.any():
-                continue
+                raise ValueError(f"SectionEnums included in mask: {allowed}\tSectionEnums in self.classes_: {self.classes_}")
 
             masked[row_idx, ~keep] = 0.0
             denom = masked[row_idx].sum()
 
-            # Guard against numerical/degenerate cases by falling back to a
-            # uniform distribution over allowed trained classes.
             if denom > 0:
                 masked[row_idx] /= denom
             else:
-                masked[row_idx, keep] = 1.0 / keep.sum()
+                raise ValueError(f"Degenerate case for uid {row_idx}: No masked classes with probability > 0 {masked[row_idx, :]}")
 
         return masked

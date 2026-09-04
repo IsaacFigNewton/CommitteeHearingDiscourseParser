@@ -213,11 +213,6 @@ class ClassifierPipeline:
         # Extract features for the pipeline
         X = filled_df[self.feature_cols]
 
-        # Extract masking information for the masker stage
-        speaker_positions = filled_df['speaker.position.value'].values
-        can_file_motions = filled_df['can_file_motions'].values
-        is_presenters = filled_df['is_presenter'].values
-
         # Get classifier classes and set them on the masker
         classifier = self.model.named_steps['classifier']
         classes_ = classifier.classes_
@@ -233,13 +228,8 @@ class ClassifierPipeline:
             parse_trees = []
 
         # Generate class mask using MaskedSoftmaxHelper directly
-        class_mask, parse_success = MaskedSoftmaxHelper.allowed_sections_for_hearing(
+        class_mask = MaskedSoftmaxHelper.allowed_sections_for_hearing(
             hearing=hearing,
-            parser=self.parser,
-            speaker_positions=speaker_positions,
-            can_file_motions=can_file_motions,
-            is_presenters=is_presenters,
-            max_parses=self.max_parses,
             parse_trees=parse_trees,
         )
 
@@ -249,7 +239,7 @@ class ClassifierPipeline:
         )
         if self.do_grammar_masking:
             self.model.set_params(
-                masker__class_mask=class_mask if parse_success else None,
+                masker__class_mask=class_mask,
             )
 
         # Predict using the full pipeline (features -> classifier -> masker)
