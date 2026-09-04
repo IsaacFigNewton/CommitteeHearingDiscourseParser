@@ -14,6 +14,7 @@ from .classifier.Classifier import Classifier
 from .classifier.Masker import Masker
 from .classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
 from .enums.SectionEnum import SectionEnum
+from .speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum, TERMINAL_STR_TOK_MAP
 from .grammar.Parser import Parser
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
@@ -23,19 +24,8 @@ only want to parse hearings labelled as CA_201720180<AB/SB>7
 
 
 class ClassifierPipeline:
-    TOKEN_COL = 'speaker.position'
-    TEXT_COL = 'text'
-    CAT_COLS = [
-        'section_cues',
-        'speech_act_cues'
-    ]
-    NUM_COLS = [
-        'relative_position', 'sent_count', 'token_count',
-        'mentions_speaker', 'mentions_bill',
-    ]
-    FEATURE_COLS = [TOKEN_COL, TEXT_COL, *CAT_COLS, *NUM_COLS]
-    
     parser = Parser()
+    classes_ = np.array([s.value for s in list(SectionEnum)])
 
     def __init__(self,
             base_estimator=None,
@@ -61,11 +51,11 @@ class ClassifierPipeline:
                     ngram_range=(2, 5),
                     min_df=4,
                     max_features=2000
-                ), self.TEXT_COL),
+                ), TEXT_COL),
                 ('categorical', OneHotEncoder(
                     handle_unknown='ignore'
-                ), self.CAT_COLS + [self.TOKEN_COL]),
-                ('numeric', StandardScaler(), self.NUM_COLS),
+                ), CAT_COLS + [TOKEN_COL]),
+                ('numeric', StandardScaler(), NUM_COLS),
             ])),
             ('classifier', Classifier(
                 base_estimator=base_estimator,
@@ -74,134 +64,54 @@ class ClassifierPipeline:
         ])
 
         # Get classifier classes and set them on the masker
-        self.classifier = None
-        self.classes_ = None
-        self.masking_helper = None
+        # Get classifier classes and set them on the masker
+        self.model.named_steps['classifier'].classes_ = self.classes_
+        self.classifier = self.model.named_steps['classifier']
+        self.masking_helper = MaskedSoftmaxHelper(self.classes_)
 
 
-    @classmethod
-    def _build_utterances_dataframe(cls, hearings: List[TaggedHearing]) -> pd.DataFrame:
-        """Build a DataFrame of utterance features from a list of tagged hearings.
-
-        Builds raw utterance rows without filling missing values.
-        Missing values are automatically filled.
-
-        Args:
-            hearings: List of TaggedHearing instances to convert to DataFrame
-
-        Returns:
-            DataFrame with utterance features, sorted by state, bid, hid, uid
-        """
-        df = pd.DataFrame([
-            {
-                # metadata
-                'state':                    h.state,
-                'bid':                      h.bid,
-                'hid':                      h.hid,
-                'uid':                      u.uid,
-                'pid':                      u.pid,
-
-                # speaker features
-                'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
-                'speaker.position.value':   s.speaker_position.value if s and s.speaker_position else None,
-                'can_file_motions':         s.can_file_motions if s else None,
-                'is_presenter':             s.is_presenter if s else None,
-
-                # metadata features
-                'relative_position':        u.relative_position,
-                'token_count':              u.token_count,
-                'sent_count':               u.sent_count,
-                'mentions_speaker':         int(bool(u.pids_mentioned)),
-                'mentions_bill':            int(bool(u.bill_mentioned)),
-                'speech_act_cues':          ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
-                'section_cues':             ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
-
-                # output label
-                'section':                  None,
-
-                # text
-                'text':                     u.text,
-            }
-            for h in hearings or []
-            for u in h.utterances
-            for s in [h.speakers[u.pid]]
-        ])
-
-        # Sort by state, bid, hid, uid for consistent ordering
-        df = df.sort_values(by=['state', 'bid', 'hid', 'uid']).reset_index(drop=True)
-
-        # Fill missing values
-        df = cls._fill_missing(df)
-
-        return df
-
-    
-    @classmethod
-    def _fill_missing(cls, df: pd.DataFrame, label_col: Optional[str] = None) -> pd.DataFrame:
-        """Fill missing feature values before training or prediction."""
-        df = df.copy()
-        df[cls.TEXT_COL] = df[cls.TEXT_COL].fillna('')
-        df[cls.CAT_COLS] = df[cls.CAT_COLS].fillna(UNKNOWN)
-        df[cls.NUM_COLS] = df[cls.NUM_COLS].fillna(0)
-        if label_col:
-            df[label_col] = df[label_col].fillna(UNKNOWN)
-        return df
-
-
-    def fit(self, train_df: pd.DataFrame, label_col: str = 'stage_label'):
+    def fit(self,
+            X: pd.DataFrame,
+            y: pd.DataFrame | pd.Series
+        ):
         """Train the section prediction model on labeled data.
 
         Args:
             train_df: DataFrame with utterance features and labels (accepts SectionEnum or string labels)
             label_col: Name of the column containing stage labels
         """
-        train_df = self._fill_missing(train_df, label_col)
 
-        # Convert labels to SectionEnum first (handles legacy labels), then to string for sklearn
-        labels = train_df[label_col].copy()
-
-        self.model.fit(train_df[self.FEATURE_COLS], labels)
+        self.model.fit(X, y)
         
-        # Get classifier classes and set them on the masker
-        self.classifier = self.model.named_steps['classifier']
-        self.classes_ = self.classifier.classes_
-        self.masking_helper = MaskedSoftmaxHelper(self.classes_)
         # Set masking parameters on the masker stage
         self.model.set_params(
             masker__classes_=self.classes_,
         )
 
 
-    def predict(
-        self,
-        hearing: TaggedHearing,
-        hearing_df: pd.DataFrame
-    ) -> List[SectionEnum]:
-        """Predict section labels for a single hearing.
-
-        Args:
-            hearing: Tagged hearing to predict sections for
-            hearing_df: Optional DataFrame with pre-extracted features for this hearing only,
-                       sorted by uid. Should contain feature columns and metadata columns:
-                       'speaker.position.value', 'can_file_motions', 'is_presenter'.
-                       If provided, utterances_df is ignored.
-            smooth: Whether to apply label smoothing
-
-        Returns:
-            List of predicted SectionEnum labels, one per utterance
+    def _predict_sections(self, X: pd.DataFrame) -> List[SectionEnum]:
         """
-        if hearing_df.empty:
-            raise ValueError(f'Empty hearing_df provided for hid={hearing.hid}, bid={hearing.bid}')
-        filled_df = self._fill_missing(hearing_df)
-
-        # Extract features for the pipeline
-        X = filled_df[self.FEATURE_COLS]
-
+        predict labels for 1 hearing's utterances
+            1. get sequence of token strings (List[str]) for each unique hearing (list of row["speaker.position"] entries)
+            2. map List[str] to List[SpeakerPositionEnum]
+            3. pass List[Optional[SpeakerPositionEnum]] to self.parser.get_all_parses_as_nltk_trees if needed
+        """
+        token_strings = [
+            # if no speaker.position assigned, tok may be np.nan
+            str(tok)
+            for tok in X[TOKEN_COL].to_list()
+        ]
+        token_seq: List[Optional[SpeakerPositionEnum]] = [
+            # if "np.nan" not in TERMINAL_STR_TOK_MAP, it will return None
+            TERMINAL_STR_TOK_MAP.get(tok_str)
+            for tok_str in token_strings
+        ]
+        
         # Generate parse trees for masking
         parse_trees = []
         try:
             parse_trees = list(
-                self.parser.get_all_parses_as_nltk_trees(hearing, max_parses=self.max_parses)
+                self.parser.get_all_parses_as_nltk_trees(token_seq, max_parses=self.max_parses)
                 or []
             )
         except Exception:
@@ -209,7 +119,7 @@ class ClassifierPipeline:
 
         # Generate class mask using MaskedSoftmaxHelper directly
         class_mask = self.masking_helper.allowed_sections_for_hearing(
-            hearing=hearing,
+            token_seq=token_seq,
             parse_trees=parse_trees,
         )
 
@@ -226,5 +136,35 @@ class ClassifierPipeline:
             for i, (prev_, curr, next_) in enumerate(zip(labels, labels[1:], labels[2:]), 1):
                 if prev_ == next_ != curr:
                     labels[i] = prev_
-        
+
         return labels
+
+
+    def predict(
+        self,
+        X: pd.DataFrame
+    ) -> np.ndarray:
+        """Predict section labels for a collection of hearinsg.
+
+        Args:
+            hearing_df: DataFrame with pre-extracted features for multiple hearings,
+                       sorted by uid. Should contain feature columns and metadata columns:
+                       'speaker.position.value', 'can_file_motions', 'is_presenter'.
+                       If provided, utterances_df is ignored.
+
+        Returns:
+            List of predicted SectionEnum labels, one per utterance
+        """
+        labels_to_stack = []
+
+        for hearing_group in X["hearing_group"].unique():
+            # group hearing_df rows by 'bid' and 'hid'
+            hearing = X[
+                X["hearing_group"] == hearing_group
+            ].sort_values(by="uid")[FEATURE_COLS]
+
+            # extract features for the pipeline
+            labels_to_stack.append(self._predict_sections(hearing))            
+
+        # TODO: Convert List[List[SectionEnum]] to np.ndarray of shape (n_)
+        return np.vstack(labels_to_stack)

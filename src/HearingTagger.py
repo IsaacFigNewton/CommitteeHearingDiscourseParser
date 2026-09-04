@@ -9,6 +9,8 @@ from .speakers.Speaker import Speaker
 from .constants.constants import *
 from .constants.bill_ref_normalization import SECTION_END_FLAGS
 from .UtteranceTagger import UtteranceTagger
+
+import pandas as pd
 """
 only want to parse hearings labelled as CA_201720180<AB/SB>7
     if it's got SR in the suffix, then it's a senate resolution,
@@ -214,6 +216,66 @@ class HearingTagger(ITagger):
 
         return speakers
 
+
+    @classmethod
+    def _build_utterances_dataframe(cls, hearings: List[TaggedHearing]) -> pd.DataFrame:
+        """Build a DataFrame of utterance features from a list of tagged hearings.
+
+        Builds raw utterance rows without filling missing values.
+        Missing values are automatically filled.
+
+        Args:
+            hearings: List of TaggedHearing instances to convert to DataFrame
+
+        Returns:
+            DataFrame with utterance features, sorted by state, bid, hid, uid
+        """
+        df = pd.DataFrame([
+            {
+                # metadata
+                'state':                    h.state,
+                'bid':                      h.bid,
+                'hid':                      h.hid,
+                'uid':                      u.uid,
+                'pid':                      u.pid,
+
+                # speaker features
+                'speaker.position':         s.speaker_position.name if s and s.speaker_position else None,
+                'speaker.position.value':   s.speaker_position.value if s and s.speaker_position else None,
+                'can_file_motions':         s.can_file_motions if s else None,
+                'is_presenter':             s.is_presenter if s else None,
+
+                # metadata features
+                'relative_position':        u.relative_position,
+                'token_count':              u.token_count,
+                'sent_count':               u.sent_count,
+                'mentions_speaker':         int(bool(u.pids_mentioned)),
+                'mentions_bill':            int(bool(u.bill_mentioned)),
+                'speech_act_cues':          ','.join([s.name for s in u.speech_act_cues]) if u.speech_act_cues else '',
+                'section_cues':             ','.join([s.name for s in u.section_cues]) if u.section_cues else '',
+
+                # output label
+                'section':                  None,
+
+                # text
+                'text':                     u.text,
+            }
+            for h in hearings or []
+            for u in h.utterances
+            for s in [h.speakers[u.pid]]
+        ])
+
+        # Sort by state, bid, hid, uid for consistent ordering
+        df = df.sort_values(by=['state', 'bid', 'hid', 'uid']).reset_index(drop=True)
+
+        df = df.copy()
+        # Fill missing values
+        df[TOKEN_COL] = df[TOKEN_COL].fillna(UNKNOWN)
+        df[TEXT_COL] = df[TEXT_COL].fillna('')
+        df[CAT_COLS] = df[CAT_COLS].fillna(UNKNOWN)
+        df[NUM_COLS] = df[NUM_COLS].fillna(0)
+        
+        return df
 
     @staticmethod
     def pprint_hearing(hearing: Hearing):

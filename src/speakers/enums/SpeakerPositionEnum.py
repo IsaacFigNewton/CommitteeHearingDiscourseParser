@@ -16,6 +16,10 @@ class SpeakerPositionEnum(Enum):
     NONLEGISLATOR=      1
     PUBLIC=             0
 
+TERMINAL_STR_TOK_MAP = {
+    tok.name: tok
+    for tok in SpeakerPositionEnum
+}
 
 
 COMMITTEE_POSITION_MAP = {

@@ -5,8 +5,6 @@ from nltk.tree import Tree
 from src.grammar.ParseNode import ParseNode
 from ..dataclasses.Hearing import TaggedHearing
 from .Grammar import GRAMMAR, SpeakerPositionEnum, TOP
-from .Tokenizer import Tokenizer, Token
-
 
 class Parser:
     """
@@ -33,11 +31,9 @@ class Parser:
     """
 
     def __init__(self,
-            grammar_rules: List[Tuple] = GRAMMAR,
-            tokenizer: Optional[Tokenizer] = None
+            grammar_rules: List[Tuple] = GRAMMAR
         ):
-        """Initialize the Parser with grammar rules in CNF and a tokenizer."""
-        self.tokenizer = tokenizer or Tokenizer()
+        """Initialize the Parser with grammar rules in CNF."""
         self.grammar = self._parse_grammar(grammar_rules)
 
         # Separate CNF rules by type for efficient CYK parsing
@@ -104,7 +100,7 @@ class Parser:
             )
 
     @staticmethod
-    def _matches_terminal(terminal: SpeakerPositionEnum, token: Token) -> bool:
+    def _matches_terminal(terminal: SpeakerPositionEnum, token: Optional[SpeakerPositionEnum]) -> bool:
         """
         Check if a token matches a terminal symbol.
 
@@ -115,8 +111,7 @@ class Parser:
             return False
 
         if isinstance(terminal, SpeakerPositionEnum):
-            token_speaker_position, _ = token
-            return terminal == token_speaker_position or token_speaker_position is None
+            return terminal == token or token is None
 
         return False
 
@@ -124,34 +119,32 @@ class Parser:
     # Public parsing API
     # ------------------------------------------------------------------ #
 
-    def parse(self, hearing: TaggedHearing) -> Optional[ParseNode]:
+    def parse(self, tokens: List[Optional[SpeakerPositionEnum]]) -> Optional[ParseNode]:
         """
         Construct a parse tree from the hearing's utterances using CYK.
 
         Returns:
             ParseNode for the root of the parse tree, or None if parsing fails
         """
-        tokens = self.tokenizer.tokenize(hearing)
         return self.parse_tokens(tokens)
 
-    def parse_tokens(self, tokens: List[Token]) -> Optional[ParseNode]:
+    def parse_tokens(self, tokens: List[Optional[SpeakerPositionEnum]]) -> Optional[ParseNode]:
         """Parse an already-tokenized sequence, returning the first parse found."""
         for tree in self.iter_parses_for_tokens(tokens, max_parses=1):
             return tree
         return None
 
-    def get_all_parses(self, hearing: TaggedHearing, max_parses: int = 10) -> List[ParseNode]:
+    def get_all_parses(self, token_seq: List[Optional[SpeakerPositionEnum]], max_parses: int = 10) -> List[ParseNode]:
         """
         Get all possible parse trees for a hearing (up to max_parses).
 
         Ambiguous grammars can have exponentially many parses, so enumeration
         is lazy and stops as soon as max_parses trees have been produced.
         """
-        tokens = self.tokenizer.tokenize(hearing)
-        return list(self.iter_parses_for_tokens(tokens, max_parses=max_parses))
+        return list(self.iter_parses_for_tokens(token_seq, max_parses=max_parses))
 
     def iter_parses_for_tokens(
-        self, tokens: List[Token], max_parses: Optional[int] = None
+        self, tokens: List[Optional[SpeakerPositionEnum]], max_parses: Optional[int] = None
     ) -> Iterator[ParseNode]:
         """
         Lazily yield parse trees for a token sequence, up to max_parses
@@ -178,7 +171,7 @@ class Parser:
     # ------------------------------------------------------------------ #
 
     def _cyk_parse(
-        self, tokens: List[Token]
+        self, tokens: List[Optional[SpeakerPositionEnum]]
     ) -> Tuple[List[List[Set[Any]]], Dict[Tuple[Any, int, int], List[Tuple]]]:
         """
         CYK parsing algorithm.
@@ -284,7 +277,7 @@ class Parser:
         i: int,
         j: int,
         symbol: Any,
-        tokens: List[Token],
+        tokens: List[Optional[SpeakerPositionEnum]],
         unary_chain: frozenset,
     ) -> Iterator[ParseNode]:
         """
@@ -300,8 +293,7 @@ class Parser:
             production_type = derivation[0]
 
             if production_type == 'terminal':
-                _, terminal, token_idx_in_list = derivation
-                _, utterance_idx = tokens[token_idx_in_list]
+                _, terminal, utterance_idx = derivation
                 yield ParseNode(
                     symbol=symbol,
                     children=[ParseNode(symbol=terminal, utterance_indices=[utterance_idx])],
@@ -343,16 +335,9 @@ class Parser:
     # NLTK helpers
     # ------------------------------------------------------------------ #
 
-    @staticmethod
-    def parse_node_to_nltk_tree(parse_node: ParseNode) -> Tree:
-        """Convert a ParseNode to an NLTK Tree."""
-        return parse_node.to_nltk_tree()
-
-    def parse_to_nltk_tree(self, hearing: TaggedHearing) -> Optional[Tree]:
-        """Parse a hearing and return the result as an NLTK Tree, or None."""
-        parse_node = self.parse(hearing)
-        return parse_node.to_nltk_tree() if parse_node else None
-
-    def get_all_parses_as_nltk_trees(self, hearing: TaggedHearing, max_parses: int = 3) -> List[Tree]:
+    def get_all_parses_as_nltk_trees(self,
+            token_seq: List[Optional[SpeakerPositionEnum]],
+            max_parses: int = 3
+        ) -> List[Tree]:
         """Get all possible parse trees as NLTK Trees."""
-        return [node.to_nltk_tree() for node in self.get_all_parses(hearing, max_parses)]
+        return [node.to_nltk_tree() for node in self.get_all_parses(token_seq, max_parses)]

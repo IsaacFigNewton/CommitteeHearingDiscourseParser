@@ -2,6 +2,7 @@ from collections import defaultdict, deque
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Tuple
 from nltk.tree import Tree
 import numpy as np
+import pandas as pd
 
 from src.grammar.Grammar import Rule, GRAMMAR, SPEAKER_REACHABLE_SECTIONS
 from src.enums.SectionEnum import SectionEnum
@@ -31,9 +32,9 @@ class MaskedSoftmaxHelper:
     @classmethod
     def allowed_sections_for_hearing(
         cls,
-        hearing: TaggedHearing,
+        token_seq: List[Optional[SpeakerPositionEnum]],
         parse_trees: Optional[List[Tree]] = None,
-    ) -> List[Optional[List[SectionEnum]]]:
+    ) -> List[List[SectionEnum]]:
         """Build allowed SectionEnums for each utterance in a hearing.
 
         1. Prefer all parse trees provided via parse_trees parameter.
@@ -41,19 +42,14 @@ class MaskedSoftmaxHelper:
            speaker type plus SectionEnums reachable from GRAMMAR terminal rules.
 
         params:
-            hearing: TaggedHearing object
-            parser: Parser instance (kept for backwards compatibility but not used for parsing here)
-            speaker_positions: Sequence of speaker positions
-            can_file_motions: Sequence of can_file_motions flags
-            is_presenters: Sequence of is_presenter flags
-            max_parses: Maximum number of parses (kept for backwards compatibility)
+            token_seq: a sequence of speaker position tokens
             parse_trees: Pre-generated parse trees from parser.get_all_parses_as_nltk_trees()
         returns:
             masks:              list of lists of valid section tags associated with each utterance
             parse_successful:   whether >=1 parse tree was generated with the grammar
         """
-        utterances = list(getattr(hearing, "utterances", []) or [])
-        n = len(utterances)
+        n = len(token_seq)
+        masks: List[Set[SectionEnum]] = [set() for _ in range(n)]
 
         # Use provided parse trees if available
         if parse_trees is None:
@@ -61,12 +57,10 @@ class MaskedSoftmaxHelper:
 
         # If we got at least one valid parse tree, use it
         if len(parse_trees) > 0:
-            masks: List[Set[SectionEnum]] = [set() for _ in range(n)]
-
             # Collect allowed sections from all parse trees
             # Multiple parses can provide different section possibilities
             for tree in parse_trees:
-                for idx, section in cls._sections_by_utterance_from_tree(tree, utterances).items():
+                for idx, section in cls._sections_by_utterance_from_tree(tree, token_seq).items():
                     if 0 <= idx < n:
                         masks[idx].update(section)
 
@@ -77,16 +71,10 @@ class MaskedSoftmaxHelper:
     
         # Fallback to Nonterminal -> TerminalEnum rules to constrain predictions
         #   based on speaker attributes without requiring a full parse
-        masks: List[Optional[List[SectionEnum]]] = []
-        for utt in utterances:
-            pid = utt.pid
-            speaker = hearing.speakers.get(pid)
-            if speaker is not None and speaker.speaker_position is not None:
-                masks.append(list(SPEAKER_REACHABLE_SECTIONS.get(speaker.speaker_position, [])))
-            # if no speaker position available
-            else:
-                masks.append(None)
-        return masks
+        for i, tok in enumerate(token_seq):
+            masks[i] = SPEAKER_REACHABLE_SECTIONS.get(tok, set())
+        
+        return [list(mask) for mask in masks]
 
     @classmethod
     def _sections_by_utterance_from_tree(

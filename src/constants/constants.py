@@ -1,6 +1,20 @@
 import re
 from .bill_ref_normalization import NORMALIZED_BILL_REGEX
 
+# feature dataframe columns
+TOKEN_COL = 'speaker.position'
+TEXT_COL = 'text'
+CAT_COLS = [
+    'section_cues',
+    'speech_act_cues'
+]
+NUM_COLS = [
+    'relative_position', 'sent_count', 'token_count',
+    'mentions_speaker', 'mentions_bill',
+]
+FEATURE_COLS = [TOKEN_COL] + [TEXT_COL] + CAT_COLS + NUM_COLS
+    
+
 # minimum length of an utterance (in tokens) to assign a role in a fallback
 
 token_role_threshold = 10
