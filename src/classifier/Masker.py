@@ -82,7 +82,7 @@ class Masker(BaseEstimator, ClassifierMixin):
         """
         return self
 
-    def predict(self, X: np.ndarray) -> Tuple[np.ndarray, bool]:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """Predict labels from probability matrix after masking.
 
         Args:
@@ -93,13 +93,13 @@ class Masker(BaseEstimator, ClassifierMixin):
             - labels: Array of predicted class labels
             - parse_success: bool indicating if CYK parsing succeeded
         """
-        masked_probs, parse_successful = self._get_masked_probs(X)
+        masked_probs = self._get_masked_probs(X)
 
         if self.classes_ is None:
             raise ValueError("classes_ not set on Masker. Ensure the pipeline classifier stage sets this.")
 
         labels = self.classes_[np.argmax(masked_probs, axis=1)]
-        return labels, parse_successful
+        return labels
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Return masked probabilities.
@@ -166,6 +166,8 @@ class Masker(BaseEstimator, ClassifierMixin):
             if allowed is None or not any({s for s in allowed if s is not None}):
                 continue
 
+            allowed = [section.value for section in allowed]
+            # check if the values/names of any of the sections are in the set of classes
             keep = np.array([key in allowed for key in self.classes_], dtype=bool)
             if not keep.any():
                 raise ValueError(f"SectionEnums included in mask: {allowed}\tSectionEnums in self.classes_: {self.classes_}")

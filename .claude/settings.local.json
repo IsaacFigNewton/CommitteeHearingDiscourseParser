@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python debug_mask.py)"
+      "Bash(python -c \"\nfrom src.enums.SectionEnum import SectionEnum\nfrom src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum\n\n# Test the isinstance check\nlabels = [SpeakerPositionEnum.PRESIDING_CHAIR, SectionEnum.INTRO, ''PRESENTATION'']\n\nfor label in labels:\n    print(f''{label}: isinstance(SectionEnum) = {isinstance(label, SectionEnum)}''\n)\n\")"
     ],
     "deny": [],
     "ask": []

@@ -139,9 +139,9 @@ class MaskedSoftmaxHelper:
             counter += 1
 
     @classmethod
-    def _first_section_label(cls, labels: Sequence[SectionEnum]) -> Any:
+    def _first_section_label(cls, labels: Sequence[SectionEnum]) -> Optional[SectionEnum]:
         for section in reversed(labels):
-            if section is not None:
+            if section is not None and isinstance(section, SectionEnum):
                 return section
         return None
 

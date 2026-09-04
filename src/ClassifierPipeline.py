@@ -243,7 +243,6 @@ class ClassifierPipeline:
             )
 
         # Predict using the full pipeline (features -> classifier -> masker)
-        labels, parse_success = self.model.predict(X)
-        labels = list(labels)
+        labels = list(self.model.predict(X))
 
         return self.smooth_label_list(labels) if smooth else labels
