@@ -40,14 +40,16 @@ class ClassifierPipeline:
     def __init__(self,
             base_estimator=None,
             max_parses:int=2,
-            do_grammar_masking:bool=True
+            masking:bool=True,
+            smoothing: bool = True,
         ) -> None:
         self.hearing_tagger = HearingTagger()
         # return the row-level parsed hearing dataframe
         self.feature_cols = self.FEATURE_COLS
         self.model = self._make_model(base_estimator)
         self.max_parses = max_parses
-        self.do_grammar_masking = do_grammar_masking
+        self.masking = masking
+        self.smoothing = smoothing,
 
     @classmethod
     def _make_model(cls, base_estimator=None):
@@ -190,8 +192,7 @@ class ClassifierPipeline:
     def predict_hearing_sections(
         self,
         hearing: TaggedHearing,
-        hearing_df: pd.DataFrame,
-        smooth: bool = True,
+        hearing_df: pd.DataFrame
     ) -> List[SectionEnum]:
         """Predict section labels for a single hearing.
 
@@ -237,7 +238,7 @@ class ClassifierPipeline:
         self.model.set_params(
             masker__classes_=classes_,
         )
-        if self.do_grammar_masking:
+        if self.masking:
             self.model.set_params(
                 masker__class_mask=class_mask,
             )
@@ -245,4 +246,4 @@ class ClassifierPipeline:
         # Predict using the full pipeline (features -> classifier -> masker)
         labels = list(self.model.predict(X))
 
-        return self.smooth_label_list(labels) if smooth else labels
+        return self.smooth_label_list(labels) if self.smoothing else labels
