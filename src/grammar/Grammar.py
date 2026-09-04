@@ -150,21 +150,27 @@ GRAMMAR_LEAF_EXPANSIONS = [
 
     # TOP.MIDDLE
     # LEGISLATOR_DISCUSSION
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.BILL_AUTHOR, TerminalEnum.PUBLIC)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.BILL_AUTHOR, TerminalEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.BILL_AUTHOR, TerminalEnum.EXPERT)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.EXPERT)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.NONLEGISLATOR)),
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.EXPERT)),
     # (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PUBLIC),
-    (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.EXPERT),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.EXPERT),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.BILL_AUTHOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PRESIDING_CHAIR),
     # EXPERT_TESTIMONY
+    (SectionEnum.EXPERT_TESTIMONY,      (TerminalEnum.BILL_AUTHOR, TerminalEnum.EXPERT)),
+    (SectionEnum.EXPERT_TESTIMONY,      (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
     (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.NONLEGISLATOR),
     (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.EXPERT),
     (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
-    # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.BILL_AUTHOR),
     (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.PRESIDING_CHAIR),
     # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.SECRETARY),
