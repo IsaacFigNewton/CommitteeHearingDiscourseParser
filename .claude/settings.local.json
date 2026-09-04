@@ -1,9 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m jupyter nbconvert --to notebook --execute --inplace cyk_parser_labeled_sample_evaluation.ipynb --ExecutePreprocessor.timeout=600)",
-      "Bash(python -c \"import nbformat; from nbconvert.preprocessors import ExecutePreprocessor; nb = nbformat.read(''cyk_parser_labeled_sample_evaluation.ipynb'', as_version=4); ep = ExecutePreprocessor(timeout=600); ep.preprocess(nb, {''metadata'': {''path'': ''.''}}); nbformat.write(nb, ''cyk_parser_labeled_sample_evaluation.ipynb'')\")",
-      "Bash(python -c \"import nbformat; from nbconvert.preprocessors import ExecutePreprocessor; nb = nbformat.read(''''cyk_parser_labeled_sample_evaluation.ipynb'''', as_version=4); ep = ExecutePreprocessor(timeout=600); ep.preprocess(nb, {''''metadata'''': {''''path'''': ''''.''''}}); nbformat.write(nb, ''''cyk_parser_labeled_sample_evaluation.ipynb'''')\")"
+      "Bash(python -c \"\nfrom src.enums.SectionEnum import SectionEnum\nfrom src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum\n\n# Test the isinstance check\nlabels = [SpeakerPositionEnum.PRESIDING_CHAIR, SectionEnum.INTRO, ''PRESENTATION'']\n\nfor label in labels:\n    print(f''{label}: isinstance(SectionEnum) = {isinstance(label, SectionEnum)}''\n)\n\")"
     ],
     "deny": [],
     "ask": []

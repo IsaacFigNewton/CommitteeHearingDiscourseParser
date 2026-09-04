@@ -1,5 +1,6 @@
 from typing import Tuple, Set, Dict, List, Union
 from enum import Enum
+from collections import defaultdict
 
 from ..enums.SectionEnum import SectionEnum, VoteSectionEnum
 from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
@@ -25,16 +26,16 @@ class SMOOTHING(Enum):
 
 
 class TerminalEnum(Enum):
-    SECRETARY=          9
-    PRESIDING_CHAIR=    8
-    CHAIRMAN=           7
-    VICE_CHAIRMAN=      6
-    COMMITTEE_MEMBER=   5
-    BILL_AUTHOR=        4   # subdivided by can_file_motions, determines is_presenter
-    LEGISLATOR=         3
-    EXPERT=             2
-    NONLEGISLATOR=      1
-    PUBLIC=             0
+    SECRETARY=          SpeakerPositionEnum.SECRETARY
+    PRESIDING_CHAIR=    SpeakerPositionEnum.PRESIDING_CHAIR
+    CHAIRMAN=           SpeakerPositionEnum.CHAIRMAN
+    VICE_CHAIRMAN=      SpeakerPositionEnum.VICE_CHAIRMAN
+    COMMITTEE_MEMBER=   SpeakerPositionEnum.COMMITTEE_MEMBER
+    BILL_AUTHOR=        SpeakerPositionEnum.BILL_AUTHOR
+    LEGISLATOR=         SpeakerPositionEnum.LEGISLATOR
+    EXPERT=             SpeakerPositionEnum.EXPERT
+    NONLEGISLATOR=      SpeakerPositionEnum.NONLEGISLATOR
+    PUBLIC=             SpeakerPositionEnum.PUBLIC
 
 # base types
 Nonterminal = Union[
@@ -61,7 +62,7 @@ Rule = Union[
 
 # TerminalEnum should be disambiguated by now
 #   some rules included below for ambiguous positions in case they were missed
-GRAMMAR = [
+GRAMMAR_TOP_EXPANSIONS = [
     # broad hearing structures
     (TOP.ROOT,                          (TOP.START_MIDDLE, TOP.END)),
     (TOP.START_MIDDLE,                  (TOP.START, TOP.MIDDLE)),
@@ -119,8 +120,9 @@ GRAMMAR = [
     # post-vote / post-close wrap-up; WRAPUP deliberately excludes SECRETARY so it can never reach past a vote
     (TOP.END,                           (TOP.END, TOP.WRAPUP)),
     (TOP.WRAPUP,                        SectionEnum.OTHER_HEARING),        # OTHER_HEARING self-recurses below
+]
 
-
+GRAMMAR_SECTION_EXPANSIONS = [
     # different SectionEnum expansions
     # TOP.START
     (SectionEnum.INTRO,                 (SectionEnum.OTHER_PROCEDURAL, SectionEnum.INTRO)),
@@ -146,9 +148,9 @@ GRAMMAR = [
     (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.OTHER_NONPROCEDURAL)),
     (SectionEnum.VOTE,                  (SectionEnum.VOTE, SectionEnum.VOTE)),
     (SectionEnum.OTHER_HEARING,         (SectionEnum.OTHER_HEARING, SectionEnum.OTHER_HEARING)),
+]
 
-
-    # Leaf rule expansions
+GRAMMAR_LEAF_EXPANSIONS = [
     # OTHER
     # OTHER_NONPROCEDURAL
     (SectionEnum.OTHER_NONPROCEDURAL,   TerminalEnum.LEGISLATOR),
@@ -173,9 +175,11 @@ GRAMMAR = [
 
     # TOP.MIDDLE
     # LEGISLATOR_DISCUSSION
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.NONLEGISLATOR)),
-    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.COMMITTEE_MEMBER, TerminalEnum.PUBLIC)),        # member questions a PUBLIC-tagged witness
+    (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.PUBLIC)),
     (SectionEnum.LEGISLATOR_DISCUSSION, (TerminalEnum.PRESIDING_CHAIR, TerminalEnum.NONLEGISLATOR)),
+    # (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.PUBLIC),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.EXPERT),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.BILL_AUTHOR),
     (SectionEnum.LEGISLATOR_DISCUSSION, TerminalEnum.LEGISLATOR),            # fallback for ambiguous TerminalEnum
@@ -191,7 +195,7 @@ GRAMMAR = [
     # (SectionEnum.EXPERT_TESTIMONY,      TerminalEnum.SECRETARY),
     # PUBLIC_COMMENTS
     (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PUBLIC),
-    (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.NONLEGISLATOR),
+    # (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.NONLEGISLATOR),
     (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.COMMITTEE_MEMBER),
     (SectionEnum.PUBLIC_COMMENTS,       TerminalEnum.PRESIDING_CHAIR),
     # CLOSING_REMARKS
@@ -211,9 +215,9 @@ GRAMMAR = [
     # (SectionEnum.OTHER_HEARING,         TerminalEnum.BILL_AUTHOR),
     (SectionEnum.OTHER_HEARING,         TerminalEnum.PRESIDING_CHAIR),
     # (SectionEnum.OTHER_HEARING,         TerminalEnum.SECRETARY),   # a secretary utterance after the vote is still VOTE
+]
 
-
-    # Terminal expansions
+GRAMMAR_TERMINAL_EXPANSIONS = [
     (TerminalEnum.PUBLIC,               SpeakerPositionEnum.PUBLIC),
     (TerminalEnum.NONLEGISLATOR,        SpeakerPositionEnum.NONLEGISLATOR),
     (TerminalEnum.EXPERT,               SpeakerPositionEnum.EXPERT),
@@ -224,5 +228,17 @@ GRAMMAR = [
     (TerminalEnum.CHAIRMAN,             SpeakerPositionEnum.CHAIRMAN),
     (TerminalEnum.PRESIDING_CHAIR,      SpeakerPositionEnum.PRESIDING_CHAIR),
     (TerminalEnum.SECRETARY,            SpeakerPositionEnum.SECRETARY),
-
 ]
+
+GRAMMAR = GRAMMAR_TOP_EXPANSIONS\
+        + GRAMMAR_SECTION_EXPANSIONS\
+        + GRAMMAR_LEAF_EXPANSIONS\
+        + GRAMMAR_TERMINAL_EXPANSIONS
+
+SPEAKER_REACHABLE_SECTIONS: Dict[SpeakerPositionEnum, Set[SectionEnum]] = defaultdict(set[SectionEnum])
+for (lhs, rhs) in GRAMMAR_LEAF_EXPANSIONS:
+    if isinstance(rhs, TerminalEnum):
+        SPEAKER_REACHABLE_SECTIONS[rhs.value].add(lhs)
+    if isinstance(rhs, tuple):
+        SPEAKER_REACHABLE_SECTIONS[rhs[0].value].add(lhs)
+        SPEAKER_REACHABLE_SECTIONS[rhs[1].value].add(lhs)

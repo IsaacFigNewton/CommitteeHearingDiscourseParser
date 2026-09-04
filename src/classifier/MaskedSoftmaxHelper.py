@@ -1,12 +1,12 @@
 from collections import defaultdict, deque
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Set, Optional, Tuple
+from nltk.tree import Tree
 
-from src.grammar.Grammar import Rule
-from src.grammar.Tokenizer import Tokenizer
-from src.grammar.Parser import Parser
+from src.grammar.Grammar import Rule, GRAMMAR, SPEAKER_REACHABLE_SECTIONS
 from src.enums.SectionEnum import SectionEnum
 from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 from src.dataclasses.Hearing import TaggedHearing
+from src.dataclasses.OralContribution import TaggedOralContribution
 
 
 class MaskedSoftmaxHelper:
@@ -28,22 +28,22 @@ class MaskedSoftmaxHelper:
     def allowed_sections_for_hearing(
         cls,
         hearing: TaggedHearing,
-        parser: Parser,
-        grammar: Optional[List[Rule]] = None,
-        speaker_positions: Optional[Sequence[SpeakerPositionEnum|None]] = None,
-        can_file_motions: Optional[Sequence[bool|None]] = None,
-        is_presenters: Optional[Sequence[bool|None]] = None,
-        max_parses: int = 2,
-    ) -> Tuple[List[List[Any]], bool]:
+        parse_trees: Optional[List[Tree]] = None,
+    ) -> List[Optional[List[SectionEnum]]]:
         """Build allowed SectionEnums for each utterance in a hearing.
 
-        1. Prefer all parse trees returned by
-           Tokenizer.get_all_parses_as_nltk_trees(hearing, max_parses=2).
-        2. If no parse trees are returned, infer the allowed sections from the
+        1. Prefer all parse trees provided via parse_trees parameter.
+        2. If no parse trees are provided, infer the allowed sections from the
            speaker type plus SectionEnums reachable from GRAMMAR terminal rules.
-        
+
         params:
-            see code
+            hearing: TaggedHearing object
+            parser: Parser instance (kept for backwards compatibility but not used for parsing here)
+            speaker_positions: Sequence of speaker positions
+            can_file_motions: Sequence of can_file_motions flags
+            is_presenters: Sequence of is_presenter flags
+            max_parses: Maximum number of parses (kept for backwards compatibility)
+            parse_trees: Pre-generated parse trees from parser.get_all_parses_as_nltk_trees()
         returns:
             masks:              list of lists of valid section tags associated with each utterance
             parse_successful:   whether >=1 parse tree was generated with the grammar
@@ -51,41 +51,45 @@ class MaskedSoftmaxHelper:
         utterances = list(getattr(hearing, "utterances", []) or [])
         n = len(utterances)
 
-        parse_trees: List[Any] = []
-        try:
-            parse_trees = list(
-                parser.get_all_parses_as_nltk_trees(hearing, max_parses=max_parses)
-                or []
-            )
-        except Exception:
+        # Use provided parse trees if available
+        if parse_trees is None:
             parse_trees = []
-        
-        # if there was at least 1 successful parse
+
+        # If we got at least one valid parse tree, use it
         if len(parse_trees) > 0:
-            masks: List[Set[Any]] = [set() for _ in range(n)]
+            masks: List[Set[SectionEnum]] = [set() for _ in range(n)]
+
+            # Collect allowed sections from all parse trees
+            # Multiple parses can provide different section possibilities
             for tree in parse_trees:
                 for idx, section in cls._sections_by_utterance_from_tree(tree, utterances).items():
                     if 0 <= idx < n:
                         masks[idx].update(section)
 
-            # Only use parser-derived masks if at least one utterance was aligned.
+            # Only use parser-derived masks if at least one utterance was aligned
+            # Empty masks mean the parse trees didn't help, so fall back
             if any(masks):
-                return [list(s) for s in masks], True
-
-        return cls._allowed_sections_from_grammar_fallback(
-            grammar=grammar,
-            hearing=hearing,
-            speaker_positions=speaker_positions,
-            can_file_motions=can_file_motions,
-            is_presenters=is_presenters,
-        ), False
+                return [list(s) for s in masks]
+    
+        # Fallback to Nonterminal -> TerminalEnum rules to constrain predictions
+        #   based on speaker attributes without requiring a full parse
+        masks: List[Optional[List[SectionEnum]]] = []
+        for utt in utterances:
+            pid = utt.pid
+            speaker = hearing.speakers.get(pid)
+            if speaker is not None and speaker.speaker_position is not None:
+                masks.append(list(SPEAKER_REACHABLE_SECTIONS.get(speaker.speaker_position, [])))
+            # if no speaker position available
+            else:
+                masks.append(None)
+        return masks
 
     @classmethod
     def _sections_by_utterance_from_tree(
         cls,
-        tree: Any,
-        utterances: Sequence[Any],
-    ) -> Dict[int, Set[Any]]:
+        tree: Tree,
+        utterances: Sequence[TaggedOralContribution],
+    ) -> Dict[int, Set[SectionEnum]]:
         """Extract SectionEnums for utterance leaves from an nltk Tree.
 
         The method supports two common tree shapes:
@@ -94,7 +98,7 @@ class MaskedSoftmaxHelper:
         """
         n = len(utterances)
         uid_to_idx = {getattr(u, "uid", None): i for i, u in enumerate(utterances)}
-        out: Dict[int, Set[Any]] = defaultdict(set)
+        out: Dict[int, Set[SectionEnum]] = defaultdict(set)
 
         leaf_records = list(cls._iter_leaf_records(tree))
         positional_alignment_ok = len(leaf_records) == n
@@ -116,14 +120,14 @@ class MaskedSoftmaxHelper:
     @classmethod
     def _iter_leaf_records(
         cls,
-        node: Any,
-        ancestors: Sequence[Any] = (),
-    ) -> Iterable[tuple[int, Any, Sequence[Any]]]:
+        node: Tree,
+        ancestors: List[SectionEnum] = list(),
+    ) -> Iterable[tuple[int, Tree, Sequence[SectionEnum]]]:
         """Yield (leaf_position, leaf_value, ancestor_labels) for a Tree."""
         counter = 0
 
-        def walk(cur: Any, labels: Sequence[Any]) -> Iterable[tuple[Any, Sequence[Any]]]:
-            if cls._is_tree(cur):
+        def walk(cur: Tree, labels: Sequence[SectionEnum]) -> Iterable[tuple[Tree, Sequence[SectionEnum]]]:
+            if isinstance(cur, Tree):
                 next_labels = (*labels, cur.label())
                 for child in cur:
                     yield from walk(child, next_labels)
@@ -134,15 +138,10 @@ class MaskedSoftmaxHelper:
             yield counter, leaf, labels
             counter += 1
 
-    @staticmethod
-    def _is_tree(value: Any) -> bool:
-        return hasattr(value, "label") and hasattr(value, "__iter__") and not isinstance(value, (str, bytes))
-
     @classmethod
-    def _first_section_label(cls, labels: Sequence[Any]) -> Any:
-        for label in reversed(labels):
-            section = cls._coerce_section(label)
-            if section is not None:
+    def _first_section_label(cls, labels: Sequence[SectionEnum]) -> Optional[SectionEnum]:
+        for section in reversed(labels):
+            if section is not None and isinstance(section, SectionEnum):
                 return section
         return None
 
@@ -158,97 +157,6 @@ class MaskedSoftmaxHelper:
                 return uid_to_idx[numeric]
         return None
 
-    @classmethod
-    def _allowed_sections_from_grammar_fallback(
-        cls,
-        grammar: Any,
-        hearing: Any,
-        speaker_positions: Optional[Sequence[Any]],
-        can_file_motions: Optional[Sequence[Any]],
-        is_presenters: Optional[Sequence[Any]],
-    ) -> List[List[Any]]:
-        """Fallback masks using terminal grammar rules and speaker type."""
-        utterances = list(getattr(hearing, "utterances", []) or [])
-
-        if grammar is None:
-            try:
-                from ..grammar.Grammar import GRAMMAR as grammar  # type: ignore
-            except Exception:
-                grammar = None
-
-        terminal_to_sections = cls._terminal_to_reachable_sections(grammar)
-
-        masks: List[List[Any]] = []
-        for i, utt in enumerate(utterances):
-            candidates = cls._speaker_terminal_candidates(
-                utterance=utt,
-                hearing=hearing,
-                speaker_position=(speaker_positions[i] if speaker_positions is not None and i < len(speaker_positions) else None),
-                can_file_motion=(can_file_motions[i] if can_file_motions is not None and i < len(can_file_motions) else None),
-                is_presenter=(is_presenters[i] if is_presenters is not None and i < len(is_presenters) else None),
-            )
-
-            allowed: Set[Any] = set()
-            for candidate in candidates:
-                allowed.update(terminal_to_sections.get(candidate, set()))
-                allowed.update(terminal_to_sections.get(str(candidate), set()))
-                allowed.update(terminal_to_sections.get(str(candidate).upper(), set()))
-                allowed.update(terminal_to_sections.get(str(candidate).lower(), set()))
-
-            masks.append(list(allowed))
-
-        return masks
-
-    @classmethod
-    def _terminal_to_reachable_sections(cls, grammar: Any) -> Dict[Any, Set[Any]]:
-        """Map each terminal token in GRAMMAR to SectionEnums reachable from it."""
-        if grammar is None or not hasattr(grammar, "productions"):
-            return {}
-
-        productions = list(grammar.productions())
-        forward: Dict[str, Set[str]] = defaultdict(set)
-        reverse: Dict[str, Set[str]] = defaultdict(set)
-        terminal_lhs: Dict[Any, Set[str]] = defaultdict(set)
-
-        for prod in productions:
-            lhs = cls._symbol_name(prod.lhs())
-            rhs = list(prod.rhs())
-
-            has_nonterminal_rhs = False
-            for sym in rhs:
-                if cls._looks_like_nonterminal(sym):
-                    rhs_name = cls._symbol_name(sym)
-                    forward[lhs].add(rhs_name)
-                    reverse[rhs_name].add(lhs)
-                    has_nonterminal_rhs = True
-
-            if not has_nonterminal_rhs:
-                for terminal in rhs:
-                    terminal_lhs[terminal].add(lhs)
-                    terminal_lhs[str(terminal)].add(lhs)
-                    terminal_lhs[str(terminal).upper()].add(lhs)
-                    terminal_lhs[str(terminal).lower()].add(lhs)
-
-        out: Dict[Any, Set[Any]] = defaultdict(set)
-        graph = cls._merge_graphs(forward, reverse)
-
-        for terminal, starts in terminal_lhs.items():
-            seen: Set[str] = set()
-            queue: deque[str] = deque(starts)
-
-            while queue:
-                symbol = queue.popleft()
-                if symbol in seen:
-                    continue
-                seen.add(symbol)
-
-                section = cls._coerce_section(symbol)
-                if section is not None:
-                    out[terminal].add(section)
-
-                queue.extend(graph.get(symbol, set()) - seen)
-
-        return out
 
     @staticmethod
     def _merge_graphs(*graphs: Mapping[str, Set[str]]) -> Dict[str, Set[str]]:
@@ -267,81 +175,3 @@ class MaskedSoftmaxHelper:
         if hasattr(symbol, "symbol"):
             return str(symbol.symbol())
         return str(symbol)
-
-    @classmethod
-    def _speaker_terminal_candidates(
-        cls,
-        utterance: Any,
-        hearing: Any,
-        speaker_position: Any,
-        can_file_motion: Any,
-        is_presenter: Any,
-    ) -> Set[Any]:
-        candidates: Set[Any] = set()
-
-        for value in (speaker_position, getattr(speaker_position, "name", None), getattr(speaker_position, "value", None)):
-            if value is not None:
-                candidates.add(value)
-                candidates.add(str(value))
-
-        pid = getattr(utterance, "pid", None)
-        speaker = None
-        try:
-            speaker = getattr(hearing, "speakers", {}).get(pid)
-        except Exception:
-            speaker = None
-
-        if speaker is not None:
-            sp = getattr(speaker, "speaker_position", None)
-            for value in (sp, getattr(sp, "name", None), getattr(sp, "value", None)):
-                if value is not None:
-                    candidates.add(value)
-                    candidates.add(str(value))
-            can_file_motion = getattr(speaker, "can_file_motions", can_file_motion)
-            is_presenter = getattr(speaker, "is_presenter", is_presenter)
-
-        if bool(can_file_motion):
-            candidates.update({"can_file_motions", "CAN_FILE_MOTIONS", "motion_speaker", "MOTION_SPEAKER"})
-        if bool(is_presenter):
-            candidates.update({"is_presenter", "IS_PRESENTER", "presenter", "PRESENTER"})
-
-        return candidates
-
-    @classmethod
-    def _coerce_section(cls, value: Any) -> Any:
-        """Return a SectionEnum member for enum/name/value-like inputs."""
-        if SectionEnum is None or value is None:
-            return None
-
-        if isinstance(value, SectionEnum):
-            return value
-
-        raw = cls._symbol_name(value)
-        candidates = {
-            raw,
-            raw.strip(),
-            raw.strip().upper(),
-            raw.strip().lower(),
-            raw.strip().replace("SectionEnum.", ""),
-        }
-
-        for candidate in candidates:
-            try:
-                return SectionEnum[candidate]
-            except Exception:
-                pass
-            try:
-                return SectionEnum(candidate)
-            except Exception:
-                pass
-
-        return None
-
-    @classmethod
-    def _section_key(cls, value: Any) -> str:
-        section = cls._coerce_section(value)
-        if section is not None:
-            return str(getattr(section, "name", section))
-        if hasattr(value, "name"):
-            return str(value.name)
-        return str(value)
