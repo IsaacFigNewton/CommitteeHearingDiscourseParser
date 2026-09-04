@@ -44,32 +44,10 @@ class ClassifierPipeline:
             smoothing: bool = True,
         ) -> None:
         self.hearing_tagger = HearingTagger()
-        # return the row-level parsed hearing dataframe
-        self.feature_cols = self.FEATURE_COLS
-        self.model = self._make_model(base_estimator)
         self.max_parses = max_parses
         self.masking = masking
         self.smoothing = smoothing,
-
-        # Get classifier classes and set them on the masker
-        self.classifier = None
-        self.classes_ = None
-        self.masking_helper = None
-
-    @classmethod
-    def _make_model(cls, base_estimator=None):
-        """Initialize the section prediction model pipeline.
-
-        The pipeline has two stages:
-        1. Feature extraction (TF-IDF, one-hot encoding, scaling)
-        2. Masked classification (classifier + grammar-constrained masking)
-
-        Args:
-            base_estimator: Optional sklearn classifier to use. If None, defaults to LogisticRegression.
-
-        The MaskedClassifier separates the base estimator from the masking logic,
-        allowing masking parameters to be set via set_params() before prediction.
-        """
+        
         if base_estimator is None:
             base_estimator = LogisticRegression(
                 max_iter=2000,
@@ -77,23 +55,29 @@ class ClassifierPipeline:
                 solver='lbfgs'
             )
 
-        return Pipeline([
+        self.model = Pipeline([
             ('features', ColumnTransformer([
                 ('text', TfidfVectorizer(
                     ngram_range=(2, 5),
                     min_df=4,
                     max_features=2000
-                ), cls.TEXT_COL),
+                ), self.TEXT_COL),
                 ('categorical', OneHotEncoder(
                     handle_unknown='ignore'
-                ), cls.CAT_COLS + [cls.TOKEN_COL]),
-                ('numeric', StandardScaler(), cls.NUM_COLS),
+                ), self.CAT_COLS + [self.TOKEN_COL]),
+                ('numeric', StandardScaler(), self.NUM_COLS),
             ])),
             ('classifier', Classifier(
                 base_estimator=base_estimator,
             )),
             ('masker', Masker()),
         ])
+
+        # Get classifier classes and set them on the masker
+        self.classifier = None
+        self.classes_ = None
+        self.masking_helper = None
+
 
     @classmethod
     def _build_utterances_dataframe(cls, hearings: List[TaggedHearing]) -> pd.DataFrame:
@@ -150,6 +134,7 @@ class ClassifierPipeline:
         df = cls._fill_missing(df)
 
         return df
+
     
     @classmethod
     def _fill_missing(cls, df: pd.DataFrame, label_col: Optional[str] = None) -> pd.DataFrame:
@@ -162,7 +147,8 @@ class ClassifierPipeline:
             df[label_col] = df[label_col].fillna(UNKNOWN)
         return df
 
-    def train_model(self, train_df: pd.DataFrame, label_col: str = 'stage_label'):
+
+    def fit(self, train_df: pd.DataFrame, label_col: str = 'stage_label'):
         """Train the section prediction model on labeled data.
 
         Args:
@@ -174,7 +160,7 @@ class ClassifierPipeline:
         # Convert labels to SectionEnum first (handles legacy labels), then to string for sklearn
         labels = train_df[label_col].copy()
 
-        self.model.fit(train_df[self.feature_cols], labels)
+        self.model.fit(train_df[self.FEATURE_COLS], labels)
         
         # Get classifier classes and set them on the masker
         self.classifier = self.model.named_steps['classifier']
@@ -185,25 +171,8 @@ class ClassifierPipeline:
             masker__classes_=self.classes_,
         )
 
-    @staticmethod
-    def smooth_label_list(labels: List[SectionEnum]) -> List[SectionEnum]:
-        """Smooth label predictions by fixing single outlier labels.
 
-        If a label is surrounded by identical labels, change it to match.
-
-        Args:
-            labels: List of predicted SectionEnum labels
-
-        Returns:
-            Smoothed list of SectionEnum labels
-        """
-        labels = list(labels)
-        for i, (prev_, curr, next_) in enumerate(zip(labels, labels[1:], labels[2:]), 1):
-            if prev_ == next_ != curr:
-                labels[i] = prev_
-        return labels
-
-    def predict_hearing_sections(
+    def predict(
         self,
         hearing: TaggedHearing,
         hearing_df: pd.DataFrame
@@ -226,7 +195,7 @@ class ClassifierPipeline:
         filled_df = self._fill_missing(hearing_df)
 
         # Extract features for the pipeline
-        X = filled_df[self.feature_cols]
+        X = filled_df[self.FEATURE_COLS]
 
         # Generate parse trees for masking
         parse_trees = []
@@ -251,5 +220,11 @@ class ClassifierPipeline:
 
         # Predict using the full pipeline (features -> classifier -> masker)
         labels = list(self.model.predict(X))
-
-        return self.smooth_label_list(labels) if self.smoothing else labels
+        
+        if self.smoothing:
+            # If a label is surrounded by identical labels, change it to match.
+            for i, (prev_, curr, next_) in enumerate(zip(labels, labels[1:], labels[2:]), 1):
+                if prev_ == next_ != curr:
+                    labels[i] = prev_
+        
+        return labels
