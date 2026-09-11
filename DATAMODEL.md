@@ -25,19 +25,19 @@ Extends Hearing with tagged utterances that include extracted features and metad
 | `utterances` | `List[TaggedOralContribution]` | List of all tagged OralContributions with extracted features |
 
 ### Speaker ([src/speakers/Speaker.py](src/speakers/Speaker.py))
-Represents a person speaking at the hearing (based on UK Parliament's agent ontology). Extends `SpeakerPositionRoleProperties`.
+Represents a person speaking at the hearing (based on UK Parliament's agent ontology). Extends `SpeakerProperties`.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `pid` | `int` | Person ID |
 | `first_name` | `Optional[str]` | First name (not always available) |
 | `last_name` | `Optional[str]` | Last name (not always available) |
-| `speaker_position` | `Optional[SpeakerPositionEnum]` | Position of speaker (e.g., PRESIDING_CHAIR, BILL_AUTHOR, COMMITTEE_MEMBER) |
+| `speaker_position` | `Optional[SpeakerPositionEnum]` | Position of speaker (e.g., PRESIDING_CHAIR, BILL_AUTHOR, COMMITTEE_MEMBER) (inherited from RoleProperties) |
 | `can_file_motions` | `Optional[bool]` | Whether the speaker can file motions (inherited from RoleProperties) |
 | `is_presenter` | `Optional[bool]` | Whether the speaker is presenting the current bill (inherited from RoleProperties) |
-| `first_mention_uid` | `Optional[int]` | First utterance where speaker is mentioned (inherited from SpeakerPositionRoleProperties) |
-| `first_uid` | `int` | UID of speaker's first utterance (inherited from SpeakerPositionRoleProperties) |
-| `last_uid` | `int` | UID of speaker's last utterance (inherited from SpeakerPositionRoleProperties) |
+| `first_mention_uid` | `Optional[int]` | First utterance where speaker is mentioned (inherited from SpeakerProperties) |
+| `first_uid` | `int` | UID of speaker's first utterance (inherited from SpeakerProperties) |
+| `last_uid` | `int` | UID of speaker's last utterance (inherited from SpeakerProperties) |
 
 ### OralContribution ([src/dataclasses/OralContribution.py](src/dataclasses/OralContribution.py))
 Represents a single utterance (based on UK Parliament's oral contribution ontology).
@@ -56,14 +56,14 @@ Extends OralContribution with extracted features and tags for classification.
 | `pids_mentioned` | `Optional[Set[int]]` | PIDs of speakers mentioned in this utterance |
 | `bill_mentioned` | `Optional[bool]` | If a bill was mentioned in this utterance |
 | `relative_position` | `Optional[float]` | Relative position of utterance within hearing (0.0 to 1.0) |
-| `tok_count` | `Optional[int]` | Number of tokens in the utterance |
+| `token_count` | `Optional[int]` | Number of tokens in the utterance |
 | `sent_count` | `Optional[int]` | Number of sentences in the utterance |
 | `speech_act_cues` | `Optional[Set[SpeechActEnum]]` | Detected speech act cues (e.g., STATEMENT, ARGUMENT) |
 | `section_cues` | `Optional[Set[SectionEnum]]` | Detected section transition cues |
 | `section` | `Optional[SectionEnum]` | Predicted or labeled section type |
 
 ### FlatTaggedOralContribution ([src/dataclasses/OralContribution.py](src/dataclasses/OralContribution.py))
-Extends TaggedOralContribution with flattened speaker properties. Combines `PositionRoleProperties` and `TaggedOralContribution` for feature extraction in classification.
+Extends both `RoleProperties` and `TaggedOralContribution`. Combines speaker role properties with tagged utterance features for feature extraction in classification.
 
 ## Supporting Classes
 
@@ -74,24 +74,17 @@ Base dataclass for role-based properties.
 |-------|------|-------------|
 | `can_file_motions` | `Optional[bool]` | Whether the speaker can file motions (e.g., committee members, secretary) |
 | `is_presenter` | `Optional[bool]` | Whether the speaker is presenting the current bill |
-
-### PositionRoleProperties ([src/speakers/interfaces/SpeakerProperties.py](src/speakers/interfaces/SpeakerProperties.py))
-Extends RoleProperties with speaker position information.
-
-| Field | Type | Description |
-|-------|------|-------------|
 | `speaker_position` | `Optional[SpeakerPositionEnum]` | Speaker's level of legislative authority |
-| (inherited fields) | | All fields from RoleProperties |
 
-### SpeakerPositionRoleProperties ([src/speakers/interfaces/SpeakerProperties.py](src/speakers/interfaces/SpeakerProperties.py))
-Extends PositionRoleProperties with utterance tracking information.
+### SpeakerProperties ([src/speakers/interfaces/SpeakerProperties.py](src/speakers/interfaces/SpeakerProperties.py))
+Extends RoleProperties with utterance tracking information.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `first_mention_uid` | `Optional[int]` | First UID where speaker is mentioned |
 | `first_uid` | `int` | UID of speaker's first utterance |
 | `last_uid` | `int` | UID of speaker's last utterance |
-| (inherited fields) | | All fields from PositionRoleProperties |
+| (inherited fields) | | All fields from RoleProperties |
 
 ### ParseNode ([src/grammar/ParseNode.py](src/grammar/ParseNode.py))
 Represents a node in the parse tree produced by CYK parsing.
@@ -151,7 +144,9 @@ Section types in committee hearings. Note: hearing transcripts may contain porti
 | `PUBLIC_COMMENTS` | `"PUBLIC_COMMENTS"` | Public comment period (only legislators or public, never experts) |
 | `CLOSING_REMARKS` | `"CLOSING_REMARKS"` | Closing remarks by committee chair or bill author |
 | `VOTE` | `"VOTE"` | Voting section (includes all vote subsections) |
-| `OTHER` | `"OTHER"` | Fallback for ambiguous sections or discussions of other bills |
+| `OTHER_HEARING` | `"OTHER_HEARING"` | Portions of other hearings that appear in the transcript |
+| `OTHER_PROCEDURAL` | `"OTHER_PROCEDURAL"` | Ambiguous procedural utterances that pertain to the current bill |
+| `OTHER_NONPROCEDURAL` | `"OTHER_NONPROCEDURAL"` | Ambiguous non-procedural utterances that don't pertain to the current bill |
 
 **SECTION_CUE_PHRASES**: Dictionary mapping section types to their identifying phrases.
 
@@ -201,9 +196,12 @@ High-level hearing segment types used in the grammar production rules.
 |------------|--------------|-------------|
 | `ROOT` | `"ROOT"` | Root symbol for complete hearings |
 | `START` | `"START"` | Opening section(s) of hearing (INTRO and/or PRESENTATION) |
+| `START_MIDDLE` | `"START_MIDDLE"` | Combination of START and MIDDLE sections |
+| `UPPER_MIDDLE` | `"UPPER_MIDDLE"` | Upper middle section(s) (typically LEGISLATOR_DISCUSSION and EXPERT_TESTIMONY) |
 | `MIDDLE` | `"MIDDLE"` | Middle section(s) with discussion and testimony |
-| `LOWER_MIDDLE` | `"LOWER_MIDDLE"` | Later middle section(s) (EXPERT_TESTIMONY and/or PUBLIC_COMMENTS) |
+| `LOWER_MIDDLE` | `"LOWER_MIDDLE"` | Later middle section(s) (PUBLIC_COMMENTS and/or LEGISLATOR_DISCUSSION) |
 | `END` | `"END"` | Closing section(s) (CLOSING_REMARKS and/or VOTE) |
+| `WRAPUP` | `"WRAPUP"` | Post-vote wrap-up sections (OTHER_HEARING) |
 
 ## Processing Classes
 
@@ -214,94 +212,90 @@ Loads and queries committee hearing transcripts from the Digital Democracy Corpu
 - `load_csv()`: Load data from CSVs into Python objects
 - `load_all_committee_hearings()`: Load all hearings for committees with enriched speaker data
 - `bill_discussion_info()`: Get complete bill discussion info for a specific hearing
-- `pprint_hearing()`: Print formatted transcript
+- `pprint_hearing()` (static): Print formatted transcript
 
 ### HearingTagger ([src/HearingTagger.py](src/HearingTagger.py))
 Tags utterances with features and metadata. Extends `ITagger`.
 
 **Key Methods:**
-- `__call__(raw_hearing)`: Process a RawHearing and return TaggedHearing
-- `_assign_presiding_chair()`: Identify and assign the presiding chair role
+- `__call__(raw_hearing)`: Process a Hearing and return TaggedHearing
+- `_assign_presiding_chair()`: Identify and assign the presiding chair role (class method)
+- `_build_utterances_dataframe()`: Build a DataFrame of utterance features from a list of tagged hearings (class method)
+- `pprint_hearing()`: Print formatted transcript (static method)
 
 ### UtteranceTagger ([src/UtteranceTagger.py](src/UtteranceTagger.py))
 Tags individual utterances with extracted features. Extends `ITagger`.
 
 **Key Methods:**
-- `__call__(utterance, ...)`: Tag an individual utterance
-- `substitute_named_entities()`: Replace speaker names with position tags using spaCy NER
-- `substitute_keyphrases()`: Replace keyphrases with standardized tokens
+- `__call__(utterance, ...)`: Tag an individual utterance, returns `TaggedOralContribution` or `FlatTaggedOralContribution`
+- `substitute_named_entities()`: Replace speaker names with position tags using spaCy NER and fuzzy matching
+- `_match_entity_to_speaker()`: Match an entity text to a speaker using fuzzy matching
 - `_get_speech_act_cues()`: Extract speech act indicators
 - `_get_section_cues()`: Extract section transition indicators
 
-### HearingParser ([src/HearingParser.py](src/HearingParser.py))
-Predicts section labels for hearing utterances using a masked classifier with parse tree constraints.
+### ClassifierPipeline ([src/ClassifierPipeline.py](src/ClassifierPipeline.py))
+Main pipeline coordinating feature extraction, classification, grammar-based masking, and prediction smoothing.
 
-**Feature Columns:**
-- `TEXT_COL`: 'text' - utterance text
-- `CAT_COLS`: ['speaker.position', 'section_cues', 'speech_act_cues'] - categorical features
-- `NUM_COLS`: ['relative_position', 'sent_count', 'mentions_speaker', 'mentions_bill'] - numeric features
-
-**Key Methods:**
-- `_make_model(base_estimator)`: Initialize the section prediction model pipeline (class method)
-- `_fill_missing(df, label_col)`: Fill missing feature values before training or prediction (class method)
-- `train_model(train_df, label_col)`: Train the section prediction model on labeled data
-- `predict_hearing_sections(hearing, utterances_df, smooth)`: Predict section labels for a single hearing using parse tree constraints
-- `predict_hearings_batch(hearings, smooth)`: Predict section labels for multiple hearings in batch mode
-- `smooth_label_list(labels)`: Smooth predictions by fixing single outlier labels (static method)
-- `_build_utterance_rows(hearings)`: Build feature DataFrame from list of TaggedHearings
-
-### Tokenizer ([src/grammar/Tokenizer.py](src/grammar/Tokenizer.py))
-Tokenizes utterances into speaker position sequences and constructs parse trees using CYK parsing.
+**Constructor Parameters:**
+- `base_estimator`: Underlying classifier (default: LogisticRegression with balanced class weights)
+- `max_parses`: Maximum number of parse trees to generate (default: 2)
+- `masking`: Whether to apply grammar-based masking (default: True)
+- `smoothing`: Whether to apply prediction smoothing (default: True)
 
 **Key Methods:**
-- `parse()`: Construct parse tree from hearing using CYK algorithm
-- `tokenize_utterances()`: Extract SpeakerPositionEnum tokens from hearing
-- `parse_to_nltk_tree()`: Convert parse tree to NLTK Tree format for visualization
-- `get_all_parses()`: Get all possible parse trees for a hearing (up to max_parses)
-- `get_all_parses_as_nltk_trees()`: Get all possible parse trees as NLTK Trees
+- `fit(X, y)`: Train the section prediction model on labeled data
+- `predict(X)`: Predict section labels for a collection of hearings
+- `_predict_sections(X)`: Predict labels for a single hearing's utterances
+
+### Parser ([src/grammar/Parser.py](src/grammar/Parser.py))
+CYK parser that parses speaker position sequences and generates all valid parse trees.
+
+**Key Methods:**
+- `parse(tokens)`: Construct a parse tree from a token sequence using CYK
+- `parse_tokens(tokens)`: Parse a tokenized sequence, returning the first parse found
+- `get_all_parses(token_seq, max_parses)`: Get all possible parse trees (up to max_parses)
+- `iter_parses_for_tokens(tokens, max_parses)`: Lazily yield parse trees for a token sequence
+- `get_all_parses_as_nltk_trees(token_seq, max_parses)`: Get all possible parse trees as NLTK Trees
+- `_cyk_parse(tokens)`: CYK parsing algorithm, returns table and backpointers
+- `_enumerate_trees(...)`: Lazily yield every parse tree rooted at a symbol
 
 ### Grammar ([src/grammar/Grammar.py](src/grammar/Grammar.py))
 Defines the context-free grammar for valid hearing structures in Chomsky Normal Form (CNF).
 
 **Key Components:**
 - `GRAMMAR`: List of (lhs, rhs) production rules defining valid hearing structures
-- `TOP`: Enum for high-level hearing segments (ROOT, START, MIDDLE, LOWER_MIDDLE, END)
-- Terminal symbols: `SpeakerPositionEnum` values
-- Production rules mapping:
-  - Hearing structure (ROOT → START + MIDDLE + END, with variations)
-  - Section sequences (e.g., INTRO → PRESENTATION → EXPERT_TESTIMONY → VOTE)
-  - Valid speaker positions for each section type (e.g., PRESENTATION can only have BILL_AUTHOR or PRESIDING_CHAIR)
+  - `GRAMMAR_TOP_EXPANSIONS`: High-level hearing structure rules
+  - `GRAMMAR_SECTION_EXPANSIONS`: Section-level expansion rules
+  - `GRAMMAR_LEAF_EXPANSIONS`: Section to speaker position rules
+  - `GRAMMAR_TERMINAL_EXPANSIONS`: TerminalEnum to SpeakerPositionEnum mappings
+- `TOP`: Enum for high-level hearing segments (ROOT, START, START_MIDDLE, UPPER_MIDDLE, MIDDLE, LOWER_MIDDLE, END, WRAPUP)
+- `TerminalEnum`: Wrapper enum for SpeakerPositionEnum values used in grammar
+- `SPEAKER_REACHABLE_SECTIONS`: Dict mapping speaker positions to reachable sections
 
-### MaskedClassifier ([src/classifier/MaskedClassifier.py](src/classifier/MaskedClassifier.py))
-Classifier wrapper that applies grammar/parser-constrained masking during prediction. Integrates with sklearn pipelines by accepting masking parameters via `set_params()`.
-
-**Constructor Parameters:**
-- `base_estimator`: Underlying classifier (e.g., LogisticRegression)
-- `hearing`: TaggedHearing object for context
-- `tokenizer`: Tokenizer for parsing
-- `grammar`: Grammar for fallback masking
-- `speaker_positions`: Array of speaker position values per row
-- `can_file_motions`: Array of can_file_motions flags per row
-- `is_presenters`: Array of is_presenter flags per row
-- `max_parses`: Maximum number of parses to consider (default: 2)
+### Classifier ([src/classifier/Classifier.py](src/classifier/Classifier.py))
+Wrapper for sklearn classifiers that outputs probability distributions. Acts as a transformer in a pipeline.
 
 **Key Methods:**
-- `fit(X, y)`: Fit the base classifier (typically LogisticRegression)
-- `predict(X)`: Predict class labels after applying grammar-constrained masking
-- `predict_proba(X)`: Return class probabilities after masking and renormalizing
-- `allowed_sections_for_hearing()`: Build allowed sections for each utterance in a hearing (class method)
-- `_apply_masking()`: Apply masking and renormalization to probabilities
-- `_section_key()`: Return a stable section key for backward compatibility (class method)
+- `fit(X, y)`: Fit the base classifier
+- `transform(X)`: Transform features into probability distributions via `predict_proba()`
+- `predict_proba(X)`: Return class probabilities (alias for transform)
+
+### Masker ([src/classifier/Masker.py](src/classifier/Masker.py))
+Applies grammar-based masks to classifier predictions to enforce valid section sequences. Final predictor in the pipeline.
+
+**Key Methods:**
+- `fit(X, y)`: No-op fit (required for sklearn compatibility)
+- `predict(X)`: Apply masking and return predicted class labels
+- `predict_proba(X)`: Return masked and renormalized class probabilities
 
 ### MaskedSoftmaxHelper ([src/classifier/MaskedSoftmaxHelper.py](src/classifier/MaskedSoftmaxHelper.py))
 Utilities for building and applying grammar/parser-constrained masks. Implements parse tree-based and grammar-based masking.
 
 **Key Methods:**
-- `allowed_sections_for_hearing()`: Build allowed SectionEnums for each utterance in a hearing
-- `_sections_by_utterance_from_tree()`: Extract SectionEnums for utterance leaves from an NLTK Tree
-- `_allowed_sections_from_grammar_fallback()`: Fallback masks using terminal grammar rules and speaker type
-- `_terminal_to_reachable_sections()`: Map each terminal token in GRAMMAR to SectionEnums reachable from it
-- `_section_key()`: Return a stable section key for backward compatibility
+- `allowed_sections_for_hearing(token_seq, parse_trees)`: Build allowed SectionEnums for each utterance
+- `_sections_by_utterance_from_tree(tree)`: Extract SectionEnums for utterance leaves from an NLTK Tree
+- `_allowed_sections_from_grammar_fallback(token_seq)`: Fallback masks using grammar rules and speaker types
+- `_terminal_to_reachable_sections()`: Map each terminal token in GRAMMAR to SectionEnums reachable from it (static)
 
 ### ITagger ([src/interfaces/ITagger.py](src/interfaces/ITagger.py))
 Abstract base class for tagger implementations.
@@ -313,14 +307,6 @@ Abstract base class for tagger implementations.
 - `simple_match()`: Simple normalized substring matching
 - `fuzzy_substring_match()`: Fuzzy substring matching with threshold
 - `contains_any_phrase()`: Check if text contains any phrase from a set
-
-## Visualization Classes
-
-### SectionSpeakerRulePlotter ([src/visualizations/SectionSpeakerRulePlotter.py](src/visualizations/SectionSpeakerRulePlotter.py))
-Visualizes valid speaker positions for each section type based on grammar rules.
-
-**Key Methods:**
-- `plot()`: Generate a bar chart showing which SpeakerPositionEnums are valid for each SectionEnum
 
 ## Constants
 
@@ -392,29 +378,28 @@ src/
 │   │   ├── SpeakerPositionEnum.py      # SpeakerPositionEnum, COMMITTEE_POSITION_MAP, SPEAKER_POSITION_CUES
 │   │   └── UtilEnums.py                # RelativePositionEnum
 │   └── interfaces/
-│       └── SpeakerProperties.py        # RoleProperties, PositionRoleProperties, SpeakerPositionRoleProperties
+│       └── SpeakerProperties.py        # RoleProperties, SpeakerProperties
 ├── enums/
 │   ├── MotionEnum.py           # MotionEnum
 │   ├── SectionEnum.py          # SectionEnum, VoteSectionEnum, SECTION_CUE_PHRASES
 │   └── SpeechActEnum.py        # SpeechActEnum, SPEECH_ACT_CUES
 ├── grammar/
-│   ├── Grammar.py              # GRAMMAR rules, TOP enum, production rules
+│   ├── Grammar.py              # GRAMMAR rules, TOP enum, TerminalEnum, production rules
 │   ├── ParseNode.py            # ParseNode dataclass
-│   └── Tokenizer.py            # Tokenizer (CYK parsing)
+│   └── Parser.py               # Parser (CYK parsing)
 ├── classifier/
-│   ├── MaskedClassifier.py     # MaskedClassifier (pipeline-compatible)
+│   ├── Classifier.py           # Classifier (sklearn wrapper outputting probabilities)
+│   ├── Masker.py               # Masker (grammar-based masking predictor)
 │   └── MaskedSoftmaxHelper.py  # MaskedSoftmaxHelper (masking utilities)
-├── visualizations/
-│   └── SectionSpeakerRulePlotter.py    # SectionSpeakerRulePlotter
 ├── interfaces/
 │   └── ITagger.py              # ITagger base class
 ├── constants/
 │   ├── bill_ref_normalization.py       # Bill reference regex patterns
-│   └── constants.py                    # Bill action patterns and keyphrases
+│   └── constants.py                    # Bill action patterns, keyphrases, feature columns
+├── ClassifierPipeline.py       # ClassifierPipeline (main orchestrator)
 ├── HearingLoader.py            # HearingLoader
 ├── HearingTagger.py            # HearingTagger
 ├── UtteranceTagger.py          # UtteranceTagger
-├── HearingParser.py            # HearingParser
 ├── config.py                   # Configuration constants
 └── __init__.py                 # Package initialization
 ```
@@ -428,31 +413,32 @@ src/
 
 2. **Tagging**: `HearingTagger` processes hearings → `TaggedHearing`
    - Uses `UtteranceTagger` to extract features from each utterance
-   - Identifies speaker positions and roles using named entity recognition
+   - Identifies speaker positions and roles using named entity recognition (spaCy) and fuzzy matching
    - Extracts speaker/bill mentions, speech act cues, section cues
-   - Computes metadata (relative position, sentence count)
+   - Computes metadata (relative position, sentence count, token count)
+   - Assigns presiding chair role and presenter role
+   - Returns `TaggedHearing` with `FlatTaggedOralContribution` objects
 
-3. **Parsing**: `Tokenizer` generates discourse parse trees
-   - Tokenizes utterances into `SpeakerPositionEnum` sequences
-   - Applies CYK parsing algorithm with `GRAMMAR` (CNF format)
-   - Produces `ParseNode` trees representing valid hearing structures
-   - Can convert to NLTK Tree format for visualization
+3. **Feature Preparation**: `HearingTagger._build_utterances_dataframe()` converts tagged hearings to DataFrame
+   - Creates feature DataFrame with columns for all utterance features
+   - Flattens speaker properties into each utterance row
+   - Fills missing values (unknown for categorical, 0 for numeric, empty string for text)
 
-4. **Classification**: `HearingParser` predicts section labels
-   - Builds sklearn Pipeline with two stages:
-     1. Feature extraction: ColumnTransformer with TF-IDF (text), OneHotEncoder (categorical), StandardScaler (numeric)
-     2. MaskedClassifier: LogisticRegression with grammar/parser-constrained masking
-   - Builds feature DataFrame from `TaggedHearing` objects via `_build_utterance_rows()`
-   - For each hearing, sets masking parameters on `MaskedClassifier` via `set_params()`:
-     - hearing, tokenizer, grammar
-     - speaker_positions, can_file_motions, is_presenters arrays
-   - During prediction, `MaskedClassifier.predict_proba()`:
-     - Gets base probabilities from LogisticRegression
-     - Calls `MaskedSoftmaxHelper.allowed_sections_for_hearing()` to build allowed sections per utterance
-     - `MaskedSoftmaxHelper` generates parse tree using `Tokenizer` (CYK algorithm)
-     - Extracts allowed sections from parse tree leaves
-     - Falls back to grammar-based masking when parse tree is unavailable
-     - Applies masking and renormalizes probabilities
-   - `MaskedClassifier.predict()` selects argmax of masked probabilities
-   - Optionally smooths predictions to remove single-utterance outliers
-   - Returns predicted `SectionEnum` labels for each utterance
+4. **Classification**: `ClassifierPipeline` predicts section labels
+   - Builds sklearn Pipeline with three stages:
+     1. **Feature extraction** (`ColumnTransformer`):
+        - TF-IDF vectorizer for text features (n-grams 2-5, max 2000 features)
+        - OneHotEncoder for categorical features (speaker position, cues)
+        - StandardScaler for numeric features (relative position, counts)
+     2. **Classifier** (`Classifier`): Wraps LogisticRegression, outputs probabilities
+     3. **Masker** (`Masker`): Applies grammar-based masking, outputs final predictions
+   - For each hearing (grouped by `hearing_group`):
+     1. Extracts `SpeakerPositionEnum` token sequence from `speaker.position` column
+     2. Generates parse trees using `Parser.get_all_parses_as_nltk_trees()` (CYK algorithm)
+     3. Calls `MaskedSoftmaxHelper.allowed_sections_for_hearing()`:
+        - If parse trees exist: extracts allowed sections from parse tree leaves
+        - Otherwise: falls back to grammar-based masking using speaker positions
+     4. Sets `class_mask` parameter on `Masker` via `set_params()`
+     5. Predicts via pipeline: features → probabilities → masked probabilities → argmax
+     6. Optionally applies smoothing: if a label is surrounded by identical labels, changes it to match
+   - Returns predicted `SectionEnum` labels for all utterances

@@ -1,16 +1,14 @@
 # TODO
 ## Data cleaning and tokenization
-0. Update README.md and DATAMODEL.md
-1. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables
-2. evaluate speaker role tagging
-3. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
-4. replace RROO keyphrase mentions with the associated SpeechActEnum
-5. add section keyphrases and associate them with SpeechActEnums
+0. map Robert's Rules of Order (RROO) to these SpeechActEnum enumerables
+1. use regexes and/or a SpaCy Matcher to match RROO keyphrases in the utterances
+2. replace RROO keyphrase mentions with the associated SpeechActEnum
+3. add section keyphrases and associate them with SpeechActEnums
  - "others in support" indicates a possible transition to public comments
-5. add VoteSectionEnum grammar rules
-6. add VoteSectionEnum sub-parsing/sub-classification
-7. update labelled samples accordingly
-8. evaluate subsection classification
+4. add VoteSectionEnum grammar rules
+5. add VoteSectionEnum sub-parsing/sub-classification
+6. update labelled samples accordingly
+7. evaluate subsection classification
 
 ## Feature extraction
 1. get correlation of utterances' TF-IDF embeddings with possible SectionEnums based on other SectionEnum requirements, speaker inference rules
