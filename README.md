@@ -179,6 +179,8 @@ flowchart TD
                 T3 -->|numeric features<br/>dense array| D4
             end
 
+            D3 -->|text column| TOK
+
             %% Classification subgraph: TD inside
             subgraph CLASSIFICATION [Classification]
                 direction TD
@@ -203,8 +205,8 @@ flowchart TD
                 MSH -. computes masks .- P5A
                 MSK["Masker"]
                 MSK -. applies masks .- P5B
-                PRS["Parser"]
                 PRS -. implements .- TOK
+                PRS["Parser"]
 
                 D5[(CNF Grammar)]
                 TOK(("CYK Parse<br/>Speaker Sequence"))
@@ -218,10 +220,8 @@ flowchart TD
                 PN -->|section constraints| P5A
                 P5A -->|class masks| P5B
 
-                P5B -->|masked probabilities| P6
-                P6(("Predict<br/>argmax"))
+                P5B -->|masked probabilities| PRED
                 PRED[(Section Predictions)]
-                P6 -->|noisy predictions| PRED
             end
 
             D4 -->|combined features| P4
