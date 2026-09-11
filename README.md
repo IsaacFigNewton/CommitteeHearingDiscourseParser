@@ -96,20 +96,20 @@ graph TD
     OralContribution -->|fields| oral_fields["uid, pid, text"]
     TaggedOralContribution[TaggedOralContribution]
     TaggedOralContribution -->|extends| OralContribution
-    TaggedOralContribution -->|adds| tagged_oral_fields["additional utterance metadata"]
+    TaggedOralContribution -->|adds| tagged_oral_fields["pids_mentioned, bill_mentioned, relative_position,<br/>token_count, sent_count, speech_act_cues,<br/>section_cues, section"]
     FlatTaggedOralContribution[FlatTaggedOralContribution]
     FlatTaggedOralContribution -->|extends| TaggedOralContribution
     FlatTaggedOralContribution -->|extends| RoleProperties
 
     %% Speaker property hierarchy
     RoleProperties[RoleProperties]
-    RoleProperties -->|fields| role_fields["speaker metadata"]
+    RoleProperties -->|fields| role_fields["can_file_motions, is_presenter, speaker_position"]
     SpeakerProperties[SpeakerProperties]
     SpeakerProperties -->|extends| RoleProperties
-    SpeakerProperties -->|adds| tracking_fields["utterance-based speaker metadata"]
+    SpeakerProperties -->|adds| tracking_fields["first_mention_uid, first_uid, last_uid"]
     Speaker[Speaker]
     Speaker -->|extends| SpeakerProperties
-    Speaker -->|adds| speaker_fields["speaker identification metadata"]
+    Speaker -->|adds| speaker_fields["pid, first_name, last_name"]
 
     %% Other classes
     ParseNode[ParseNode]
@@ -119,8 +119,8 @@ graph TD
     classDef dataclass fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
     classDef fieldNode fill:#f0f0f0,stroke:#666,stroke-width:1px,color:#000,stroke-dasharray: 5 5
 
-    class Hearing,TaggedHearing,OralContribution,TaggedOralContribution,FlatTaggedOralContribution,RoleProperties,PositionRoleProperties,SpeakerProperties,Speaker,ParseNode dataclass
-    class hearing_fields,tagged_fields,oral_fields,tagged_oral_fields,role_fields,position_fields,tracking_fields,speaker_fields,parse_fields fieldNode
+    class Hearing,TaggedHearing,OralContribution,TaggedOralContribution,FlatTaggedOralContribution,RoleProperties,SpeakerProperties,Speaker,ParseNode dataclass
+    class hearing_fields,tagged_fields,oral_fields,tagged_oral_fields,role_fields,tracking_fields,speaker_fields,parse_fields fieldNode
 ```
 
 ## Data Flow Diagram
@@ -142,17 +142,16 @@ flowchart TD
         %% Tagging subgraph: TD inside
         subgraph TAGGING [Tagging]
             direction TD
-            
+
             HT["HearingTagger"]
             P1(("Load<br/>Hearings"))
             D1[(Hearing + OralContributions)]
             UT["UtteranceTagger"]
             HT -. coordinates .- P2
             UT -. tags .- P2
-            HP -. runs .- P3
 
             P2(("Tag<br/>Utterance Features"))
-            D2[(TaggedHearing + TaggedOralContributions)]
+            D2[(TaggedHearing + FlatTaggedOralContributions)]
             P2 -->|tagged oral contributions| D2
             D2 -->|tagged hearing data| P3
         end
@@ -183,49 +182,53 @@ flowchart TD
             %% Classification subgraph: TD inside
             subgraph CLASSIFICATION [Classification]
                 direction TD
-                
-                HP["HearingParser"]
-                HP -. runs .- P4
-                HP -. runs .- P6
 
-                P4(("Predict<br/>Section Labels"))
+                CLS["Classifier"]
+                CLS -. wraps .- BE
+                BE["LogisticRegression"]
+
+                P4(("Generate<br/>Probabilities"))
                 RAW[(Raw Probability Store)]
-                MC["MaskedClassifier"]
-                MC -. wraps .- P4
-                BE["BaseEstimator"]
-                BE -. estimates .- P4
+                CLS -. implements .- P4
+                BE -. predicts .- P4
 
                 P4 -->|raw SectionEnum class probabilities| RAW
             end
 
             %% Masking subgraph: TD inside
-            subgraph MASKING [Grammar Masking]
+            subgraph MASKING [Grammar Masking & Prediction]
                 direction TD
-                
-                MSH["MaskedSoftmaxHelper"]
-                MSH -. implements .- P5
 
-                D5[(CNF Grammar Productions)]
-                TOK(("Tokenize / CYK Parse"))
-                PN[(Parse Tree<br/>ParseNode)]
-                P5(("Apply<br/>Grammar Mask"))
+                MSH["MaskedSoftmaxHelper"]
+                MSH -. computes masks .- P5A
+                MSK["Masker"]
+                MSK -. applies masks .- P5B
+                PRS["Parser"]
+                PRS -. implements .- TOK
+
+                D5[(CNF Grammar)]
+                TOK(("CYK Parse<br/>Speaker Sequence"))
+                PN[(Parse Trees<br/>ParseNode)]
+                P5A(("Compute<br/>Allowed Sections"))
+                P5B(("Apply Masked<br/>Softmax"))
 
                 D5 -->|production rules| TOK
-                D5 -->|valid section transitions| P5
-                TOK -->|parse tree| PN
-                PN -->|valid masks| P5
+                D5 -->|fallback rules| P5A
+                TOK -->|parse trees| PN
+                PN -->|section constraints| P5A
+                P5A -->|class masks| P5B
 
-                
-                P5 -->|grammar-constrained probabilities| MASKED
-    
-                MASKED[(Masked Probability Store)]
+                P5B -->|masked probabilities| P6
+                P6(("Predict<br/>argmax"))
+                PRED[(Section Predictions)]
+                P6 -->|noisy predictions| PRED
             end
 
             D4 -->|combined features| P4
-            RAW -->|unmasked probabilities| P5
-            
-            MASKED -->|noisy SectionEnum predictions| P6
-            P6(("Smooth<br/>Predictions"))
+            RAW -->|unmasked probabilities| P5B
+
+            PRED -->|section labels| P7
+            P7(("Smooth<br/>Predictions"))
         end
 
     end
@@ -233,7 +236,7 @@ flowchart TD
     %% Main processes
 
     %% Outputs
-    P6 -->|smoothed SectionEnum predictions| OUT
+    P7 -->|smoothed SectionEnum predictions| OUT
     OUT[/"Final Section Labels<br/>per utterance"/]
 
     %% Implementation classes
@@ -245,13 +248,12 @@ flowchart TD
     classDef external fill:#fff4e1,stroke:#333,stroke-width:2px,color:#000
     classDef process fill:#d4edda,stroke:#333,stroke-width:2px,color:#000
     classDef datastore fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
-    classDef external fill:#ffe1e1,stroke:#333,stroke-width:2px,color:#000
     classDef impl fill:#f4f4f4,stroke:#777,stroke-width:1px,color:#000,stroke-dasharray:4 4
 
     class CSV,OUT external
-    class P1,P2,P3,P4,P5,P6,T1,T2,T3,TOK process
-    class D1,D2,D3,D4,D5,RAW,MASKED,PN datastore
-    class HL,HT,UT,HP,BE,MC,MSH,CP impl
+    class P1,P2,P3,P4,P5A,P5B,P6,P7,T1,T2,T3,TOK process
+    class D1,D2,D3,D4,D5,RAW,PN,PRED datastore
+    class HL,HT,UT,CP,CLS,MSK,MSH,PRS,BE impl
 ```
 
 ## How It Works
