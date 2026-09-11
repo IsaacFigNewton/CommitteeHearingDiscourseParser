@@ -84,9 +84,9 @@ class ClassifierPipeline:
         self.model.fit(X, y)
 
         # Set masking parameters on the masker stage
-        # CRITICAL: Use the fitted classifier's classes_ (sklearn sorts lexically)
-        # rather than self.classes_ (SectionEnum declaration order) to ensure
-        # the masker decodes argmax against the same label order as predict_proba
+        # Use the fitted classifier's classes_ (sklearn sorts lexically)
+        #   rather than self.classes_ (SectionEnum declaration order) to ensure
+        #   the masker decodes argmax against the same label order as predict_proba
         self.model.set_params(
             masker__classes_=self.model.named_steps['classifier'].classes_,
         )
