@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python update_text_column.py)"
+      "Bash(python update_text_column.py)",
+      "Bash(python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 \"c:\\Users\\igeek\\OneDrive\\Documents\\GitHub\\CommitteeHearingDiscourseParser\\cyk_parser_evaluation.ipynb\")",
+      "Bash(python run_notebook.py)",
+      "Bash(python test_cell16.py)",
+      "Bash(python execute_notebook_full.py)",
+      "Bash(python -c \"import nbformat; nb = nbformat.read(''cyk_parser_evaluation.ipynb'', as_version=4); print(f''Total cells: {len(nb.cells)}''); executed = sum(1 for cell in nb.cells if cell.cell_type == ''code'' and ''outputs'' in cell and len(cell.outputs) > 0); code_cells = sum(1 for cell in nb.cells if cell.cell_type == ''code''); print(f''Code cells: {code_cells}''); print(f''Executed cells with output: {executed}''); print(f''All code cells executed: {executed >= code_cells - 1}'')\")",
+      "Bash(del test_cell16.py run_notebook.py execute_notebook_full.py)"
     ],
     "deny": [],
     "ask": []
