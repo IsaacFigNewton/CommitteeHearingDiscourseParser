@@ -36,7 +36,7 @@ class ClassifierPipeline:
         self.hearing_tagger = HearingTagger()
         self.max_parses = max_parses
         self.masking = masking
-        self.smoothing = smoothing,
+        self.smoothing = smoothing
         
         if base_estimator is None:
             base_estimator = LogisticRegression(
@@ -164,7 +164,7 @@ class ClassifierPipeline:
             ].sort_values(by="uid")[FEATURE_COLS]
 
             # extract features for the pipeline
-            labels_to_stack.append(self._predict_sections(hearing))            
+            labels_to_stack.append(self._predict_sections(hearing))
 
         # TODO: Convert List[List[SectionEnum]] to np.ndarray of shape (n_)
-        return np.vstack(labels_to_stack)
+        return np.hstack(labels_to_stack)
