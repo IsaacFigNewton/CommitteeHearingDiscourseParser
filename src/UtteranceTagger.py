@@ -184,6 +184,9 @@ class UtteranceTagger(ITagger):
                         # Get the position name if available
                         if speaker.speaker_position:
                             position_name = speaker.speaker_position.name
+                            # Replace PUBLIC and EXPERT with NONLEGISLATOR
+                            if position_name in ["PUBLIC", "EXPERT"]:
+                                position_name = "NONLEGISLATOR"
                             replacements.append((ent.start_char, ent.end_char, position_name))
 
                 case "GPE":
@@ -228,6 +231,9 @@ class UtteranceTagger(ITagger):
                         # Get the position name if available
                         if speaker.speaker_position:
                             position_name = speaker.speaker_position.name
+                            # Replace PUBLIC and EXPERT with NONLEGISLATOR
+                            if position_name in ["PUBLIC", "EXPERT"]:
+                                position_name = "NONLEGISLATOR"
                             replacements.append((start_idx, end_idx, position_name))
 
         # Apply replacements in reverse order to maintain character positions
