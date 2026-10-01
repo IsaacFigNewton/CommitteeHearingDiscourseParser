@@ -4,11 +4,11 @@ from nltk.tree import Tree
 import numpy as np
 import pandas as pd
 
-from src.grammar.Grammar import Rule, GRAMMAR, SPEAKER_REACHABLE_SECTIONS
-from src.enums.SectionEnum import SectionEnum
-from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
-from src.dataclasses.Hearing import TaggedHearing
-from src.dataclasses.OralContribution import TaggedOralContribution
+from ..grammar.Grammar import Rule, GRAMMAR, SPEAKER_REACHABLE_SECTIONS
+from ..enums.SectionEnum import SectionEnum
+from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ..dataclasses.Hearing import TaggedHearing
+from ..dataclasses.OralContribution import TaggedOralContribution
 
 
 class MaskedSoftmaxHelper:

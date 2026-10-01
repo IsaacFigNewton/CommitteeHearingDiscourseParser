@@ -7,8 +7,8 @@ import unittest
 
 import numpy as np
 
-from src.classifier.Masker import Masker
-from src.enums.SectionEnum import SectionEnum
+from ch_discourse_parser.ch_discourse_parser.classifier.Masker import Masker
+from ch_discourse_parser.ch_discourse_parser.enums.SectionEnum import SectionEnum
 
 SECTIONS = list(SectionEnum)
 CLASSES = np.array([s.value for s in SECTIONS])

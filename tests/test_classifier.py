@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 
-from src.classifier.Classifier import Classifier
+from ch_discourse_parser.ch_discourse_parser.classifier.Classifier import Classifier
 
 
 def _mock_base_estimator(classes, proba):

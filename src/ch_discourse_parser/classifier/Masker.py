@@ -5,10 +5,10 @@ from typing import Any, Iterable, Optional, Sequence, Tuple, List
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-from src.enums.SectionEnum import SectionEnum
-from src.dataclasses.Hearing import TaggedHearing
-from src.grammar.Parser import Parser
-from src.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
+from ..enums.SectionEnum import SectionEnum
+from ..dataclasses.Hearing import TaggedHearing
+from ..grammar.Parser import Parser
+from ..classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
 
 
 class Masker(BaseEstimator, ClassifierMixin):
