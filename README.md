@@ -280,26 +280,40 @@ The system uses a hybrid approach combining machine learning and formal grammars
 
 4. **Prediction Smoothing**: Simple heuristic smoothing removes isolated section predictions
 
-## Dependencies
 
-The project requires the following Python packages:
+## Usage
 
-- **Core ML**: `scikit-learn`, `numpy`, `pandas`
-- **NLP**: `spacy` (with `en_core_web_sm` model), `nltk`
-- **Utilities**: `rapidfuzz` (fuzzy string matching)
+### Package installation
+The code in this repository, as well as its dependencies, can be installed with `pip install .`
 
-Install spaCy language model:
+Afterwards, be sure to also install spaCy language model:
 ```bash
 python -m spacy download en_core_web_sm
 ```
 
-## Usage
+### Loading and Tagging Hearings
+
+```python
+from ch_discourse_parser.HearingLoader import HearingLoader
+from ch_discourse_parser.HearingTagger import HearingTagger
+
+# Load hearing from CSV
+loader = HearingLoader()
+hearing = loader.load_hearing('path/to/hearing.csv')
+
+# Tag utterances with features
+tagger = HearingTagger()
+tagged_hearing = tagger(hearing)
+
+# Convert to DataFrame for classification
+df = HearingTagger._build_utterances_dataframe([tagged_hearing])
+```
 
 ### Training and Prediction
 
 ```python
-from src.ClassifierPipeline import ClassifierPipeline
-from src.HearingTagger import HearingTagger
+from ch_discourse_parser.ClassifierPipeline import ClassifierPipeline
+from ch_discourse_parser.HearingTagger import HearingTagger
 from sklearn.linear_model import LogisticRegression
 
 # Initialize pipeline
@@ -316,24 +330,6 @@ pipeline.fit(X_train, y_train)
 # Predict sections for new hearings
 # X must include columns: hearing_group, uid, and FEATURE_COLS
 predictions = pipeline.predict(X_test)
-```
-
-### Loading and Tagging Hearings
-
-```python
-from src.HearingLoader import HearingLoader
-from src.HearingTagger import HearingTagger
-
-# Load hearing from CSV
-loader = HearingLoader()
-hearing = loader.load_hearing('path/to/hearing.csv')
-
-# Tag utterances with features
-tagger = HearingTagger()
-tagged_hearing = tagger(hearing)
-
-# Convert to DataFrame for classification
-df = HearingTagger._build_utterances_dataframe([tagged_hearing])
 ```
 
 ### Running Tests
