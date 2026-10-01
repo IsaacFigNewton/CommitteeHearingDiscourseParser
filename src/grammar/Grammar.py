@@ -8,8 +8,8 @@ from ..speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 # base symbols
 class TOP(Enum):
     ROOT=                   "ROOT"
+    ROOT2=                  "ROOT2"
     START=                  "START"
-    START_MIDDLE=           "START_MIDDLE"
     UPPER_MIDDLE=           "UPPER_MIDDLE"
     MIDDLE=                 "MIDDLE"
     LOWER_MIDDLE=           "LOWER_MIDDLE"
@@ -54,8 +54,8 @@ Rule = Union[
 #   some rules included below for ambiguous positions in case they were missed
 GRAMMAR_TOP_EXPANSIONS = [
     # broad hearing structures
-    (TOP.ROOT,                          (TOP.START_MIDDLE, TOP.END)),
-    (TOP.START_MIDDLE,                  (TOP.START, TOP.MIDDLE)),
+    (TOP.ROOT,                          (TOP.ROOT2, TOP.END)),
+    (TOP.ROOT2,                  (TOP.START, TOP.MIDDLE)),
 
     # fallback for OTHER sections
     (SectionEnum.OTHER_PROCEDURAL,      (SectionEnum.OTHER_PROCEDURAL, SectionEnum.OTHER_PROCEDURAL)),
@@ -87,10 +87,10 @@ GRAMMAR_TOP_EXPANSIONS = [
     (TOP.UPPER_MIDDLE,                  (SectionEnum.EXPERT_TESTIMONY, SectionEnum.EXPERT_TESTIMONY)),
     # TOP.LOWER_MIDDLE
     (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, TOP.LOWER_MIDDLE)),
-    (TOP.UPPER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.PUBLIC_COMMENTS)),
-    (TOP.UPPER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.LEGISLATOR_DISCUSSION)),
+    (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.PUBLIC_COMMENTS)),
+    (TOP.LOWER_MIDDLE,                  (TOP.LOWER_MIDDLE, SectionEnum.LEGISLATOR_DISCUSSION)),
     # (TOP.UPPER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.LEGISLATOR_DISCUSSION)),
-    (TOP.UPPER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
+    (TOP.LOWER_MIDDLE,                  (SectionEnum.PUBLIC_COMMENTS, SectionEnum.PUBLIC_COMMENTS)),
 
     # TOP.END
     (TOP.END,                           (SectionEnum.CLOSING_REMARKS, SectionEnum.VOTE)),

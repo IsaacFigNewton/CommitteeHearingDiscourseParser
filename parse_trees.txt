@@ -134,40 +134,34 @@ Parse Tree (bracket notation):
       (PRESENTATION (COMMITTEE_MEMBER (COMMITTEE_MEMBER utt_0))))
     (MIDDLE
       (UPPER_MIDDLE
-        (UPPER_MIDDLE
+        (EXPERT_TESTIMONY (PRESIDING_CHAIR (PRESIDING_CHAIR utt_1)))
+        (EXPERT_TESTIMONY
+          (EXPERT_TESTIMONY (NONLEGISLATOR (NONLEGISLATOR utt_2)))
           (EXPERT_TESTIMONY
-            (PRESIDING_CHAIR (PRESIDING_CHAIR utt_1)))
-          (EXPERT_TESTIMONY (NONLEGISLATOR (NONLEGISLATOR utt_2))))
-        (UPPER_MIDDLE
-          (UPPER_MIDDLE
             (EXPERT_TESTIMONY
               (PRESIDING_CHAIR (PRESIDING_CHAIR utt_3)))
-            (EXPERT_TESTIMONY (NONLEGISLATOR (NONLEGISLATOR utt_4))))
-          (UPPER_MIDDLE
+            (EXPERT_TESTIMONY (NONLEGISLATOR (NONLEGISLATOR utt_4))))))
+      (LOWER_MIDDLE
+        (PUBLIC_COMMENTS (PRESIDING_CHAIR (PRESIDING_CHAIR utt_5)))
+        (PUBLIC_COMMENTS
+          (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_6)))
+          (PUBLIC_COMMENTS
+            (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_7)))
             (PUBLIC_COMMENTS
-              (PRESIDING_CHAIR (PRESIDING_CHAIR utt_5)))
-            (PUBLIC_COMMENTS
-              (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_6)))
+              (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_8)))
               (PUBLIC_COMMENTS
-                (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_7)))
+                (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_9)))
                 (PUBLIC_COMMENTS
-                  (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_8)))
+                  (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_10)))
                   (PUBLIC_COMMENTS
-                    (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_9)))
+                    (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_11)))
                     (PUBLIC_COMMENTS
-                      (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_10)))
+                      (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_12)))
                       (PUBLIC_COMMENTS
-                        (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_11)))
+                        (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_13)))
                         (PUBLIC_COMMENTS
-                          (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_12)))
-                          (PUBLIC_COMMENTS
-                            (PUBLIC_COMMENTS
-                              (PUBLIC (PUBLIC utt_13)))
-                            (PUBLIC_COMMENTS
-                              (PUBLIC_COMMENTS
-                                (PUBLIC (PUBLIC utt_14)))
-                              (PUBLIC_COMMENTS
-                                (PUBLIC (PUBLIC utt_15)))))))))))))))))
+                          (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_14)))
+                          (PUBLIC_COMMENTS (PUBLIC (PUBLIC utt_15)))))))))))))))
   (END
     (END
       (CLOSING_REMARKS (PRESIDING_CHAIR (PRESIDING_CHAIR utt_16)))
@@ -199,7 +193,7 @@ Parse Tree (bracket notation):
       (CLOSING_REMARKS
         (PRESIDING_CHAIR (PRESIDING_CHAIR utt_4))
         (BILL_AUTHOR (BILL_AUTHOR utt_5)))
-      (OTHER_NONPROCEDURAL
+      (CLOSING_REMARKS
         (PRESIDING_CHAIR (PRESIDING_CHAIR utt_6))
         (BILL_AUTHOR (BILL_AUTHOR utt_7))))))
 
