@@ -9,10 +9,10 @@ from unittest.mock import patch
 import numpy as np
 from nltk.tree import Tree
 
-from src.classifier import MaskedSoftmaxHelper as helper_module
-from src.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
-from src.enums.SectionEnum import SectionEnum
-from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ch_discourse_parser.ch_discourse_parser.classifier import MaskedSoftmaxHelper as helper_module
+from ch_discourse_parser.ch_discourse_parser.classifier.MaskedSoftmaxHelper import MaskedSoftmaxHelper
+from ch_discourse_parser.ch_discourse_parser.enums.SectionEnum import SectionEnum
+from ch_discourse_parser.ch_discourse_parser.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 SECTIONS = list(SectionEnum)
 SPEAKERS = list(SpeakerPositionEnum)

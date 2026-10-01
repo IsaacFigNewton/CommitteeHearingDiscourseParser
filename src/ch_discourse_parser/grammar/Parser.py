@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 from collections import defaultdict
 from nltk.tree import Tree
 
-from src.grammar.ParseNode import ParseNode
+from ..grammar.ParseNode import ParseNode
 from ..dataclasses.Hearing import TaggedHearing
 from .Grammar import GRAMMAR, SpeakerPositionEnum, TOP
 

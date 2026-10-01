@@ -18,13 +18,13 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
-from src import ClassifierPipeline as pipeline_module
-from src.ClassifierPipeline import ClassifierPipeline
-from src.classifier.Classifier import Classifier
-from src.classifier.Masker import Masker
-from src.constants.constants import FEATURE_COLS, NUM_COLS, TEXT_COL, TOKEN_COL
-from src.enums.SectionEnum import SectionEnum
-from src.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
+from ch_discourse_parser import ClassifierPipeline as pipeline_module
+from ch_discourse_parser.ch_discourse_parser.ClassifierPipeline import ClassifierPipeline
+from ch_discourse_parser.ch_discourse_parser.classifier.Classifier import Classifier
+from ch_discourse_parser.ch_discourse_parser.classifier.Masker import Masker
+from ch_discourse_parser.ch_discourse_parser.constants.constants import FEATURE_COLS, NUM_COLS, TEXT_COL, TOKEN_COL
+from ch_discourse_parser.ch_discourse_parser.enums.SectionEnum import SectionEnum
+from ch_discourse_parser.ch_discourse_parser.speakers.enums.SpeakerPositionEnum import SpeakerPositionEnum
 
 SECTIONS = list(SectionEnum)
 SPEAKERS = list(SpeakerPositionEnum)
