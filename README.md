@@ -358,4 +358,4 @@ There are numerous transcription errors throughout the dataset. These include (i
 In particular, utterance 4 for hearing `52708` on bill `CA_201720180AB10` has almost all utterances concatenated into it, rendering any interpretation inaccurate.
 
 # Citation
-Rudnick, Isaac and Das, Nipun and Khosmood, Foaad, Discourse Analysis of Legislative Bill Discussions (June 30, 2026). Available at SSRN: https://ssrn.com/abstract=7213239 or http://dx.doi.org/10.2139/ssrn.7213239
+Rudnick, Isaac and Das, Nipun and Khosmood, Foaad, Discourse Analysis of Legislative Bill Discussions (June 30, 2026). Available at SSRN: https://ssrn.com/abstract=7213239
